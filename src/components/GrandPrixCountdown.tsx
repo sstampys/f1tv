@@ -72,13 +72,13 @@ export function GrandPrixCountdown() {
   });
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-8">
       {/* Country Flag */}
       {meeting.country_flag && (
         <img
           src={meeting.country_flag}
           alt={meeting.country_name}
-          className="w-32 h-32 rounded-full mb-8 object-cover shadow-2xl"
+          className="w-48 h-32 mb-8 object-cover shadow-2xl"
         />
       )}
 
