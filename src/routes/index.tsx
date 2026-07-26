@@ -29,20 +29,36 @@ type Category = {
   streams: Stream[];
 };
 
+function isF1(s: Stream) {
+  const hay = `${s.category_name} ${s.name}`.toLowerCase();
+  return (
+    /\bf1\b|formula\s*1|grand\s*prix|motorsport/.test(hay)
+  );
+}
+
 async function fetchF1Stream(): Promise<Stream | null> {
   const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
   const data = await res.json();
   const cats: Category[] = data?.streams ?? [];
   const now = Math.floor(Date.now() / 1000);
-  const all = cats.flatMap((c) => c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })));
-  const f1 = all.filter((s) => /formula\s*1|f1/i.test(`${s.category_name} ${s.name}`));
+  const all = cats.flatMap((c) =>
+    c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
+  );
+  const f1 = all.filter(isF1);
   const live = f1.find((s) => s.always_live === 1 || (s.starts_at <= now && s.ends_at >= now));
   return live ?? f1[0] ?? null;
 }
 
+function extractIframeSrc(iframe?: string): string | null {
+  if (!iframe) return null;
+  const m = iframe.match(/src=["']([^"']+)["']/i);
+  if (m) return m[1];
+  if (/^https?:\/\//i.test(iframe)) return iframe;
+  return null;
+}
+
 function Index() {
   const [stream, setStream] = useState<Stream | null>(null);
-  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -51,10 +67,9 @@ function Index() {
         const s = await fetchF1Stream();
         if (!cancelled) {
           setStream((prev) => (prev && s && prev.id === s.id ? prev : s));
-          setLoaded(true);
         }
       } catch {
-        if (!cancelled) setLoaded(true);
+        /* ignore */
       }
     };
     load();
@@ -65,11 +80,13 @@ function Index() {
     };
   }, []);
 
-  const iframeSrc = stream ? `https://ppv.st/live/${stream.uri_name}` : null;
+  const iframeSrc =
+    extractIframeSrc(stream?.iframe) ??
+    (stream ? `https://ppv.st/live/${stream.uri_name}` : null);
 
   return (
     <div style={{ backgroundColor: "#000", minHeight: "100vh", width: "100%", margin: 0, padding: 0 }}>
-      {iframeSrc ? (
+      {iframeSrc && (
         <iframe
           key={iframeSrc}
           src={iframeSrc}
@@ -78,21 +95,6 @@ function Index() {
           allowFullScreen
           style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", border: "none", background: "#000" }}
         />
-      ) : (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#111",
-            fontFamily: "system-ui, sans-serif",
-            fontSize: 12,
-          }}
-        >
-          {loaded ? "" : ""}
-        </div>
       )}
     </div>
   );
