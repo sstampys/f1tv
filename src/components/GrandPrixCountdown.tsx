@@ -156,22 +156,22 @@ export function GrandPrixCountdown() {
             </div>
           </div>
 
-          {/* Right Side Info */}
-          <div className="md:col-span-2 space-y-4">
+          {/* Right Side Info - Flat Layout */}
+          <div className="md:col-span-2 flex flex-col md:flex-row gap-4">
             {/* Circuit */}
-            <div>
+            <div className="flex-1">
               <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Circuit</p>
               <p className="f1-font text-sm text-white font-light">{meeting.circuit_short_name}</p>
             </div>
 
             {/* Date */}
-            <div>
+            <div className="flex-1">
               <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
               <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
             </div>
 
             {/* Time */}
-            <div>
+            <div className="flex-1">
               <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
               <p className="f1-font text-sm text-white font-light">
                 {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
