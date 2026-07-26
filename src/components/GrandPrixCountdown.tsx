@@ -78,7 +78,7 @@ export function GrandPrixCountdown() {
   });
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black px-4 py-6">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Formula1:wght@400;700&display=swap');
         
@@ -87,98 +87,95 @@ export function GrandPrixCountdown() {
         }
       `}</style>
 
-      <div className="flex w-full max-w-6xl gap-8 items-center">
-        {/* Left - Flag */}
+      <div className="w-full max-w-6xl">
+        {/* Top - Small Flag */}
         {meeting.country_flag && (
-          <div className="hidden md:flex flex-shrink-0">
+          <div className="mb-6 flex justify-center md:justify-start">
             <img
               src={meeting.country_flag}
               alt={meeting.country_name}
-              className="w-64 h-96 object-cover rounded-3xl"
+              className="w-32 h-20 object-cover rounded-lg"
             />
           </div>
         )}
 
-        {/* Right - Content */}
-        <div className="flex-1">
-          {/* Gradient Title */}
-          <div className="mb-8">
-            <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-3">
-              {meeting.meeting_name}
-            </h1>
+        {/* Gradient Title */}
+        <div className="mb-8">
+          <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-3">
+            {meeting.meeting_name}
+          </h1>
 
-            {/* Official Name */}
-            {meeting.meeting_official_name && (
-              <p className="f1-font text-xs text-gray-500 font-light tracking-wide line-clamp-2">
-                {meeting.meeting_official_name}
-              </p>
-            )}
-          </div>
+          {/* Official Name */}
+          {meeting.meeting_official_name && (
+            <p className="f1-font text-xs text-gray-500 font-light tracking-wide line-clamp-2">
+              {meeting.meeting_official_name}
+            </p>
+          )}
+        </div>
 
-          {/* Divider */}
-          <div className="h-px bg-gray-900 mb-8" />
+        {/* Divider */}
+        <div className="h-px bg-gray-900 mb-8" />
 
-          {/* Main Content - Left to Right */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Countdown Section */}
-            <div className="md:col-span-2">
-              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
-              <div className="grid grid-cols-4 gap-2">
-                {/* Days */}
-                <div className="flex flex-col items-center">
-                  <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                    {String(countdown.days).padStart(2, "0")}
-                  </span>
-                  <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">D</span>
-                </div>
+        {/* Main Content - Left to Right */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          {/* Countdown Section */}
+          <div className="md:col-span-2">
+            <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
+            <div className="grid grid-cols-4 gap-2">
+              {/* Days */}
+              <div className="flex flex-col items-center">
+                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
+                  {String(countdown.days).padStart(2, "0")}
+                </span>
+                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">D</span>
+              </div>
 
-                {/* Hours */}
-                <div className="flex flex-col items-center">
-                  <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                    {String(countdown.hours).padStart(2, "0")}
-                  </span>
-                  <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">H</span>
-                </div>
+              {/* Hours */}
+              <div className="flex flex-col items-center">
+                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
+                  {String(countdown.hours).padStart(2, "0")}
+                </span>
+                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">H</span>
+              </div>
 
-                {/* Minutes */}
-                <div className="flex flex-col items-center">
-                  <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                    {String(countdown.minutes).padStart(2, "0")}
-                  </span>
-                  <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">M</span>
-                </div>
+              {/* Minutes */}
+              <div className="flex flex-col items-center">
+                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
+                  {String(countdown.minutes).padStart(2, "0")}
+                </span>
+                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">M</span>
+              </div>
 
-                {/* Seconds */}
-                <div className="flex flex-col items-center">
-                  <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                    {String(countdown.seconds).padStart(2, "0")}
-                  </span>
-                  <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">S</span>
-                </div>
+              {/* Seconds */}
+              <div className="flex flex-col items-center">
+                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
+                  {String(countdown.seconds).padStart(2, "0")}
+                </span>
+                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">S</span>
               </div>
             </div>
+          </div>
 
-            {/* Right Side Info */}
-            <div className="md:col-span-2 space-y-4">
-              {/* Circuit */}
-              <div>
-                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Circuit</p>
-                <p className="f1-font text-sm text-white font-light">{meeting.circuit_short_name}</p>
-              </div>
+          {/* Right Side Info */}
+          <div className="md:col-span-2 space-y-4">
+            {/* Circuit */}
+            <div>
+              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Circuit</p>
+              <p className="f1-font text-sm text-white font-light">{meeting.circuit_short_name}</p>
+            </div>
 
-              {/* Date */}
-              <div>
-                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
-                <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
-              </div>
+            {/* Date */}
+            <div>
+              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
+              <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
+            </div>
 
-              {/* Time */}
-              <div>
-                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
-                <p className="f1-font text-sm text-white font-light">
-                  {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
-                </p>
-              </div>
+            {/* Time */}
+            <div>
+              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
+              <p className="f1-font text-sm text-white font-light">
+                {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
+              </p>
             </div>
           </div>
         </div>
