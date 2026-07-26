@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "f1 racing" },
+      { title: "F1TV" },
       { name: "description", content: "Live Formula 1 Stream" },
-      { property: "og:title", content: "f1 racing" },
+      { property: "og:title", content: "F1TV" },
       { property: "og:description", content: "Live Formula 1 Stream" },
     ],
   }),
@@ -85,6 +86,7 @@ function resolveIframeSrc(stream: Stream | null): string | null {
 
 function Index() {
   const [stream, setStream] = useState<Stream | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,9 +95,10 @@ function Index() {
         const s = await fetchF1Stream();
         if (!cancelled) {
           setStream((prev) => (prev && s && prev.id === s.id ? prev : s));
+          setLoading(false);
         }
       } catch {
-        /* ignore */
+        setLoading(false);
       }
     };
     load();
@@ -108,6 +111,10 @@ function Index() {
 
   const iframeSrc = resolveIframeSrc(stream);
 
+  // Show countdown when no stream is available
+  if (!loading && !iframeSrc) {
+    return <GrandPrixCountdown />;
+  }
 
   return (
     <div style={{ backgroundColor: "#000", minHeight: "100vh", width: "100%", margin: 0, padding: 0 }}>
@@ -120,6 +127,11 @@ function Index() {
           allowFullScreen
           style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", border: "none", background: "#000" }}
         />
+      )}
+      {loading && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#fff" }}>
+          Loading stream...
+        </div>
       )}
     </div>
   );
