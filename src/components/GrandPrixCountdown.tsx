@@ -79,31 +79,36 @@ export function GrandPrixCountdown() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
-      {/* Country Flag */}
-      {meeting.country_flag && (
-        <div className="mb-6">
-          <img
-            src={meeting.country_flag}
-            alt={meeting.country_name}
-            className="w-40 h-24 object-cover rounded-2xl"
-          />
+      {/* Header with Flag Background and Gradient Title */}
+      <div className="relative w-full max-w-4xl mb-8">
+        {/* Flag Background */}
+        {meeting.country_flag && (
+          <div className="absolute inset-0 opacity-10 rounded-3xl overflow-hidden">
+            <img
+              src={meeting.country_flag}
+              alt={meeting.country_name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
+        {/* Gradient Text Overlay */}
+        <div className="relative z-10 text-center py-12">
+          <h1 className="text-5xl md:text-6xl font-light tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            {meeting.meeting_name}
+          </h1>
+
+          {/* Official Name */}
+          {meeting.meeting_official_name && (
+            <p className="text-xs text-gray-500 mt-4 font-light tracking-wide line-clamp-2">
+              {meeting.meeting_official_name}
+            </p>
+          )}
         </div>
-      )}
-
-      {/* Race Title */}
-      <h1 className="text-4xl md:text-5xl font-light text-white mb-1 tracking-tight text-center">
-        {meeting.meeting_name}
-      </h1>
-
-      {/* Official Name */}
-      {meeting.meeting_official_name && (
-        <p className="text-xs text-gray-500 mb-6 font-light tracking-wide text-center line-clamp-2">
-          {meeting.meeting_official_name}
-        </p>
-      )}
+      </div>
 
       {/* Divider */}
-      <div className="h-px bg-gray-900 mb-6 w-full max-w-4xl" />
+      <div className="h-px bg-gray-900 mb-8 w-full max-w-4xl" />
 
       {/* Main Content - Left to Right */}
       <div className="w-full max-w-4xl">
