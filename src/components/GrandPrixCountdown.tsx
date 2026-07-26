@@ -77,6 +77,9 @@ export function GrandPrixCountdown() {
     hour12: true,
   });
 
+  const raceYear = raceDate.getFullYear();
+  const titleText = `FORMULA 1 ${raceYear} ${meeting.circuit_short_name}`;
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
       <style>{`
@@ -102,7 +105,7 @@ export function GrandPrixCountdown() {
         {/* Gradient Title */}
         <div className="mb-8">
           <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-3">
-            {meeting.meeting_name}
+            {titleText}
           </h1>
 
           {/* Official Name */}
@@ -121,7 +124,7 @@ export function GrandPrixCountdown() {
           {/* Countdown Section */}
           <div className="md:col-span-2">
             <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-2 mb-8">
               {/* Days */}
               <div className="flex flex-col items-center">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
@@ -154,30 +157,27 @@ export function GrandPrixCountdown() {
                 <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">S</span>
               </div>
             </div>
-          </div>
 
-          {/* Right Side Info - Flat Layout */}
-          <div className="md:col-span-2 flex flex-col md:flex-row gap-4">
-            {/* Circuit */}
-            <div className="flex-1">
-              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Circuit</p>
-              <p className="f1-font text-sm text-white font-light">{meeting.circuit_short_name}</p>
-            </div>
+            {/* Date and Time Below Countdown */}
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Date */}
+              <div className="flex-1">
+                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
+                <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
+              </div>
 
-            {/* Date */}
-            <div className="flex-1">
-              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
-              <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
-            </div>
-
-            {/* Time */}
-            <div className="flex-1">
-              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
-              <p className="f1-font text-sm text-white font-light">
-                {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
-              </p>
+              {/* Time */}
+              <div className="flex-1">
+                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
+                <p className="f1-font text-sm text-white font-light">
+                  {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* Right Side - Empty for now */}
+          <div className="md:col-span-2"></div>
         </div>
       </div>
     </div>
