@@ -72,7 +72,7 @@ export function GrandPrixCountdown() {
   });
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-gray-900 to-black px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4">
       {/* Country Flag */}
       {meeting.country_flag && (
         <img
@@ -96,18 +96,18 @@ export function GrandPrixCountdown() {
 
       {/* Location and Circuit Info */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-12 w-full max-w-md">
-        <div className="bg-red-900 bg-opacity-50 rounded-lg p-4 text-center">
-          <p className="text-gray-300 text-sm mb-1">Location</p>
+        <div className="bg-gray-900 rounded-lg p-4 text-center border border-gray-800">
+          <p className="text-gray-400 text-sm mb-1">Location</p>
           <p className="text-white font-semibold">{meeting.location}</p>
         </div>
 
-        <div className="bg-red-900 bg-opacity-50 rounded-lg p-4 text-center">
-          <p className="text-gray-300 text-sm mb-1">Circuit</p>
+        <div className="bg-gray-900 rounded-lg p-4 text-center border border-gray-800">
+          <p className="text-gray-400 text-sm mb-1">Circuit</p>
           <p className="text-white font-semibold">{meeting.circuit_short_name}</p>
         </div>
 
-        <div className="bg-red-900 bg-opacity-50 rounded-lg p-4 text-center">
-          <p className="text-gray-300 text-sm mb-1">Type</p>
+        <div className="bg-gray-900 rounded-lg p-4 text-center border border-gray-800">
+          <p className="text-gray-400 text-sm mb-1">Type</p>
           <p className="text-white font-semibold text-sm">{meeting.circuit_type}</p>
         </div>
       </div>
@@ -117,28 +117,28 @@ export function GrandPrixCountdown() {
         <p className="text-gray-400 text-center mb-6 text-lg">Time Until Race</p>
         <div className="grid grid-cols-4 gap-4">
           <div className="flex flex-col items-center">
-            <div className="bg-red-600 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center">
+            <div className="bg-gray-900 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center border border-gray-700">
               {String(countdown.days).padStart(2, "0")}
             </div>
             <p className="text-gray-400 mt-2 text-sm">Days</p>
           </div>
 
           <div className="flex flex-col items-center">
-            <div className="bg-red-600 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center">
+            <div className="bg-gray-900 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center border border-gray-700">
               {String(countdown.hours).padStart(2, "0")}
             </div>
             <p className="text-gray-400 mt-2 text-sm">Hours</p>
           </div>
 
           <div className="flex flex-col items-center">
-            <div className="bg-red-600 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center">
+            <div className="bg-gray-900 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center border border-gray-700">
               {String(countdown.minutes).padStart(2, "0")}
             </div>
             <p className="text-gray-400 mt-2 text-sm">Minutes</p>
           </div>
 
           <div className="flex flex-col items-center">
-            <div className="bg-red-600 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center">
+            <div className="bg-gray-900 text-white text-4xl md:text-5xl font-bold rounded-lg p-6 md:p-8 w-24 md:w-28 h-24 md:h-28 flex items-center justify-center border border-gray-700">
               {String(countdown.seconds).padStart(2, "0")}
             </div>
             <p className="text-gray-400 mt-2 text-sm">Seconds</p>
