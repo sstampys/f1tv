@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "F1 Live" },
-      { name: "description", content: "Live Formula 1 stream, auto-updating." },
-      { property: "og:title", content: "F1 Live" },
-      { property: "og:description", content: "Live Formula 1 stream, auto-updating." },
+      { title: "f1 racing" },
+      { name: "description", content: "Live Formula 1 Stream" },
+      { property: "og:title", content: "f1 racing" },
+      { property: "og:description", content: "Live Formula 1 Stream" },
     ],
   }),
   component: Index,
