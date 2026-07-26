@@ -13,11 +13,20 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
+type Substream = {
+  source_tag?: string;
+  tag?: string;
+  iframe?: string;
+};
+
 type Stream = {
   id: number;
   name: string;
   uri_name: string;
   iframe?: string;
+  tag?: string;
+  source_tag?: string;
+  substreams?: Substream[];
   category_name: string;
   always_live: number;
   starts_at: number;
@@ -31,9 +40,12 @@ type Category = {
 
 function isF1(s: Stream) {
   const hay = `${s.category_name} ${s.name}`.toLowerCase();
-  return (
-    /\bf1\b|formula\s*1|grand\s*prix|motorsport/.test(hay)
-  );
+  return /\bf1\b|formula\s*1|grand\s*prix|motorsport/.test(hay);
+}
+
+function isAppleTv(x: { source_tag?: string; tag?: string }) {
+  const hay = `${x.source_tag ?? ""} ${x.tag ?? ""}`.toLowerCase();
+  return /apple\s*tv|appletv|\batv\b/.test(hay);
 }
 
 async function fetchF1Stream(): Promise<Stream | null> {
@@ -55,6 +67,20 @@ function extractIframeSrc(iframe?: string): string | null {
   if (m) return m[1];
   if (/^https?:\/\//i.test(iframe)) return iframe;
   return null;
+}
+
+function resolveIframeSrc(stream: Stream | null): string | null {
+  if (!stream) return null;
+  const candidates: Array<{ source_tag?: string; tag?: string; iframe?: string }> = [
+    { source_tag: stream.source_tag, tag: stream.tag, iframe: stream.iframe },
+    ...(stream.substreams ?? []),
+  ];
+  const apple = candidates.find((c) => isAppleTv(c) && c.iframe);
+  const chosen = apple ?? candidates.find((c) => c.iframe);
+  return (
+    extractIframeSrc(chosen?.iframe) ??
+    `https://ppv.st/live/${stream.uri_name}`
+  );
 }
 
 function Index() {
@@ -80,9 +106,8 @@ function Index() {
     };
   }, []);
 
-  const iframeSrc =
-    extractIframeSrc(stream?.iframe) ??
-    (stream ? `https://ppv.st/live/${stream.uri_name}` : null);
+  const iframeSrc = resolveIframeSrc(stream);
+
 
   return (
     <div style={{ backgroundColor: "#000", minHeight: "100vh", width: "100%", margin: 0, padding: 0 }}>
