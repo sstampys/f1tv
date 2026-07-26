@@ -78,7 +78,7 @@ export function GrandPrixCountdown() {
   });
 
   const raceYear = raceDate.getFullYear();
-  const titleText = `FORMULA 1 ${raceYear} ${meeting.circuit_short_name}`;
+  const subheaderText = `FORMULA 1 ${raceYear} ${meeting.circuit_short_name}`;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
@@ -105,15 +105,13 @@ export function GrandPrixCountdown() {
         {/* Gradient Title */}
         <div className="mb-8">
           <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-3">
-            {titleText}
+            {meeting.meeting_name}
           </h1>
 
-          {/* Official Name */}
-          {meeting.meeting_official_name && (
-            <p className="f1-font text-xs text-gray-500 font-light tracking-wide line-clamp-2">
-              {meeting.meeting_official_name}
-            </p>
-          )}
+          {/* Official Name / Subheader */}
+          <p className="f1-font text-xs text-gray-500 font-light tracking-wide line-clamp-2">
+            {subheaderText}
+          </p>
         </div>
 
         {/* Divider */}
