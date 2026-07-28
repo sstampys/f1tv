@@ -37,7 +37,7 @@ function extractFlagColors(img: HTMLImageElement): string[] {
 }
 
 export function GrandPrixCountdown() {
-  const [meeting, setMeeting] = useState<Meeting | null>(null);
+  const [session, setSession] = useState<NextSession | null>(null);
   const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
   const [gradient, setGradient] = useState<string>("linear-gradient(to right, #60a5fa, #a855f7, #ec4899)");
@@ -45,22 +45,22 @@ export function GrandPrixCountdown() {
 
   useEffect(() => {
     (async () => {
-      const nextRace = await getNextGrandPrix();
-      setMeeting(nextRace);
+      const next = await getNextSession();
+      setSession(next);
       setLoading(false);
     })();
   }, []);
 
   useEffect(() => {
-    if (!meeting) return;
+    if (!session) return;
     const update = () => {
-      const t = calculateTimeUntilRace(meeting.date_start);
+      const t = calculateTimeUntilRace(session.date_start);
       setCountdown({ days: t.days, hours: t.hours, minutes: t.minutes, seconds: t.seconds });
     };
     update();
     const i = setInterval(update, 1000);
     return () => clearInterval(i);
-  }, [meeting]);
+  }, [session]);
 
   const handleFlagLoad = () => {
     if (!flagRef.current) return;
