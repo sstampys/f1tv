@@ -78,7 +78,7 @@ export function GrandPrixCountdown() {
   });
 
   const raceYear = String(raceDate.getFullYear()).slice(-2);
-  const subheaderText = `FORMULA 1 ${raceYear}' ${meeting.circuit_short_name}`;
+  const subheaderText = `F1 ${raceYear}' ${meeting.circuit_short_name}`;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
