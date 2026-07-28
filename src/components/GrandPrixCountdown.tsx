@@ -166,8 +166,8 @@ export function GrandPrixCountdown() {
               <p className="f1-font text-sm text-white font-light">{formattedTime}</p>
             </div>
           </div>
-          </div>
         </div>
+      </div>
       </div>
     </div>
   );
