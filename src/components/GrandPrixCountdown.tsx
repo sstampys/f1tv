@@ -93,7 +93,7 @@ export function GrandPrixCountdown() {
       <div className="w-full max-w-6xl">
         {/* Top - Small Flag */}
         {meeting.country_flag && (
-          <div className="mb-6 flex justify-center md:justify-start">
+          <div className="mb-6 flex justify-start">
             <img
               src={meeting.country_flag}
               alt={meeting.country_name}
