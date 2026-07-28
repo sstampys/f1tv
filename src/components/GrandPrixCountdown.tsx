@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getNextGrandPrix, calculateTimeUntilRace, type Meeting } from "../lib/f1-api";
+import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
 
 interface CountdownTime {
   days: number;
@@ -37,7 +37,7 @@ function extractFlagColors(img: HTMLImageElement): string[] {
 }
 
 export function GrandPrixCountdown() {
-  const [meeting, setMeeting] = useState<Meeting | null>(null);
+  const [session, setSession] = useState<NextSession | null>(null);
   const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
   const [gradient, setGradient] = useState<string>("linear-gradient(to right, #60a5fa, #a855f7, #ec4899)");
@@ -45,22 +45,22 @@ export function GrandPrixCountdown() {
 
   useEffect(() => {
     (async () => {
-      const nextRace = await getNextGrandPrix();
-      setMeeting(nextRace);
+      const next = await getNextSession();
+      setSession(next);
       setLoading(false);
     })();
   }, []);
 
   useEffect(() => {
-    if (!meeting) return;
+    if (!session) return;
     const update = () => {
-      const t = calculateTimeUntilRace(meeting.date_start);
+      const t = calculateTimeUntilRace(session.date_start);
       setCountdown({ days: t.days, hours: t.hours, minutes: t.minutes, seconds: t.seconds });
     };
     update();
     const i = setInterval(update, 1000);
     return () => clearInterval(i);
-  }, [meeting]);
+  }, [session]);
 
   const handleFlagLoad = () => {
     if (!flagRef.current) return;
@@ -80,7 +80,7 @@ export function GrandPrixCountdown() {
     );
   }
 
-  if (!meeting) {
+  if (!session) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="text-gray-500 text-sm">No upcoming races</div>
@@ -88,14 +88,15 @@ export function GrandPrixCountdown() {
     );
   }
 
-  const raceDate = new Date(meeting.date_start);
+  const raceDate = new Date(session.date_start);
   const formattedDate = raceDate.toLocaleDateString("en-US", {
     weekday: "short", year: "numeric", month: "short", day: "numeric",
   });
   const formattedTime = raceDate.toLocaleTimeString("en-US", {
     hour: "2-digit", minute: "2-digit", hour12: true,
   });
-  const subheaderText = `${meeting.circuit_short_name} Circuit`;
+  const title = `${session.country_name} ${session.session_name}`;
+  const subheaderText = `${session.circuit_short_name} Circuit`;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
@@ -106,12 +107,12 @@ export function GrandPrixCountdown() {
 
       <div className="w-full max-w-6xl flex flex-col items-center text-center">
         {/* Flag */}
-        {meeting.country_flag && (
+        {session.country_flag && (
           <div className="mb-6">
             <img
               ref={flagRef}
-              src={meeting.country_flag}
-              alt={meeting.country_name}
+              src={session.country_flag}
+              alt={session.country_name}
               crossOrigin="anonymous"
               onLoad={handleFlagLoad}
               className="w-32 h-20 object-cover rounded-lg"
@@ -125,7 +126,7 @@ export function GrandPrixCountdown() {
             className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent mb-3"
             style={{ backgroundImage: gradient }}
           >
-            {meeting.meeting_name}
+            {title}
           </h1>
           <p className="f1-font text-xs text-gray-500 font-light tracking-wide line-clamp-2">
             {subheaderText}
@@ -162,9 +163,7 @@ export function GrandPrixCountdown() {
             </div>
             <div className="flex-1">
               <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
-              <p className="f1-font text-sm text-white font-light">
-                {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
-              </p>
+              <p className="f1-font text-sm text-white font-light">{formattedTime}</p>
             </div>
           </div>
         </div>
