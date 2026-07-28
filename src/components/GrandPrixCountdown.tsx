@@ -124,7 +124,7 @@ export function GrandPrixCountdown() {
             <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
             <div className="grid grid-cols-4 gap-2 mb-8">
               {/* Days */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.days).padStart(2, "0")}
                 </span>
@@ -132,7 +132,7 @@ export function GrandPrixCountdown() {
               </div>
 
               {/* Hours */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.hours).padStart(2, "0")}
                 </span>
@@ -140,7 +140,7 @@ export function GrandPrixCountdown() {
               </div>
 
               {/* Minutes */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.minutes).padStart(2, "0")}
                 </span>
@@ -148,7 +148,7 @@ export function GrandPrixCountdown() {
               </div>
 
               {/* Seconds */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.seconds).padStart(2, "0")}
                 </span>
