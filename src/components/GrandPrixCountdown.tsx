@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { getNextGrandPrix, calculateTimeUntilRace, type Meeting } from "../lib/f1-api";
+import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
 
 interface CountdownTime {
   days: number;
