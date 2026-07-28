@@ -95,8 +95,7 @@ export function GrandPrixCountdown() {
   const formattedTime = raceDate.toLocaleTimeString("en-US", {
     hour: "2-digit", minute: "2-digit", hour12: true,
   });
-  const raceYear = String(raceDate.getFullYear()).slice(-2);
-  const subheaderText = `F1 ${raceYear}' ${meeting.circuit_short_name}`;
+  const subheaderText = `${meeting.circuit_short_name} Circuit`;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
