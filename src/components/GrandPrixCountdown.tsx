@@ -78,7 +78,7 @@ export function GrandPrixCountdown() {
   });
 
   const raceYear = String(raceDate.getFullYear()).slice(-2);
-  const subheaderText = `FORMULA 1 ${raceYear}' ${meeting.circuit_short_name}`;
+  const subheaderText = `F1 ${raceYear}' ${meeting.circuit_short_name}`;
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
@@ -93,7 +93,7 @@ export function GrandPrixCountdown() {
       <div className="w-full max-w-6xl">
         {/* Top - Small Flag */}
         {meeting.country_flag && (
-          <div className="mb-6 flex justify-center md:justify-start">
+          <div className="mb-6 flex justify-start">
             <img
               src={meeting.country_flag}
               alt={meeting.country_name}
@@ -124,7 +124,7 @@ export function GrandPrixCountdown() {
             <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
             <div className="grid grid-cols-4 gap-2 mb-8">
               {/* Days */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.days).padStart(2, "0")}
                 </span>
@@ -132,7 +132,7 @@ export function GrandPrixCountdown() {
               </div>
 
               {/* Hours */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.hours).padStart(2, "0")}
                 </span>
@@ -140,7 +140,7 @@ export function GrandPrixCountdown() {
               </div>
 
               {/* Minutes */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.minutes).padStart(2, "0")}
                 </span>
@@ -148,7 +148,7 @@ export function GrandPrixCountdown() {
               </div>
 
               {/* Seconds */}
-              <div className="flex flex-col items-center">
+              <div className="flex flex-col items-start">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                   {String(countdown.seconds).padStart(2, "0")}
                 </span>
