@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getNextGrandPrix, calculateTimeUntilRace, type Meeting } from "../lib/f1-api";
 
 interface CountdownTime {
@@ -8,44 +8,69 @@ interface CountdownTime {
   seconds: number;
 }
 
+function extractFlagColors(img: HTMLImageElement): string[] {
+  const canvas = document.createElement("canvas");
+  const w = (canvas.width = 32);
+  const h = (canvas.height = 20);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return [];
+  try {
+    ctx.drawImage(img, 0, 0, w, h);
+    const { data } = ctx.getImageData(0, 0, w, h);
+    const buckets = new Map<string, { r: number; g: number; b: number; n: number }>();
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
+      if (a < 200) continue;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      if (max - min < 25 && max > 220) continue; // skip near-white
+      if (max < 30) continue; // skip near-black
+      const key = `${r >> 5}-${g >> 5}-${b >> 5}`;
+      const prev = buckets.get(key) ?? { r: 0, g: 0, b: 0, n: 0 };
+      prev.r += r; prev.g += g; prev.b += b; prev.n += 1;
+      buckets.set(key, prev);
+    }
+    const sorted = [...buckets.values()].sort((a, b) => b.n - a.n).slice(0, 3);
+    return sorted.map((c) => `rgb(${Math.round(c.r / c.n)}, ${Math.round(c.g / c.n)}, ${Math.round(c.b / c.n)})`);
+  } catch {
+    return [];
+  }
+}
+
 export function GrandPrixCountdown() {
   const [meeting, setMeeting] = useState<Meeting | null>(null);
-  const [countdown, setCountdown] = useState<CountdownTime>({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
+  const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
+  const [gradient, setGradient] = useState<string>("linear-gradient(to right, #60a5fa, #a855f7, #ec4899)");
+  const flagRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    const fetchMeeting = async () => {
+    (async () => {
       const nextRace = await getNextGrandPrix();
       setMeeting(nextRace);
       setLoading(false);
-    };
-
-    fetchMeeting();
+    })();
   }, []);
 
   useEffect(() => {
     if (!meeting) return;
-
-    const updateCountdown = () => {
-      const time = calculateTimeUntilRace(meeting.date_start);
-      setCountdown({
-        days: time.days,
-        hours: time.hours,
-        minutes: time.minutes,
-        seconds: time.seconds,
-      });
+    const update = () => {
+      const t = calculateTimeUntilRace(meeting.date_start);
+      setCountdown({ days: t.days, hours: t.hours, minutes: t.minutes, seconds: t.seconds });
     };
-
-    updateCountdown();
-    const interval = setInterval(updateCountdown, 1000);
-
-    return () => clearInterval(interval);
+    update();
+    const i = setInterval(update, 1000);
+    return () => clearInterval(i);
   }, [meeting]);
+
+  const handleFlagLoad = () => {
+    if (!flagRef.current) return;
+    const colors = extractFlagColors(flagRef.current);
+    if (colors.length >= 2) {
+      setGradient(`linear-gradient(to right, ${colors.join(", ")})`);
+    } else if (colors.length === 1) {
+      setGradient(`linear-gradient(to right, ${colors[0]}, ${colors[0]})`);
+    }
+  };
 
   if (loading) {
     return (
@@ -65,18 +90,11 @@ export function GrandPrixCountdown() {
 
   const raceDate = new Date(meeting.date_start);
   const formattedDate = raceDate.toLocaleDateString("en-US", {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
+    weekday: "short", year: "numeric", month: "short", day: "numeric",
   });
-
   const formattedTime = raceDate.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
+    hour: "2-digit", minute: "2-digit", hour12: true,
   });
-
   const raceYear = String(raceDate.getFullYear()).slice(-2);
   const subheaderText = `F1 ${raceYear}' ${meeting.circuit_short_name}`;
 
@@ -84,19 +102,19 @@ export function GrandPrixCountdown() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Formula1:wght@400;700&display=swap');
-        
-        .f1-font {
-          font-family: 'Formula1', sans-serif;
-        }
+        .f1-font { font-family: 'Formula1', sans-serif; }
       `}</style>
 
-      <div className="w-full max-w-6xl">
-        {/* Top - Small Flag */}
+      <div className="w-full max-w-6xl flex flex-col items-center text-center">
+        {/* Flag */}
         {meeting.country_flag && (
-          <div className="mb-6 flex justify-start">
+          <div className="mb-6">
             <img
+              ref={flagRef}
               src={meeting.country_flag}
               alt={meeting.country_name}
+              crossOrigin="anonymous"
+              onLoad={handleFlagLoad}
               className="w-32 h-20 object-cover rounded-lg"
             />
           </div>
@@ -104,78 +122,52 @@ export function GrandPrixCountdown() {
 
         {/* Gradient Title */}
         <div className="mb-8">
-          <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent mb-3">
+          <h1
+            className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent mb-3"
+            style={{ backgroundImage: gradient }}
+          >
             {meeting.meeting_name}
           </h1>
-
-          {/* Official Name / Subheader */}
           <p className="f1-font text-xs text-gray-500 font-light tracking-wide line-clamp-2">
             {subheaderText}
           </p>
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gray-900 mb-8" />
+        <div className="h-px bg-gray-900 mb-8 w-full max-w-xl" />
 
-        {/* Main Content - Left to Right */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Countdown Section */}
-          <div className="md:col-span-2">
-            <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
-            <div className="grid grid-cols-4 gap-2 mb-8">
-              {/* Days */}
-              <div className="flex flex-col items-start">
+        {/* Countdown */}
+        <div className="w-full max-w-xl">
+          <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
+          <div className="grid grid-cols-4 gap-2 mb-8">
+            {[
+              { v: countdown.days, l: "D" },
+              { v: countdown.hours, l: "H" },
+              { v: countdown.minutes, l: "M" },
+              { v: countdown.seconds, l: "S" },
+            ].map((it) => (
+              <div key={it.l} className="flex flex-col items-center">
                 <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                  {String(countdown.days).padStart(2, "0")}
+                  {String(it.v).padStart(2, "0")}
                 </span>
-                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">D</span>
+                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">{it.l}</span>
               </div>
-
-              {/* Hours */}
-              <div className="flex flex-col items-start">
-                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                  {String(countdown.hours).padStart(2, "0")}
-                </span>
-                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">H</span>
-              </div>
-
-              {/* Minutes */}
-              <div className="flex flex-col items-start">
-                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                  {String(countdown.minutes).padStart(2, "0")}
-                </span>
-                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">M</span>
-              </div>
-
-              {/* Seconds */}
-              <div className="flex flex-col items-start">
-                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                  {String(countdown.seconds).padStart(2, "0")}
-                </span>
-                <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">S</span>
-              </div>
-            </div>
-
-            {/* Date and Time Below Countdown */}
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Date */}
-              <div className="flex-1">
-                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
-                <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
-              </div>
-
-              {/* Time */}
-              <div className="flex-1">
-                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
-                <p className="f1-font text-sm text-white font-light">
-                  {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
-                </p>
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Right Side - Empty for now */}
-          <div className="md:col-span-2"></div>
+          {/* Date / Time */}
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
+              <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
+            </div>
+            <div className="flex-1">
+              <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
+              <p className="f1-font text-sm text-white font-light">
+                {formattedTime} <span className="text-xs text-gray-600">{meeting.gmt_offset}</span>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
