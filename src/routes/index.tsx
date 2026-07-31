@@ -111,13 +111,11 @@ function Index() {
 
   const iframeSrc = resolveIframeSrc(stream);
 
-  // Show countdown when no stream is available
-  if (!loading && !iframeSrc) {
-    return <GrandPrixCountdown />;
-  }
-
   return (
-    <div style={{ backgroundColor: "#000", minHeight: "100vh", width: "100%", margin: 0, padding: 0 }}>
+    <div style={{ backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
+      {/* Show countdown inside the dynamic wrapper when no stream is available */}
+      {!loading && !iframeSrc && <GrandPrixCountdown />}
+
       {iframeSrc && (
         <iframe
           key={iframeSrc}
@@ -125,11 +123,12 @@ function Index() {
           title={stream?.name ?? "F1 Live"}
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           allowFullScreen
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100vh", border: "none", background: "#000" }}
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000" }}
         />
       )}
+
       {loading && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", color: "#fff" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", color: "#fff" }}>
           Loading stream...
         </div>
       )}
