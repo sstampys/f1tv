@@ -77,6 +77,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#000000" },
       { title: "F1TV" },
       { name: "description", content: "Live Formula 1 Stream" },
       { name: "author", content: "Lovable" },
@@ -105,11 +106,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ backgroundColor: '#000000', overscrollBehavior: 'none' }}>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body style={{ backgroundColor: '#000000', margin: 0, padding: 0 }}>
         {children}
         <Scripts />
       </body>
