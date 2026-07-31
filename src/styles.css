@@ -4,6 +4,23 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Formula1";
+  src: url("/__l5e/assets-v1/21c65022-9284-4f6c-b8e7-2171169faadd/Formula1-Bold.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: "Formula1", ui-sans-serif, system-ui, sans-serif;
+}
+
+html,
+body {
+  font-family: "Formula1", ui-sans-serif, system-ui, sans-serif;
+}
+
 /*
  * Design system definition.
  *
@@ -141,4 +158,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+@utility f1-font {
+  font-family: "Formula1", ui-sans-serif, system-ui, sans-serif;
 }
