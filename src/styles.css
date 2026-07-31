@@ -171,3 +171,7 @@ body {
 @utility f1-font {
   font-family: "Formula1", ui-sans-serif, system-ui, sans-serif;
 }
+
+#lovable-badge {
+  display: none !important;
+}
