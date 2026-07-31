@@ -37,6 +37,7 @@ export interface Session {
 
 export interface NextSession extends Session {
   country_flag?: string;
+  meeting_name?: string;
 }
 
 export async function getNextSession(): Promise<NextSession | null> {
@@ -60,8 +61,9 @@ export async function getNextSession(): Promise<NextSession | null> {
 
     const next = sessions[0];
 
-    // Grab flag from the corresponding meeting
+    // Grab flag + meeting name from the corresponding meeting
     let country_flag: string | undefined;
+    let meeting_name: string | undefined;
     try {
       const mRes = await fetch(
         `${F1_API_BASE}/meetings?meeting_key=${next.meeting_key}`,
@@ -70,10 +72,11 @@ export async function getNextSession(): Promise<NextSession | null> {
       if (mRes.ok) {
         const meetings: Meeting[] = await mRes.json();
         country_flag = meetings[0]?.country_flag;
+        meeting_name = meetings[0]?.meeting_name;
       }
     } catch {}
 
-    return { ...next, country_flag };
+    return { ...next, country_flag, meeting_name };
   } catch (e) {
     console.error("Error fetching next session:", e);
     return null;
