@@ -22,8 +22,8 @@ function extractFlagColors(img: HTMLImageElement): string[] {
       const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
       if (a < 200) continue;
       const max = Math.max(r, g, b), min = Math.min(r, g, b);
-      if (max - min < 25 && max > 220) continue; // skip near-white
       if (max < 30) continue; // skip near-black
+
       const key = `${r >> 5}-${g >> 5}-${b >> 5}`;
       const prev = buckets.get(key) ?? { r: 0, g: 0, b: 0, n: 0 };
       prev.r += r; prev.g += g; prev.b += b; prev.n += 1;
