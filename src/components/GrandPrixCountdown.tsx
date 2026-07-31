@@ -103,10 +103,6 @@ export function GrandPrixCountdown() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Formula1:wght@400;700&display=swap');
-        .f1-font { font-family: 'Formula1', sans-serif; }
-      `}</style>
 
       <div className="w-full max-w-6xl flex flex-col items-center text-center">
         {/* Flag */}
