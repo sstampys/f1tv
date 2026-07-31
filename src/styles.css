@@ -6,8 +6,16 @@
 
 @font-face {
   font-family: "Formula1";
+  src: url("/__l5e/assets-v1/6bb0ac2c-4173-4913-992c-9d71f1c97f31/Formula1-Regular.ttf") format("truetype");
+  font-weight: 100 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Formula1";
   src: url("/__l5e/assets-v1/21c65022-9284-4f6c-b8e7-2171169faadd/Formula1-Bold.ttf") format("truetype");
-  font-weight: 100 900;
+  font-weight: 600 900;
   font-style: normal;
   font-display: swap;
 }
