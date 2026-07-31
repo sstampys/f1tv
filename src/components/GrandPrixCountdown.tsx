@@ -95,7 +95,10 @@ export function GrandPrixCountdown() {
   const formattedTime = raceDate.toLocaleTimeString("en-US", {
     hour: "2-digit", minute: "2-digit", hour12: true,
   });
-  const title = `${session.country_name} ${session.session_name}`;
+  const gpName = (session.meeting_name ?? "")
+    .replace(/\s*grand\s*prix\s*/i, "")
+    .trim();
+  const title = `${gpName || session.country_name} ${session.session_name}`;
   const subheaderText = `${session.circuit_short_name} Circuit`;
 
   return (
