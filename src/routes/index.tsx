@@ -134,12 +134,8 @@ function Index() {
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
 
+  // Always fetch real streams; do not substitute DEMO_STREAMS based on route search.
   useEffect(() => {
-    if (demo) {
-      setStreams(DEMO_STREAMS);
-      setLoading(false);
-      return;
-    }
     let cancelled = false;
     const load = async () => {
       try {
@@ -161,21 +157,21 @@ function Index() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [demo]);
+  }, []);
 
   const sources = buildSources(streams);
 
-  // New: preview-host demo behavior
+  // New: preview-host demo behavior (client-side only)
   const [demoSelected, setDemoSelected] = useState<string | null>(null);
   const [isDemoHost, setIsDemoHost] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const host = window.location.hostname || "";
       const params = new URLSearchParams(window.location.search);
       const demoParam = params.get("demo");
-      if ((host === "preview--f1tv.lovable.app" || host.endsWith(".preview.lovable.app")) && (demoParam === "1" || demoParam === "true")) {
+      // Enable demo when the demo query param is present and truthy (1/true).
+      if (demoParam === "1" || demoParam === "true") {
         setIsDemoHost(true);
       } else {
         setIsDemoHost(false);
@@ -185,6 +181,7 @@ function Index() {
     }
   }, []);
 
+  // When demo is enabled, pick a random source when the sources list updates — but do not override an explicit user selection.
   useEffect(() => {
     if (!isDemoHost) {
       setDemoSelected(null);
@@ -239,7 +236,11 @@ function Index() {
       {iframeSrc && sources.length > 1 && (
         <select
           value={iframeSrc}
-          onChange={(e) => setSelected(e.target.value)}
+          onChange={(e) => {
+            setSelected(e.target.value);
+            // clear demoSelected so user selection persists
+            setDemoSelected(null);
+          }}
           aria-label="Stream source"
           style={{
             position: "fixed",
