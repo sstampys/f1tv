@@ -81,6 +81,11 @@ function extractIframeSrc(iframe?: string): string | null {
   return null;
 }
 
+function isPlayableUrl(u?: string) {
+  if (!u) return false;
+  return /\.(mp4|webm|ogg)(\?|$)/i.test(u) || /^data:video\//i.test(u);
+}
+
 type Source = { label: string; src: string };
 
 function buildSources(streams: Stream[]): Source[] {
@@ -134,7 +139,29 @@ function Index() {
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
 
-  // Always fetch real streams; do not substitute DEMO_STREAMS based on route search.
+  // Demo fallback and debug states
+  const [isDemoParam, setIsDemoParam] = useState(false);
+  const [demoSelected, setDemoSelected] = useState<string | null>(null);
+  const [lastApiOk, setLastApiOk] = useState<boolean | null>(null);
+
+  // Immediately enable demo fallback if ?demo=true so preview never shows blank
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const demoParam = params.get("demo");
+      const on = demoParam === "1" || demoParam === "true" || demo === true;
+      setIsDemoParam(on);
+      if (on) {
+        setStreams(DEMO_STREAMS);
+        setLoading(false);
+      }
+    } catch (e) {
+      setIsDemoParam(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -146,9 +173,11 @@ function Index() {
             return sameIds ? prev : s;
           });
           setLoading(false);
+          setLastApiOk(true);
         }
-      } catch {
+      } catch (err) {
         setLoading(false);
+        setLastApiOk(false);
       }
     };
     load();
@@ -157,44 +186,25 @@ function Index() {
       cancelled = true;
       clearInterval(id);
     };
+    // We intentionally do not include demo/isDemoParam here so polling always runs
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sources = buildSources(streams);
 
-  // New: preview-host demo behavior (client-side only)
-  const [demoSelected, setDemoSelected] = useState<string | null>(null);
-  const [isDemoHost, setIsDemoHost] = useState(false);
-
+  // Demo pick: if demo param present and user hasn't selected, pick a random source when list updates
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const demoParam = params.get("demo");
-      // Enable demo when the demo query param is present and truthy (1/true).
-      if (demoParam === "1" || demoParam === "true") {
-        setIsDemoHost(true);
-      } else {
-        setIsDemoHost(false);
-      }
-    } catch (e) {
-      setIsDemoHost(false);
-    }
-  }, []);
-
-  // When demo is enabled, pick a random source when the sources list updates — but do not override an explicit user selection.
-  useEffect(() => {
-    if (!isDemoHost) {
+    if (!isDemoParam) {
       setDemoSelected(null);
       return;
     }
-    if (selected) return;
+    if (selected) return; // respect explicit user choice
     if (sources.length === 0) return;
     const idx = Math.floor(Math.random() * sources.length);
     setDemoSelected(sources[idx].src);
-  }, [isDemoHost, sources, selected]);
+  }, [isDemoParam, sources, selected]);
 
   const iframeSrc = selected ?? demoSelected ?? (sources[0]?.src ?? null);
-
 
   // Mirror typical player-control auto-hide behavior
   useEffect(() => {
@@ -222,7 +232,19 @@ function Index() {
       {/* Show countdown inside the dynamic wrapper when no stream is available */}
       {!loading && !iframeSrc && <GrandPrixCountdown />}
 
-      {iframeSrc && (
+      {/* Render a <video> for direct-playable sources (mp4/webm) — more reliable on mobile — otherwise iframe */}
+      {iframeSrc && isPlayableUrl(iframeSrc) ? (
+        <video
+          key={iframeSrc}
+          src={iframeSrc}
+          title={streams[0]?.name ?? "F1 Live (demo)"}
+          autoPlay
+          muted
+          playsInline
+          controls
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", objectFit: "cover" }}
+        />
+      ) : iframeSrc ? (
         <iframe
           key={iframeSrc}
           src={iframeSrc}
@@ -231,7 +253,7 @@ function Index() {
           allowFullScreen
           style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000" }}
         />
-      )}
+      ) : null}
 
       {iframeSrc && sources.length > 1 && (
         <select
@@ -269,6 +291,26 @@ function Index() {
       {loading && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", color: "#fff" }}>
           Loading stream...
+        </div>
+      )}
+
+      {/* Demo debug overlay (visible only when ?demo=true) */}
+      {isDemoParam && (
+        <div style={{
+          position: "fixed",
+          left: 12,
+          bottom: 12,
+          zIndex: 9999,
+          padding: 8,
+          background: "rgba(0,0,0,0.7)",
+          color: "#fff",
+          fontSize: 12,
+          borderRadius: 6,
+        }}>
+          <div>demo={String(isDemoParam)}</div>
+          <div>sources={sources.length}</div>
+          <div style={{ maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>src={iframeSrc ?? "none"}</div>
+          <div>ppv api: {lastApiOk === null ? "?" : lastApiOk ? "ok" : "fail"}</div>
         </div>
       )}
     </div>
