@@ -59,19 +59,18 @@ function isSkySports(x: { source_tag?: string; tag?: string }) {
   return /sky\s*sports|\bsky\b/.test(labelOf(x).toLowerCase());
 }
 
-async function fetchAllStreams(): Promise<Stream[]> {
+async function fetchF1Streams(): Promise<Stream[]> {
   const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
   const data = await res.json();
   const cats: Category[] = data?.streams ?? [];
+  const now = Math.floor(Date.now() / 1000);
   const all = cats.flatMap((c) =>
     c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
   );
-  return all;
-}
-
-async function fetchF1Streams(): Promise<Stream[]> {
-  const all = await fetchAllStreams();
-  return all.filter(isF1);
+  const f1 = all.filter(isF1);
+  const live = f1.filter((s) => s.always_live === 1 || (s.starts_at <= now && s.ends_at >= now));
+  const picked = live.length ? live : f1.length ? [f1[0]] : [];
+  return picked;
 }
 
 function extractIframeSrc(iframe?: string): string | null {
@@ -122,62 +121,64 @@ const DEMO_SOURCE_ENTRIES: Source[] = [
   { label: "F1 TV Pro", src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
 ];
 
-// Prefer real PPV always-live streams and map one per demo label.
-function pickDemoSourcesFromStreams(rawSources: Source[], rawStreams: Stream[]): Source[] {
+// Pick demo sources from raw PPV-provided sources + streams, preferring always_live 24/7 streams.
+function pickDemoSourcesFromRaw(raw: Source[], rawStreams: Stream[]): Source[] {
   const targets = [
-    { label: "Sky Sports", keywords: ["sky sports", "sky"] },
-    { label: "Apple TV", keywords: ["apple tv", "appletv", "apple", "atv"] },
-    { label: "F1 TV Pro", keywords: ["f1 tv", "f1tv", "f1", "formula"] },
+    { label: "Sky Sports", matcher: (s: Source, st?: Stream) => /sky\s*sports|\bsky\b/i.test(s.label) },
+    { label: "Apple TV", matcher: (s: Source, st?: Stream) => /apple\s*tv|appletv|\batv\b/i.test(s.label) },
+    { label: "F1 TV Pro", matcher: (s: Source, st?: Stream) => /f1\s*tv|f1tv|pro/i.test(s.label) },
   ];
 
   const out: Source[] = [];
-  const usedStreamIds = new Set<number>();
 
-  for (const t of targets) {
-    // 1) Try to find an always_live Stream that matches keywords
-    const match = rawStreams.find((st) => {
-      if (!st) return false;
-      if (st.always_live !== 1) return false;
-      const hay = `${st.category_name ?? ""} ${st.name ?? ""} ${st.source_tag ?? ""} ${st.tag ?? ""}`.toLowerCase();
-      return t.keywords.some((k) => hay.includes(k));
+  for (const target of targets) {
+    // 1) prefer a raw Source tied to a Stream that is always_live
+    const liveCandidate = raw.find((src) => {
+      // try to find the underlying stream for this src
+      const s = rawStreams.find((st) => {
+        const iframeSrc = extractIframeSrc(st.iframe);
+        return (
+          (st.uri_name && src.src.includes(st.uri_name)) ||
+          (iframeSrc && src.src.includes(iframeSrc)) ||
+          (st.source_tag && src.label?.toLowerCase().includes((st.source_tag || "").toLowerCase()))
+        );
+      });
+      return Boolean(s && s.always_live === 1 && target.matcher(src, s));
     });
 
-    if (match) {
-      usedStreamIds.add(match.id);
-      const src = extractIframeSrc(match.iframe) ?? `https://ppv.st/live/${match.uri_name}`;
-      out.push({ label: t.label, src, iframeHtml: match.iframe });
+    if (liveCandidate) {
+      out.push(liveCandidate);
       continue;
     }
 
-    // 2) Fallback: any unused always_live stream
-    const anyLive = rawStreams.find((st) => st.always_live === 1 && !usedStreamIds.has(st.id));
-    if (anyLive) {
-      usedStreamIds.add(anyLive.id);
-      const src = extractIframeSrc(anyLive.iframe) ?? `https://ppv.st/live/${anyLive.uri_name}`;
-      out.push({ label: t.label, src, iframeHtml: anyLive.iframe });
+    // 2) prefer any raw Source that matches the label and has an iframeHtml (likely an embed)
+    const embedCandidate = raw.find((src) => target.matcher(src) && src.iframeHtml);
+    if (embedCandidate) {
+      out.push(embedCandidate);
       continue;
     }
 
-    // 3) Fallback: match flattened source labels (prefer iframeHtml)
-    const rawMatch = rawSources.find((rs) => t.keywords.some((k) => (rs.label || "").toLowerCase().includes(k)));
-    if (rawMatch) {
-      out.push({ label: t.label, src: rawMatch.src, iframeHtml: rawMatch.iframeHtml });
+    // 3) prefer any rawStreams entry that is always_live and whose name/category looks like target
+    const fallbackFromStreams = rawStreams.find((st) => {
+      if (st.always_live !== 1) return false;
+      const hay = `${st.category_name} ${st.name}`.toLowerCase();
+      return target.label.toLowerCase().split(" ")[0] && hay.includes(target.label.split(" ")[0].toLowerCase());
+    });
+    if (fallbackFromStreams) {
+      const src = extractIframeSrc(fallbackFromStreams.iframe) ?? `https://ppv.st/live/${fallbackFromStreams.uri_name}`;
+      out.push({ label: target.label, src, iframeHtml: fallbackFromStreams.iframe });
       continue;
     }
 
-    // 4) Final fallback: local placeholder
-    const placeholder = DEMO_SOURCE_ENTRIES.find((d) => d.label === t.label);
-    if (placeholder) out.push(placeholder as Source);
+    // 4) last resort: built-in demo placeholder
+    const builtin = DEMO_SOURCE_ENTRIES.find((d) => d.label === target.label);
+    if (builtin) out.push(builtin as Source);
   }
 
   return out;
 }
 
-function buildSrcDoc(html: string) {
-  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"/></head><body style="margin:0;background:#000;color:#fff">${html}</body></html>`;
-}
-
-const DEMO_STREAMS_PLACEHOLDER: Stream[] = [
+const DEMO_STREAMS: Stream[] = [
   {
     id: -1,
     name: "Demo Grand Prix",
@@ -196,10 +197,13 @@ const DEMO_STREAMS_PLACEHOLDER: Stream[] = [
   },
 ];
 
+function buildSrcDoc(html: string) {
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"/></head><body style="margin:0;background:#000;color:#fff">${html}</body></html>`;
+}
+
 function Index() {
   const { demo } = Route.useSearch();
-  const [streams, setStreams] = useState<Stream[]>([]); // F1 subset for main view
-  const [allStreams, setAllStreams] = useState<Stream[]>([]); // full API list for demo mapping
+  const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
@@ -219,7 +223,7 @@ function Index() {
       setIsDemoParam(on);
       if (on) {
         // show placeholder demo streams while API is fetched
-        setStreams(DEMO_STREAMS_PLACEHOLDER);
+        setStreams(DEMO_STREAMS);
         setLoading(false);
       }
     } catch (e) {
@@ -232,12 +236,12 @@ function Index() {
     let cancelled = false;
     const load = async () => {
       try {
-        const all = await fetchAllStreams();
+        const s = await fetchF1Streams();
         if (!cancelled) {
-          setAllStreams(all);
-          // keep the main UI scoped to F1 streams
-          const f1 = all.filter(isF1);
-          setStreams(f1.length ? f1 : DEMO_STREAMS_PLACEHOLDER);
+          setStreams((prev) => {
+            const sameIds = prev.map((p) => p.id).join(",") === s.map((p) => p.id).join(",");
+            return sameIds ? prev : s;
+          });
           setLoading(false);
           setLastApiOk(true);
         }
@@ -255,13 +259,10 @@ function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Flattened sources for the F1 subset (used for regular UI)
   const rawSources = buildSources(streams);
-  // Flattened sources for the full API (used for demo mapping)
-  const rawSourcesAll = buildSources(allStreams);
 
-  // When demo param present, prefer PPV-provided 24/7 streams mapped to known labels using the full API
-  const sources = isDemoParam ? pickDemoSourcesFromStreams(rawSourcesAll, allStreams) : rawSources;
+  // When demo param present, prefer PPV-provided 24/7 streams mapped to known labels.
+  const sources = isDemoParam ? pickDemoSourcesFromRaw(rawSources, streams) : rawSources;
 
   // Demo pick: if demo param present and user hasn't selected, pick the first demo source by default
   useEffect(() => {
@@ -309,7 +310,7 @@ function Index() {
       return (
         <div key={iframeSrc} style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", zIndex: 1, background: "#000" }}>
           <iframe
-            title={allStreams[0]?.name ?? streams[0]?.name ?? "F1 Live"}
+            title={streams[0]?.name ?? "F1 Live"}
             srcDoc={srcdoc}
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write"
             style={{ width: "100%", height: "100%", border: "none", background: "#000" }}
@@ -333,7 +334,7 @@ function Index() {
         <video
           key={iframeSrc}
           src={iframeSrc}
-          title={allStreams[0]?.name ?? streams[0]?.name ?? "F1 Live (demo)"}
+          title={streams[0]?.name ?? "F1 Live (demo)"}
           autoPlay
           muted
           playsInline
@@ -347,7 +348,7 @@ function Index() {
       <iframe
         key={iframeSrc}
         src={iframeSrc}
-        title={allStreams[0]?.name ?? streams[0]?.name ?? "F1 Live"}
+        title={streams[0]?.name ?? "F1 Live"}
         allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write"
         allowFullScreen
         style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", zIndex: 1 }}
@@ -415,18 +416,6 @@ function Index() {
           <div>sources={sources.length}</div>
           <div style={{ maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>src={iframeSrc ?? "none"}</div>
           <div>ppv api: {lastApiOk === null ? "?" : lastApiOk ? "ok" : "fail"}</div>
-
-          {/* Temporary debug dump: show first few raw streams and flattened sources so we can see what the API returned */}
-          <div style={{ marginTop: 8, fontSize: 11, opacity: 0.95 }}>
-            <div style={{ fontWeight: 600, marginTop: 6 }}>rawStreams (first 6):</div>
-            {allStreams.slice(0, 6).map((st) => (
-              <div key={st.id} style={{ lineHeight: 1.2 }}>{st.id} | {st.name} | uri:{st.uri_name} | live:{st.always_live} | tag:{st.source_tag}</div>
-            ))}
-            <div style={{ fontWeight: 600, marginTop: 6 }}>rawSources (first 8):</div>
-            {rawSourcesAll.slice(0, 8).map((rs) => (
-              <div key={rs.src} style={{ lineHeight: 1.2 }}>{rs.label} → {rs.src}</div>
-            ))}
-          </div>
         </div>
       )}
     </div>
