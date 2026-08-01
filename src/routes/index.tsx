@@ -164,7 +164,39 @@ function Index() {
   }, [demo]);
 
   const sources = buildSources(streams);
-  const iframeSrc = selected && sources.some((s) => s.src === selected) ? selected : (sources[0]?.src ?? null);
+
+  // New: preview-host demo behavior
+  const [demoSelected, setDemoSelected] = useState<string | null>(null);
+  const [isDemoHost, setIsDemoHost] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const host = window.location.hostname || "";
+      const params = new URLSearchParams(window.location.search);
+      const demoParam = params.get("demo");
+      if ((host === "preview--f1tv.lovable.app" || host.endsWith(".preview.lovable.app")) && (demoParam === "1" || demoParam === "true")) {
+        setIsDemoHost(true);
+      } else {
+        setIsDemoHost(false);
+      }
+    } catch (e) {
+      setIsDemoHost(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isDemoHost) {
+      setDemoSelected(null);
+      return;
+    }
+    if (selected) return;
+    if (sources.length === 0) return;
+    const idx = Math.floor(Math.random() * sources.length);
+    setDemoSelected(sources[idx].src);
+  }, [isDemoHost, sources, selected]);
+
+  const iframeSrc = selected ?? demoSelected ?? (sources[0]?.src ?? null);
 
 
   // Mirror typical player-control auto-hide behavior
@@ -241,4 +273,3 @@ function Index() {
     </div>
   );
 }
-
