@@ -86,7 +86,7 @@ function isPlayableUrl(u?: string) {
   return /\.(mp4|webm|ogg)(\?|$)/i.test(u) || /^data:video\//i.test(u);
 }
 
-type Source = { label: string; src: string };
+type Source = { label: string; src: string; iframeHtml?: string };
 
 function buildSources(streams: Stream[]): Source[] {
   const out: Source[] = [];
@@ -97,10 +97,11 @@ function buildSources(streams: Stream[]): Source[] {
       ...(s.substreams ?? []),
     ];
     for (const c of candidates) {
+      const iframeHtml = c.iframe ?? undefined;
       const src = extractIframeSrc(c.iframe) ?? (c === candidates[0] ? `https://ppv.st/live/${s.uri_name}` : null);
       if (!src || seen.has(src)) continue;
       seen.add(src);
-      out.push({ label: labelOf(c), src });
+      out.push({ label: labelOf(c), src, iframeHtml });
     }
   }
   // Sky Sports first, then Apple TV, then the rest
@@ -112,6 +113,13 @@ function rank(s: Source) {
   if (isAppleTv({ source_tag: s.label })) return 1;
   return 2;
 }
+
+// Demo: map well-known labels to guaranteed 24/7 demo streams
+const DEMO_SOURCE_ENTRIES: Source[] = [
+  { label: "Sky Sports", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
+  { label: "Apple TV", src: "https://www.w3schools.com/html/movie.mp4" },
+  { label: "F1 TV Pro", src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
+];
 
 const DEMO_STREAMS: Stream[] = [
   {
@@ -190,9 +198,12 @@ function Index() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const sources = buildSources(streams);
+  const rawSources = buildSources(streams);
 
-  // Demo pick: if demo param present and user hasn't selected, pick a random source when list updates
+  // When demo param present, use fixed 24/7 demo sources instead of random ppv streams
+  const sources = isDemoParam ? DEMO_SOURCE_ENTRIES : rawSources;
+
+  // Demo pick: if demo param present and user hasn't selected, pick the first demo source by default
   useEffect(() => {
     if (!isDemoParam) {
       setDemoSelected(null);
@@ -200,8 +211,8 @@ function Index() {
     }
     if (selected) return; // respect explicit user choice
     if (sources.length === 0) return;
-    const idx = Math.floor(Math.random() * sources.length);
-    setDemoSelected(sources[idx].src);
+    // pick the first demo source for predictability (not random)
+    setDemoSelected(sources[0].src);
   }, [isDemoParam, sources, selected]);
 
   const iframeSrc = selected ?? demoSelected ?? (sources[0]?.src ?? null);
@@ -227,13 +238,22 @@ function Index() {
     };
   }, [iframeSrc]);
 
+  // Find the selected source object (for iframeHtml if available)
+  const matchedSource = sources.find((s) => s.src === iframeSrc) ?? null;
+
   return (
     <div style={{ backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
       {/* Show countdown inside the dynamic wrapper when no stream is available */}
       {!loading && !iframeSrc && <GrandPrixCountdown />}
 
-      {/* Render a <video> for direct-playable sources (mp4/webm) — more reliable on mobile — otherwise iframe */}
-      {iframeSrc && isPlayableUrl(iframeSrc) ? (
+      {/* Render provider iframe HTML verbatim (if present) so attributes are preserved */}
+      {iframeSrc && matchedSource?.iframeHtml ? (
+        <div
+          key={iframeSrc}
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", zIndex: 1 }}
+          dangerouslySetInnerHTML={{ __html: matchedSource.iframeHtml }}
+        />
+      ) : iframeSrc && isPlayableUrl(iframeSrc) ? (
         <video
           key={iframeSrc}
           src={iframeSrc}
@@ -242,50 +262,47 @@ function Index() {
           muted
           playsInline
           controls
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", objectFit: "cover" }}
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", objectFit: "cover", zIndex: 1 }}
         />
       ) : iframeSrc ? (
         <iframe
           key={iframeSrc}
           src={iframeSrc}
           title={streams[0]?.name ?? "F1 Live"}
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write"
           allowFullScreen
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000" }}
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", zIndex: 1 }}
         />
       ) : null}
 
+      {/* Source switcher: positioned above the player */}
       {iframeSrc && sources.length > 1 && (
-        <select
-          value={iframeSrc}
-          onChange={(e) => {
-            setSelected(e.target.value);
-            // clear demoSelected so user selection persists
-            setDemoSelected(null);
-          }}
-          aria-label="Stream source"
-          style={{
-            position: "fixed",
-            top: 16,
-            right: 16,
-            zIndex: 10,
-            background: "rgba(0,0,0,0.65)",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.25)",
-            borderRadius: 8,
-            padding: "6px 10px",
-            fontSize: 14,
-            opacity: controlsVisible ? 1 : 0,
-            pointerEvents: controlsVisible ? "auto" : "none",
-            transition: "opacity 300ms ease",
-          }}
-        >
-          {sources.map((s) => (
-            <option key={s.src} value={s.src} style={{ color: "#000" }}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+        <div style={{ position: "fixed", top: 12, right: 12, zIndex: 100000 }}>
+          <select
+            value={iframeSrc}
+            onChange={(e) => {
+              setSelected(e.target.value);
+              // clear demoSelected so user selection persists
+              setDemoSelected(null);
+            }}
+            aria-label="Stream source"
+            style={{
+              background: "rgba(0,0,0,0.75)",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.25)",
+              borderRadius: 8,
+              padding: "8px 12px",
+              fontSize: 14,
+              WebkitAppearance: "none",
+            }}
+          >
+            {sources.map((s) => (
+              <option key={s.src} value={s.src} style={{ color: "#000" }}>
+                {s.label}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
 
       {loading && (
@@ -300,7 +317,7 @@ function Index() {
           position: "fixed",
           left: 12,
           bottom: 12,
-          zIndex: 9999,
+          zIndex: 100000,
           padding: 8,
           background: "rgba(0,0,0,0.7)",
           color: "#fff",
