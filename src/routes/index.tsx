@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    demo: search.demo === "1" || search.demo === 1 || search.demo === true,
+  }),
   head: () => ({
     meta: [
       { title: "F1TV" },
@@ -105,13 +108,38 @@ function rank(s: Source) {
   return 2;
 }
 
+const DEMO_STREAMS: Stream[] = [
+  {
+    id: -1,
+    name: "Demo Grand Prix",
+    uri_name: "demo/grand-prix",
+    category_name: "Motorsports",
+    always_live: 1,
+    starts_at: 0,
+    ends_at: 0,
+    source_tag: "Sky Sports",
+    tag: "Motorsports",
+    iframe: "https://www.w3schools.com/html/mov_bbb.mp4",
+    substreams: [
+      { source_tag: "Apple TV", tag: "Motorsports", iframe: "https://www.w3schools.com/html/movie.mp4" },
+      { source_tag: "F1 TV Pro", tag: "Motorsports", iframe: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
+    ],
+  },
+];
+
 function Index() {
+  const { demo } = Route.useSearch();
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
 
   useEffect(() => {
+    if (demo) {
+      setStreams(DEMO_STREAMS);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     const load = async () => {
       try {
@@ -133,10 +161,11 @@ function Index() {
       cancelled = true;
       clearInterval(id);
     };
-  }, []);
+  }, [demo]);
 
   const sources = buildSources(streams);
   const iframeSrc = selected && sources.some((s) => s.src === selected) ? selected : (sources[0]?.src ?? null);
+
 
   // Mirror typical player-control auto-hide behavior
   useEffect(() => {

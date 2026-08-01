@@ -1,31 +1,36 @@
 ## Goal
 
-Make the F1 embed on `/` use the Apple TV feed from ppv when available, instead of the default source.
+Let you verify the source dropdown (Sky Sports default, Apple TV alternative, auto-hide with player controls) even when ppv has no live F1 stream — which is the case right now, since the API currently returns no Motorsports/F1 entries.
 
-## How ppv exposes sources
+## How you'd use it
 
-Each stream from `https://api.ppv.st/api/streams` has:
-- `tag` / `source_tag` — the broadcaster label (e.g. "Peacock", "AFLE+")
-- `iframe` — the embed URL for that source
-- `substreams` — an array of alternate feeds, each with its own `source_tag` and `iframe`
+Open the site with `?demo=1` appended to the URL:
 
-For F1, ppv lists an Apple TV feed either as the main stream or as one of the substreams.
+```text
+/?demo=1
+```
 
-## Changes
+In the Lovable preview, add `?demo=1` to the address bar. Plain `/` keeps the normal live behavior.
 
-Edit `src/routes/index.tsx`:
+## Changes in `src/routes/index.tsx`
 
-1. Update the `Stream` type to include `source_tag` and a `substreams` array of `{ source_tag, tag, iframe }`.
-2. After picking the F1 stream (Motorsports / Grand Prix match, unchanged), build a candidate list = `[stream, ...stream.substreams]`.
-3. Pick the first candidate whose `source_tag` or `tag` matches `/apple\s*tv|appletv|atv/i`.
-4. If no Apple TV candidate exists, fall back to the current behavior (main stream's iframe).
-5. Feed the resolved iframe URL into the existing `<iframe>` (same extraction via `src="..."` regex, same 60-second polling, same key-on-src reload behavior).
+1. Add `validateSearch` to the route so `demo` is a typed search param (defaulting to off).
+2. When `demo` is on, skip the ppv fetch and use a hardcoded fake stream list with several sources:
+   - `Sky Sports` — placeholder embed URL
+   - `Apple TV` — different placeholder embed URL
+   - one extra generic source, to confirm ordering (Sky first, Apple second, rest after)
+   These run through the existing `buildSources()`, so ordering, dedupe, and labelling are exercised by the same production code.
+3. Everything else unchanged: dropdown renders only with 2+ sources, defaults to the first (Sky Sports), switching remounts the iframe, and the 3-second inactivity fade still applies.
 
-No UI changes — page stays fully black with just the embed.
+Placeholder embeds will be public test video URLs so something actually renders and you can see the frame reload when switching.
 
-## Verification
+## What to check at `/?demo=1`
 
-After the change, in the browser console on `/`:
-- Confirm the network call to `api.ppv.st/api/streams` still runs once per minute.
-- Inspect the mounted `<iframe>`'s `src` and confirm it corresponds to the Apple TV substream (URL / host will differ from the default source).
-- If ppv has no Apple TV feed at that moment, confirm the embed still loads via the fallback source rather than going blank.
+- Dropdown appears top-right reading "Sky Sports".
+- It lists Sky Sports, Apple TV, then the extra source, in that order.
+- Selecting Apple TV swaps the iframe content.
+- Idle 3 seconds → dropdown fades out; mouse move, tap, or keypress brings it back.
+
+## Notes
+
+- The demo flag is harmless on the published site but can be removed later if you'd rather it not exist there.
