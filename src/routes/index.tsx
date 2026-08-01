@@ -114,12 +114,26 @@ function rank(s: Source) {
   return 2;
 }
 
-// Demo: map well-known labels to guaranteed 24/7 demo streams
+// Demo: fallback mapping (used only if PPV API doesn't provide a matching 24/7 stream)
 const DEMO_SOURCE_ENTRIES: Source[] = [
   { label: "Sky Sports", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
   { label: "Apple TV", src: "https://www.w3schools.com/html/movie.mp4" },
   { label: "F1 TV Pro", src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
 ];
+
+function pickDemoSourcesFromRaw(raw: Source[]): Source[] {
+  const labels = ["Sky Sports", "Apple TV", "F1 TV Pro"];
+  const out: Source[] = [];
+  for (const label of labels) {
+    const found = raw.find((s) => s.label?.toLowerCase().includes(label.toLowerCase().split(" ")[0]) || s.label?.toLowerCase().includes(label.toLowerCase()));
+    if (found) out.push(found);
+    else {
+      const fallback = DEMO_SOURCE_ENTRIES.find((d) => d.label === label);
+      if (fallback) out.push(fallback as Source);
+    }
+  }
+  return out;
+}
 
 const DEMO_STREAMS: Stream[] = [
   {
@@ -140,6 +154,10 @@ const DEMO_STREAMS: Stream[] = [
   },
 ];
 
+function buildSrcDoc(html: string) {
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1"/></head><body style="margin:0;background:#000;color:#fff">${html}</body></html>`;
+}
+
 function Index() {
   const { demo } = Route.useSearch();
   const [streams, setStreams] = useState<Stream[]>([]);
@@ -152,7 +170,7 @@ function Index() {
   const [demoSelected, setDemoSelected] = useState<string | null>(null);
   const [lastApiOk, setLastApiOk] = useState<boolean | null>(null);
 
-  // Immediately enable demo fallback if ?demo=true so preview never shows blank
+  // Immediately detect demo param so UI shows debug and uses demo flow.
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -161,6 +179,7 @@ function Index() {
       const on = demoParam === "1" || demoParam === "true" || demo === true;
       setIsDemoParam(on);
       if (on) {
+        // show placeholder demo streams while API is fetched
         setStreams(DEMO_STREAMS);
         setLoading(false);
       }
@@ -194,14 +213,13 @@ function Index() {
       cancelled = true;
       clearInterval(id);
     };
-    // We intentionally do not include demo/isDemoParam here so polling always runs
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const rawSources = buildSources(streams);
 
-  // When demo param present, use fixed 24/7 demo sources instead of random ppv streams
-  const sources = isDemoParam ? DEMO_SOURCE_ENTRIES : rawSources;
+  // When demo param present, prefer PPV-provided 24/7 streams mapped to known labels.
+  const sources = isDemoParam ? pickDemoSourcesFromRaw(rawSources) : rawSources;
 
   // Demo pick: if demo param present and user hasn't selected, pick the first demo source by default
   useEffect(() => {
@@ -211,7 +229,6 @@ function Index() {
     }
     if (selected) return; // respect explicit user choice
     if (sources.length === 0) return;
-    // pick the first demo source for predictability (not random)
     setDemoSelected(sources[0].src);
   }, [isDemoParam, sources, selected]);
 
@@ -241,19 +258,36 @@ function Index() {
   // Find the selected source object (for iframeHtml if available)
   const matchedSource = sources.find((s) => s.src === iframeSrc) ?? null;
 
-  return (
-    <div style={{ backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
-      {/* Show countdown inside the dynamic wrapper when no stream is available */}
-      {!loading && !iframeSrc && <GrandPrixCountdown />}
+  // Player renderer with srcDoc for provider HTML and Open button fallback
+  const renderPlayer = () => {
+    if (!iframeSrc) return null;
 
-      {/* Render provider iframe HTML verbatim (if present) so attributes are preserved */}
-      {iframeSrc && matchedSource?.iframeHtml ? (
-        <div
-          key={iframeSrc}
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", zIndex: 1 }}
-          dangerouslySetInnerHTML={{ __html: matchedSource.iframeHtml }}
-        />
-      ) : iframeSrc && isPlayableUrl(iframeSrc) ? (
+    if (matchedSource?.iframeHtml) {
+      const srcdoc = buildSrcDoc(matchedSource.iframeHtml);
+      return (
+        <div key={iframeSrc} style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", zIndex: 1, background: "#000" }}>
+          <iframe
+            title={streams[0]?.name ?? "F1 Live"}
+            srcDoc={srcdoc}
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write"
+            style={{ width: "100%", height: "100%", border: "none", background: "#000" }}
+          />
+          <div style={{ position: "absolute", right: 12, top: 12, zIndex: 100001 }}>
+            <button
+              onClick={() => window.open(matchedSource.src, "_blank")}
+              style={{ background: "rgba(0,0,0,0.6)", color: "#fff", padding: "8px 10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.15)" }}
+              aria-label="Open player in new tab"
+              title="Open player in new tab"
+            >
+              Open
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (isPlayableUrl(iframeSrc)) {
+      return (
         <video
           key={iframeSrc}
           src={iframeSrc}
@@ -262,18 +296,29 @@ function Index() {
           muted
           playsInline
           controls
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", objectFit: "cover", zIndex: 1 }}
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", objectFit: "cover", zIndex: 1, background: "#000" }}
         />
-      ) : iframeSrc ? (
-        <iframe
-          key={iframeSrc}
-          src={iframeSrc}
-          title={streams[0]?.name ?? "F1 Live"}
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write"
-          allowFullScreen
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", zIndex: 1 }}
-        />
-      ) : null}
+      );
+    }
+
+    return (
+      <iframe
+        key={iframeSrc}
+        src={iframeSrc}
+        title={streams[0]?.name ?? "F1 Live"}
+        allow="autoplay; encrypted-media; fullscreen; picture-in-picture; clipboard-write"
+        allowFullScreen
+        style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000", zIndex: 1 }}
+      />
+    );
+  };
+
+  return (
+    <div style={{ backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
+      {/* Show countdown inside the dynamic wrapper when no stream is available */}
+      {!loading && !iframeSrc && <GrandPrixCountdown />}
+
+      {renderPlayer()}
 
       {/* Source switcher: positioned above the player */}
       {iframeSrc && sources.length > 1 && (
