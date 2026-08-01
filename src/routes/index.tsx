@@ -121,17 +121,60 @@ const DEMO_SOURCE_ENTRIES: Source[] = [
   { label: "F1 TV Pro", src: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
 ];
 
-function pickDemoSourcesFromRaw(raw: Source[]): Source[] {
-  const labels = ["Sky Sports", "Apple TV", "F1 TV Pro"];
+// Pick demo sources from raw PPV-provided sources + streams, preferring always_live 24/7 streams.
+function pickDemoSourcesFromRaw(raw: Source[], rawStreams: Stream[]): Source[] {
+  const targets = [
+    { label: "Sky Sports", matcher: (s: Source, st?: Stream) => /sky\s*sports|\bsky\b/i.test(s.label) },
+    { label: "Apple TV", matcher: (s: Source, st?: Stream) => /apple\s*tv|appletv|\batv\b/i.test(s.label) },
+    { label: "F1 TV Pro", matcher: (s: Source, st?: Stream) => /f1\s*tv|f1tv|pro/i.test(s.label) },
+  ];
+
   const out: Source[] = [];
-  for (const label of labels) {
-    const found = raw.find((s) => s.label?.toLowerCase().includes(label.toLowerCase().split(" ")[0]) || s.label?.toLowerCase().includes(label.toLowerCase()));
-    if (found) out.push(found);
-    else {
-      const fallback = DEMO_SOURCE_ENTRIES.find((d) => d.label === label);
-      if (fallback) out.push(fallback as Source);
+
+  for (const target of targets) {
+    // 1) prefer a raw Source tied to a Stream that is always_live
+    const liveCandidate = raw.find((src) => {
+      // try to find the underlying stream for this src
+      const s = rawStreams.find((st) => {
+        const iframeSrc = extractIframeSrc(st.iframe);
+        return (
+          (st.uri_name && src.src.includes(st.uri_name)) ||
+          (iframeSrc && src.src.includes(iframeSrc)) ||
+          (st.source_tag && src.label?.toLowerCase().includes((st.source_tag || "").toLowerCase()))
+        );
+      });
+      return Boolean(s && s.always_live === 1 && target.matcher(src, s));
+    });
+
+    if (liveCandidate) {
+      out.push(liveCandidate);
+      continue;
     }
+
+    // 2) prefer any raw Source that matches the label and has an iframeHtml (likely an embed)
+    const embedCandidate = raw.find((src) => target.matcher(src) && src.iframeHtml);
+    if (embedCandidate) {
+      out.push(embedCandidate);
+      continue;
+    }
+
+    // 3) prefer any rawStreams entry that is always_live and whose name/category looks like target
+    const fallbackFromStreams = rawStreams.find((st) => {
+      if (st.always_live !== 1) return false;
+      const hay = `${st.category_name} ${st.name}`.toLowerCase();
+      return target.label.toLowerCase().split(" ")[0] && hay.includes(target.label.split(" ")[0].toLowerCase());
+    });
+    if (fallbackFromStreams) {
+      const src = extractIframeSrc(fallbackFromStreams.iframe) ?? `https://ppv.st/live/${fallbackFromStreams.uri_name}`;
+      out.push({ label: target.label, src, iframeHtml: fallbackFromStreams.iframe });
+      continue;
+    }
+
+    // 4) last resort: built-in demo placeholder
+    const builtin = DEMO_SOURCE_ENTRIES.find((d) => d.label === target.label);
+    if (builtin) out.push(builtin as Source);
   }
+
   return out;
 }
 
@@ -219,7 +262,7 @@ function Index() {
   const rawSources = buildSources(streams);
 
   // When demo param present, prefer PPV-provided 24/7 streams mapped to known labels.
-  const sources = isDemoParam ? pickDemoSourcesFromRaw(rawSources) : rawSources;
+  const sources = isDemoParam ? pickDemoSourcesFromRaw(rawSources, streams) : rawSources;
 
   // Demo pick: if demo param present and user hasn't selected, pick the first demo source by default
   useEffect(() => {
