@@ -249,7 +249,18 @@ function Index() {
       {/* Show countdown inside the dynamic wrapper when no stream is available */}
       {!loading && !iframeSrc && <GrandPrixCountdown />}
 
-      {iframeSrc && (
+      {iframeSrc && /\.(mp4|webm|m3u8)(\?|$)/i.test(iframeSrc) ? (
+        <video
+          key={iframeSrc}
+          src={iframeSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+          controls
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", objectFit: "contain", background: "#000" }}
+        />
+      ) : iframeSrc ? (
         <iframe
           key={iframeSrc}
           src={iframeSrc}
@@ -258,7 +269,7 @@ function Index() {
           allowFullScreen
           style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000" }}
         />
-      )}
+      ) : null
 
       {iframeSrc && sources.length > 1 && (
         <select
