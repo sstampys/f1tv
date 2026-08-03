@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    demo: search.demo === "1" || search.demo === 1 || search.demo === true,
+  validateSearch: (search: Record<string, unknown>): { demo?: boolean } => ({
+    demo: search.demo === "1" || search.demo === 1 || search.demo === true ? true : undefined,
   }),
   head: () => ({
     meta: [
