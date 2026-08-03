@@ -70,9 +70,12 @@ async function fetchF1Streams(): Promise<Stream[]> {
     c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
   );
   const f1 = all.filter(isF1);
-  const live = f1.filter((s) => s.always_live === 1 || (s.starts_at <= now && s.ends_at >= now));
-  const picked = live.length ? live : f1.length ? [f1[0]] : [];
-  return picked;
+  // Only show a stream that is actually live (with a 15 min pre-roll window).
+  // Otherwise fall through to the countdown.
+  const live = f1.filter(
+    (s) => s.always_live === 1 || (s.starts_at - 900 <= now && s.ends_at >= now),
+  );
+  return live;
 }
 
 function extractIframeSrc(iframe?: string): string | null {
