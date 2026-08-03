@@ -43,8 +43,10 @@ type Category = {
 };
 
 function isF1(s: Stream) {
-  const hay = `${s.category_name} ${s.name}`.toLowerCase();
-  return /\bf1\b|formula\s*1|grand\s*prix|motorsport/.test(hay);
+  // Match on the event name only — the "Motorsports" category also carries
+  // non-F1 events (motocross, etc.) which must not be picked up.
+  const hay = s.name.toLowerCase();
+  return /\bf1\b|formula\s*1|grand\s*prix/.test(hay);
 }
 
 function labelOf(x: { source_tag?: string; tag?: string }) {
