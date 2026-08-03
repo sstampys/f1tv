@@ -115,8 +115,40 @@ function rank(s: Source) {
 
 const DEMO_LABELS = ["Sky Sports", "Apple TV", "F1 TV Pro"];
 
-// Demo mode: grab 3 random 24/7 channels from ppv and present them as if they
-// were the Sky Sports / Apple TV / F1 TV Pro feeds of one live F1 session.
+// Playable sample feeds used by ?demo=1. The real ppv embeds refuse to run
+// inside a sandboxed frame (the Lovable preview), which renders as a black
+// screen — these always play, so source switching can actually be verified.
+const DEMO_SAMPLE_SRCS = [
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+];
+
+function makeDemoStream(srcs: string[]): Stream[] {
+  if (!srcs.length) return [];
+  const [primary, ...rest] = srcs;
+  return [
+    {
+      id: -1,
+      name: "Demo Grand Prix",
+      uri_name: "demo/grand-prix",
+      category_name: "Motorsports",
+      always_live: 1,
+      starts_at: 0,
+      ends_at: 0,
+      source_tag: DEMO_LABELS[0],
+      tag: "Motorsports",
+      iframe: primary,
+      substreams: rest.map((src, i) => ({
+        source_tag: DEMO_LABELS[i + 1],
+        tag: "Motorsports",
+        iframe: src,
+      })),
+    },
+  ];
+}
+
+// ?demo=ppv — 3 random real 24/7 ppv channels, one per source label.
 async function fetchDemoStreams(): Promise<Stream[]> {
   const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
   const data = await res.json();
@@ -126,29 +158,13 @@ async function fetchDemoStreams(): Promise<Stream[]> {
   );
   const alwaysLive = all.filter((s) => Number(s.always_live) === 1 && s.iframe);
   const shuffled = [...alwaysLive].sort(() => Math.random() - 0.5).slice(0, 3);
-  if (!shuffled.length) return [];
-
-  const [primary, ...rest] = shuffled;
-  return [
-    {
-      ...primary,
-      id: -1,
-      name: "Demo Grand Prix",
-      uri_name: primary.uri_name,
-      category_name: "Motorsports",
-      always_live: 1,
-      starts_at: 0,
-      ends_at: 0,
-      source_tag: DEMO_LABELS[0],
-      tag: "Motorsports",
-      substreams: rest.map((s, i) => ({
-        source_tag: DEMO_LABELS[i + 1],
-        tag: "Motorsports",
-        iframe: s.iframe,
-      })),
-    },
-  ];
+  const srcs = shuffled
+    .map((s) => extractIframeSrc(s.iframe))
+    .filter((s): s is string => Boolean(s));
+  return makeDemoStream(srcs);
 }
+
+
 
 function Index() {
   const { demo } = Route.useSearch();
