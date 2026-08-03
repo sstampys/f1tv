@@ -113,24 +113,42 @@ function rank(s: Source) {
   return 2;
 }
 
-const DEMO_STREAMS: Stream[] = [
-  {
-    id: -1,
-    name: "Demo Grand Prix",
-    uri_name: "demo/grand-prix",
-    category_name: "Motorsports",
-    always_live: 1,
-    starts_at: 0,
-    ends_at: 0,
-    source_tag: "Sky Sports",
-    tag: "Motorsports",
-    iframe: "https://www.w3schools.com/html/mov_bbb.mp4",
-    substreams: [
-      { source_tag: "Apple TV", tag: "Motorsports", iframe: "https://www.w3schools.com/html/movie.mp4" },
-      { source_tag: "F1 TV Pro", tag: "Motorsports", iframe: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" },
-    ],
-  },
-];
+const DEMO_LABELS = ["Sky Sports", "Apple TV", "F1 TV Pro"];
+
+// Demo mode: grab 3 random 24/7 channels from ppv and present them as if they
+// were the Sky Sports / Apple TV / F1 TV Pro feeds of one live F1 session.
+async function fetchDemoStreams(): Promise<Stream[]> {
+  const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
+  const data = await res.json();
+  const cats: Category[] = data?.streams ?? [];
+  const all = cats.flatMap((c) =>
+    c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
+  );
+  const alwaysLive = all.filter((s) => Number(s.always_live) === 1 && s.iframe);
+  const shuffled = [...alwaysLive].sort(() => Math.random() - 0.5).slice(0, 3);
+  if (!shuffled.length) return [];
+
+  const [primary, ...rest] = shuffled;
+  return [
+    {
+      ...primary,
+      id: -1,
+      name: "Demo Grand Prix",
+      uri_name: primary.uri_name,
+      category_name: "Motorsports",
+      always_live: 1,
+      starts_at: 0,
+      ends_at: 0,
+      source_tag: DEMO_LABELS[0],
+      tag: "Motorsports",
+      substreams: rest.map((s, i) => ({
+        source_tag: DEMO_LABELS[i + 1],
+        tag: "Motorsports",
+        iframe: s.iframe,
+      })),
+    },
+  ];
+}
 
 function Index() {
   const { demo } = Route.useSearch();
@@ -141,9 +159,18 @@ function Index() {
 
   useEffect(() => {
     if (demo) {
-      setStreams(DEMO_STREAMS);
-      setLoading(false);
-      return;
+      let cancelled = false;
+      fetchDemoStreams()
+        .then((s) => {
+          if (!cancelled) {
+            setStreams(s);
+            setLoading(false);
+          }
+        })
+        .catch(() => setLoading(false));
+      return () => {
+        cancelled = true;
+      };
     }
     let cancelled = false;
     const load = async () => {
