@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { demo?: boolean } => ({
-    demo: search.demo === "1" || search.demo === 1 || search.demo === true ? true : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
+    const raw = String(search.demo ?? "").toLowerCase();
+    if (raw === "ppv") return { demo: "ppv" };
+    if (raw === "1" || raw === "true" || raw === "sample") return { demo: "sample" };
+    return {};
+  },
   head: () => ({
     meta: [
       { title: "F1TV" },
@@ -115,8 +118,40 @@ function rank(s: Source) {
 
 const DEMO_LABELS = ["Sky Sports", "Apple TV", "F1 TV Pro"];
 
-// Demo mode: grab 3 random 24/7 channels from ppv and present them as if they
-// were the Sky Sports / Apple TV / F1 TV Pro feeds of one live F1 session.
+// Playable sample feeds used by ?demo=1. The real ppv embeds refuse to run
+// inside a sandboxed frame (the Lovable preview), which renders as a black
+// screen — these always play, so source switching can actually be verified.
+const DEMO_SAMPLE_SRCS = [
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+];
+
+function makeDemoStream(srcs: string[]): Stream[] {
+  if (!srcs.length) return [];
+  const [primary, ...rest] = srcs;
+  return [
+    {
+      id: -1,
+      name: "Demo Grand Prix",
+      uri_name: "demo/grand-prix",
+      category_name: "Motorsports",
+      always_live: 1,
+      starts_at: 0,
+      ends_at: 0,
+      source_tag: DEMO_LABELS[0],
+      tag: "Motorsports",
+      iframe: primary,
+      substreams: rest.map((src, i) => ({
+        source_tag: DEMO_LABELS[i + 1],
+        tag: "Motorsports",
+        iframe: src,
+      })),
+    },
+  ];
+}
+
+// ?demo=ppv — 3 random real 24/7 ppv channels, one per source label.
 async function fetchDemoStreams(): Promise<Stream[]> {
   const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
   const data = await res.json();
@@ -126,29 +161,13 @@ async function fetchDemoStreams(): Promise<Stream[]> {
   );
   const alwaysLive = all.filter((s) => Number(s.always_live) === 1 && s.iframe);
   const shuffled = [...alwaysLive].sort(() => Math.random() - 0.5).slice(0, 3);
-  if (!shuffled.length) return [];
-
-  const [primary, ...rest] = shuffled;
-  return [
-    {
-      ...primary,
-      id: -1,
-      name: "Demo Grand Prix",
-      uri_name: primary.uri_name,
-      category_name: "Motorsports",
-      always_live: 1,
-      starts_at: 0,
-      ends_at: 0,
-      source_tag: DEMO_LABELS[0],
-      tag: "Motorsports",
-      substreams: rest.map((s, i) => ({
-        source_tag: DEMO_LABELS[i + 1],
-        tag: "Motorsports",
-        iframe: s.iframe,
-      })),
-    },
-  ];
+  const srcs = shuffled
+    .map((s) => extractIframeSrc(s.iframe))
+    .filter((s): s is string => Boolean(s));
+  return makeDemoStream(srcs);
 }
+
+
 
 function Index() {
   const { demo } = Route.useSearch();
@@ -158,7 +177,12 @@ function Index() {
   const [controlsVisible, setControlsVisible] = useState(true);
 
   useEffect(() => {
-    if (demo) {
+    if (demo === "sample") {
+      setStreams(makeDemoStream(DEMO_SAMPLE_SRCS));
+      setLoading(false);
+      return;
+    }
+    if (demo === "ppv") {
       let cancelled = false;
       fetchDemoStreams()
         .then((s) => {
@@ -225,7 +249,18 @@ function Index() {
       {/* Show countdown inside the dynamic wrapper when no stream is available */}
       {!loading && !iframeSrc && <GrandPrixCountdown />}
 
-      {iframeSrc && (
+      {iframeSrc && /\.(mp4|webm|m3u8)(\?|$)/i.test(iframeSrc) ? (
+        <video
+          key={iframeSrc}
+          src={iframeSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+          controls
+          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", objectFit: "contain", background: "#000" }}
+        />
+      ) : iframeSrc ? (
         <iframe
           key={iframeSrc}
           src={iframeSrc}
@@ -234,7 +269,7 @@ function Index() {
           allowFullScreen
           style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000" }}
         />
-      )}
+      ) : null}
 
       {iframeSrc && sources.length > 1 && (
         <select
