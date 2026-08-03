@@ -177,7 +177,12 @@ function Index() {
   const [controlsVisible, setControlsVisible] = useState(true);
 
   useEffect(() => {
-    if (demo) {
+    if (demo === "sample") {
+      setStreams(makeDemoStream(DEMO_SAMPLE_SRCS));
+      setLoading(false);
+      return;
+    }
+    if (demo === "ppv") {
       let cancelled = false;
       fetchDemoStreams()
         .then((s) => {
