@@ -3,9 +3,12 @@ import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 
 export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { demo?: boolean } => ({
-    demo: search.demo === "1" || search.demo === 1 || search.demo === true ? true : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
+    const raw = String(search.demo ?? "").toLowerCase();
+    if (raw === "ppv") return { demo: "ppv" };
+    if (raw === "1" || raw === "true" || raw === "sample") return { demo: "sample" };
+    return {};
+  },
   head: () => ({
     meta: [
       { title: "F1TV" },
