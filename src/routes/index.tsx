@@ -269,7 +269,7 @@ function Index() {
           allowFullScreen
           style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000" }}
         />
-      ) : null
+      ) : null}
 
       {iframeSrc && sources.length > 1 && (
         <select
