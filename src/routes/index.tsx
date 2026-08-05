@@ -281,7 +281,18 @@ function Index() {
         />
       ) : null}
 
+      {/* Tap/hover hotspot: events inside an iframe never reach the page, so
+          keep a small always-live area in the top-right to bring controls back. */}
+      {iframeSrc && sources.length > 1 && !controlsVisible && (
+        <div
+          onPointerDown={() => setControlsVisible(true)}
+          onPointerMove={() => setControlsVisible(true)}
+          style={{ position: "fixed", top: 0, right: 0, width: 160, height: 80, zIndex: 9 }}
+        />
+      )}
+
       {iframeSrc && sources.length > 1 && (
+
         <select
           value={iframeSrc}
           onChange={(e) => setSelected(e.target.value)}
