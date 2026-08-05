@@ -232,17 +232,27 @@ function Index() {
       clearTimeout(timer);
       timer = setTimeout(() => setControlsVisible(false), 3000);
     };
+    const events = [
+      "pointermove",
+      "pointerdown",
+      "mousemove",
+      "touchstart",
+      "touchmove",
+      "click",
+      "keydown",
+      "scroll",
+    ] as const;
     show();
-    window.addEventListener("mousemove", show);
-    window.addEventListener("touchstart", show);
-    window.addEventListener("keydown", show);
+    // Capture phase so events inside the video element still reach us.
+    events.forEach((e) => document.addEventListener(e, show, { capture: true, passive: true }));
+    window.addEventListener("focus", show);
     return () => {
       clearTimeout(timer);
-      window.removeEventListener("mousemove", show);
-      window.removeEventListener("touchstart", show);
-      window.removeEventListener("keydown", show);
+      events.forEach((e) => document.removeEventListener(e, show, { capture: true }));
+      window.removeEventListener("focus", show);
     };
   }, [iframeSrc]);
+
 
   return (
     <div style={{ backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
@@ -271,7 +281,18 @@ function Index() {
         />
       ) : null}
 
+      {/* Tap/hover hotspot: events inside an iframe never reach the page, so
+          keep a small always-live area in the top-right to bring controls back. */}
+      {iframeSrc && sources.length > 1 && !controlsVisible && (
+        <div
+          onPointerDown={() => setControlsVisible(true)}
+          onPointerMove={() => setControlsVisible(true)}
+          style={{ position: "fixed", top: 0, right: 0, width: 160, height: 80, zIndex: 9 }}
+        />
+      )}
+
       {iframeSrc && sources.length > 1 && (
+
         <select
           value={iframeSrc}
           onChange={(e) => setSelected(e.target.value)}
