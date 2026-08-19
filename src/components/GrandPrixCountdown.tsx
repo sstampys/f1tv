@@ -105,16 +105,26 @@ export function GrandPrixCountdown() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6">
 
       <div className="w-full max-w-6xl flex flex-col items-center text-center">
-        {/* Flag */}
+        {/* Hidden flag — used only to derive the title gradient colors */}
         {session.country_flag && (
+          <img
+            ref={flagRef}
+            src={session.country_flag}
+            alt=""
+            aria-hidden="true"
+            crossOrigin="anonymous"
+            onLoad={handleFlagLoad}
+            className="absolute opacity-0 pointer-events-none w-px h-px"
+          />
+        )}
+
+        {/* 2D track map */}
+        {session.circuit_image && (
           <div className="mb-6">
             <img
-              ref={flagRef}
-              src={session.country_flag}
-              alt={session.country_name}
-              crossOrigin="anonymous"
-              onLoad={handleFlagLoad}
-              className="w-32 h-20 object-cover rounded-lg"
+              src={session.circuit_image}
+              alt={`${session.circuit_short_name} circuit layout`}
+              className="w-40 h-32 md:w-56 md:h-44 object-contain invert brightness-200"
             />
           </div>
         )}
