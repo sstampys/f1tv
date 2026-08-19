@@ -4,9 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Self-hosted from /public/fonts so the fonts resolve on any host (Vercel included). */
 @font-face {
   font-family: "Formula1";
-  src: url("/__l5e/assets-v1/6bb0ac2c-4173-4913-992c-9d71f1c97f31/Formula1-Regular.ttf") format("truetype");
+  src:
+    url("/fonts/Formula1-Regular.ttf") format("truetype"),
+    url("/__l5e/assets-v1/6bb0ac2c-4173-4913-992c-9d71f1c97f31/Formula1-Regular.ttf") format("truetype");
   font-weight: 100 500;
   font-style: normal;
   font-display: swap;
@@ -14,7 +17,9 @@
 
 @font-face {
   font-family: "Formula1";
-  src: url("/__l5e/assets-v1/21c65022-9284-4f6c-b8e7-2171169faadd/Formula1-Bold.ttf") format("truetype");
+  src:
+    url("/fonts/Formula1-Bold.ttf") format("truetype"),
+    url("/__l5e/assets-v1/21c65022-9284-4f6c-b8e7-2171169faadd/Formula1-Bold.ttf") format("truetype");
   font-weight: 600 900;
   font-style: normal;
   font-display: swap;
@@ -22,6 +27,7 @@
 
 @theme {
   --font-sans: "Formula1", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Formula1", ui-sans-serif, system-ui, sans-serif;
 }
 
 html,
