@@ -45,15 +45,19 @@ export async function getNextSession(): Promise<NextSession | null> {
   try {
     const now = new Date();
     const year = now.getFullYear();
-    const dateStr = now.toISOString().split("T")[0];
-
     const fetchSessions = async (y: number) => {
       const r = await fetch(
-        `${F1_API_BASE}/sessions?year=${y}&date_start>=${dateStr}`,
+        `${F1_API_BASE}/sessions?year=${y}`,
         { cache: "no-store" }
       );
       if (!r.ok) return [];
-      return (await r.json()) as Session[];
+      const sessions = (await r.json()) as Session[];
+      return sessions
+        .filter((session) => new Date(session.date_start).getTime() > now.getTime())
+        .sort(
+          (a, b) =>
+            new Date(a.date_start).getTime() - new Date(b.date_start).getTime(),
+        );
     };
 
     let sessions = await fetchSessions(year);

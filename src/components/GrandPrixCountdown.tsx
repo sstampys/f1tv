@@ -118,15 +118,24 @@ export function GrandPrixCountdown() {
           />
         )}
 
-        {/* 2D track map */}
+        {/* 2D track map, colored with the host country's flag palette */}
         {session.circuit_image && (
-          <div className="mb-6">
-            <img
-              src={session.circuit_image}
-              alt={`${session.circuit_short_name} circuit layout`}
-              className="w-40 h-32 md:w-56 md:h-44 object-contain invert brightness-200"
-            />
-          </div>
+          <div
+            role="img"
+            aria-label={`${session.circuit_short_name} circuit layout`}
+            className="mb-6 h-32 w-40 md:h-44 md:w-56"
+            style={{
+              backgroundImage: gradient,
+              WebkitMaskImage: `url("${session.circuit_image}")`,
+              maskImage: `url("${session.circuit_image}")`,
+              WebkitMaskPosition: "center",
+              maskPosition: "center",
+              WebkitMaskRepeat: "no-repeat",
+              maskRepeat: "no-repeat",
+              WebkitMaskSize: "contain",
+              maskSize: "contain",
+            }}
+          />
         )}
 
         {/* Gradient Title */}
