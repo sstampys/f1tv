@@ -74,8 +74,36 @@ export function GrandPrixCountdown() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-gray-500 text-sm tracking-wide">Loading</div>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-black px-4 py-6 animate-pulse">
+        <div className="w-full max-w-6xl flex flex-col items-center">
+          <div className="mb-6 h-32 w-40 md:h-44 md:w-56 rounded-lg bg-gray-900" />
+          <div className="mb-8 flex flex-col items-center gap-3">
+            <div className="h-12 md:h-16 w-64 md:w-96 rounded bg-gray-900" />
+            <div className="h-4 w-40 rounded bg-gray-900" />
+          </div>
+          <div className="h-px bg-gray-900 mb-8 w-full max-w-xl" />
+          <div className="w-full max-w-xl">
+            <div className="h-3 w-24 mx-auto rounded bg-gray-900 mb-3" />
+            <div className="grid grid-cols-4 gap-2 mb-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <div className="h-8 md:h-10 w-10 rounded bg-gray-900" />
+                  <div className="h-3 w-4 rounded bg-gray-900" />
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 flex flex-col items-center gap-2">
+                <div className="h-3 w-12 rounded bg-gray-900" />
+                <div className="h-4 w-28 rounded bg-gray-900" />
+              </div>
+              <div className="flex-1 flex flex-col items-center gap-2">
+                <div className="h-3 w-12 rounded bg-gray-900" />
+                <div className="h-4 w-24 rounded bg-gray-900" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
