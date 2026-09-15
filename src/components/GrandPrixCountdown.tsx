@@ -120,7 +120,9 @@ export function GrandPrixCountdown() {
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="absolute inset-0 z-0 hidden lg:block">
-        {mounted && <SplineScene ref={splineRef} scene={ROBOT_SCENE} className="h-full w-full" />}
+        <div className="absolute inset-0 w-1/2 right-0">
+          {mounted && <SplineScene ref={splineRef} scene={ROBOT_SCENE} className="h-full w-full" />}
+        </div>
       </div>
       <Spotlight size={420} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
 
