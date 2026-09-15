@@ -118,7 +118,7 @@ export function GrandPrixCountdown() {
   const subheaderText = `${session.circuit_short_name} Circuit`;
 
   return (
-    <div className="relative min-h-screen bg-black overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 z-0 hidden lg:block">
         <div className="absolute inset-0 lg:left-1/2">
           {mounted && <SplineScene scene={ROBOT_SCENE} className="h-full w-full" />}
