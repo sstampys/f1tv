@@ -322,8 +322,15 @@ function Index() {
       )}
 
       {loading && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100dvh", color: "#fff" }}>
-          Loading stream...
+        <div className="flex flex-col items-center justify-center min-h-dvh bg-black animate-pulse">
+          <div className="w-full max-w-3xl px-4 flex flex-col items-center gap-4">
+            <div className="w-full aspect-video rounded-lg bg-gray-900" />
+            <div className="flex gap-3">
+              <div className="h-10 w-28 rounded bg-gray-900" />
+              <div className="h-10 w-28 rounded bg-gray-900" />
+              <div className="h-10 w-28 rounded bg-gray-900" />
+            </div>
+          </div>
         </div>
       )}
     </div>
