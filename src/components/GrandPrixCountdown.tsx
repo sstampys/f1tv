@@ -38,6 +38,25 @@ export function GrandPrixCountdown() {
     return () => clearInterval(i);
   }, [session]);
 
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth) * 2 - 1;
+      const y = -(e.clientY / window.innerHeight) * 2 + 1;
+      
+      // Send cursor position to Spline via postMessage
+      const splineFrame = document.querySelector('iframe[title="Spline"]') as HTMLIFrameElement;
+      if (splineFrame && splineFrame.contentWindow) {
+        splineFrame.contentWindow.postMessage(
+          { type: 'MOUSE_MOVE', x, y },
+          '*'
+        );
+      }
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black animate-pulse">
