@@ -99,7 +99,7 @@ export function GrandPrixCountdown() {
   const subheaderText = `${session.circuit_short_name} Circuit`;
 
   return (
-    <div className="relative min-h-screen bg-black overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 z-0 hidden lg:block lg:left-1/2">
         {mounted && <SplineScene scene={ROBOT_SCENE} className="h-full w-full" />}
       </div>
@@ -113,7 +113,7 @@ export function GrandPrixCountdown() {
             <div
               role="img"
               aria-label={`${session.circuit_short_name} circuit layout`}
-              className="mb-6 h-32 w-40 md:h-40 md:w-52"
+              className="mb-6 h-32 w-40 md:h-40 md:w-52 drop-shadow-2xl"
               style={{
                 backgroundImage: "var(--gradient-silver)",
                 WebkitMaskImage: `url("${session.circuit_image}")`,
@@ -129,7 +129,7 @@ export function GrandPrixCountdown() {
           )}
 
           {/* Silver gradient title */}
-          <div className="mb-8">
+          <div className="mb-8 drop-shadow-2xl">
             <h1
               className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent mb-3"
               style={{ backgroundImage: "var(--gradient-silver)" }}
@@ -142,10 +142,10 @@ export function GrandPrixCountdown() {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gray-900 mb-8 w-full max-w-xl" />
+          <div className="h-px bg-gray-900 mb-8 w-full max-w-xl drop-shadow-lg" />
 
           {/* Countdown */}
-          <div className="w-full max-w-xl">
+          <div className="w-full max-w-xl drop-shadow-2xl">
             <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
             <div className="grid grid-cols-4 gap-2 mb-8">
               {[
