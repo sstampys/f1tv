@@ -94,6 +94,7 @@ body {
 
 :root {
   --radius: 0.625rem;
+  --gradient-silver: linear-gradient(180deg, oklch(0.99 0 0) 0%, oklch(0.76 0 0) 46%, oklch(0.94 0 0) 72%, oklch(0.58 0 0) 100%);
   --background: oklch(1 0 0);
   --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);

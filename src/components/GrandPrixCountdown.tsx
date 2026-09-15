@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
 import { SplineScene } from "@/components/ui/splite";
 import { Spotlight } from "@/components/ui/spotlight";
@@ -12,41 +12,11 @@ interface CountdownTime {
   seconds: number;
 }
 
-function extractFlagColors(img: HTMLImageElement): string[] {
-  const canvas = document.createElement("canvas");
-  const w = (canvas.width = 32);
-  const h = (canvas.height = 20);
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return [];
-  try {
-    ctx.drawImage(img, 0, 0, w, h);
-    const { data } = ctx.getImageData(0, 0, w, h);
-    const buckets = new Map<string, { r: number; g: number; b: number; n: number }>();
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i], g = data[i + 1], b = data[i + 2], a = data[i + 3];
-      if (a < 200) continue;
-      const max = Math.max(r, g, b);
-      if (max < 30) continue; // skip near-black
-
-      const key = `${r >> 5}-${g >> 5}-${b >> 5}`;
-      const prev = buckets.get(key) ?? { r: 0, g: 0, b: 0, n: 0 };
-      prev.r += r; prev.g += g; prev.b += b; prev.n += 1;
-      buckets.set(key, prev);
-    }
-    const sorted = [...buckets.values()].sort((a, b) => b.n - a.n).slice(0, 3);
-    return sorted.map((c) => `rgb(${Math.round(c.r / c.n)}, ${Math.round(c.g / c.n)}, ${Math.round(c.b / c.n)})`);
-  } catch {
-    return [];
-  }
-}
-
 export function GrandPrixCountdown() {
   const [session, setSession] = useState<NextSession | null>(null);
   const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const [gradient, setGradient] = useState<string>("linear-gradient(to right, #60a5fa, #a855f7, #ec4899)");
-  const flagRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -67,16 +37,6 @@ export function GrandPrixCountdown() {
     const i = setInterval(update, 1000);
     return () => clearInterval(i);
   }, [session]);
-
-  const handleFlagLoad = () => {
-    if (!flagRef.current) return;
-    const colors = extractFlagColors(flagRef.current);
-    if (colors.length >= 2) {
-      setGradient(`linear-gradient(to right, ${colors.join(", ")})`);
-    } else if (colors.length === 1) {
-      setGradient(`linear-gradient(to right, ${colors[0]}, ${colors[0]})`);
-    }
-  };
 
   if (loading) {
     return (
@@ -140,32 +100,22 @@ export function GrandPrixCountdown() {
 
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
-      <Spotlight size={420} className="from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
+      <div className="absolute inset-0 z-0 hidden lg:block">
+        {mounted && <SplineScene scene={ROBOT_SCENE} className="h-full w-full" />}
+      </div>
+      <Spotlight size={420} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
 
-      {/* Hidden flag — used only to derive the title gradient colors */}
-      {session.country_flag && (
-        <img
-          ref={flagRef}
-          src={session.country_flag}
-          alt=""
-          aria-hidden="true"
-          crossOrigin="anonymous"
-          onLoad={handleFlagLoad}
-          className="absolute opacity-0 pointer-events-none w-px h-px"
-        />
-      )}
-
-      <div className="relative z-10 mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
+      <div className="pointer-events-none relative z-20 mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
         {/* Left content */}
         <div className="flex flex-col justify-center items-start text-left px-8 md:px-12 py-10">
-          {/* 2D track map, colored with the host country's flag palette */}
+          {/* 2D track map with a polished silver finish */}
           {session.circuit_image && (
             <div
               role="img"
               aria-label={`${session.circuit_short_name} circuit layout`}
               className="mb-6 h-32 w-40 md:h-40 md:w-52"
               style={{
-                backgroundImage: gradient,
+                backgroundImage: "var(--gradient-silver)",
                 WebkitMaskImage: `url("${session.circuit_image}")`,
                 maskImage: `url("${session.circuit_image}")`,
                 WebkitMaskPosition: "center",
@@ -178,11 +128,11 @@ export function GrandPrixCountdown() {
             />
           )}
 
-          {/* Gradient Title */}
+          {/* Silver gradient title */}
           <div className="mb-8">
             <h1
               className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent mb-3"
-              style={{ backgroundImage: gradient }}
+              style={{ backgroundImage: "var(--gradient-silver)" }}
             >
               {title}
             </h1>
@@ -227,10 +177,7 @@ export function GrandPrixCountdown() {
           </div>
         </div>
 
-        {/* Right content — interactive 3D scene */}
-        <div className="relative hidden lg:block">
-          {mounted && <SplineScene scene={ROBOT_SCENE} className="absolute inset-0 h-full w-full" />}
-        </div>
+        <div className="hidden lg:block" aria-hidden="true" />
       </div>
     </div>
   );
