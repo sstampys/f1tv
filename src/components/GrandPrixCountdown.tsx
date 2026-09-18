@@ -39,18 +39,18 @@ export function GrandPrixCountdown() {
     return (
       <div className="min-h-screen animate-pulse">
         <div className="mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
-          <div className="flex flex-col justify-center items-start px-8 md:px-12 py-10">
+          <div className="flex flex-col justify-center items-center text-center px-8 md:px-12 py-10">
             <div className="mb-6 h-32 w-40 md:h-40 md:w-52 rounded-lg bg-gray-900" />
-            <div className="mb-8 flex flex-col items-start gap-3">
+            <div className="mb-8 flex flex-col items-center gap-3">
               <div className="h-12 md:h-16 w-64 md:w-96 rounded bg-gray-900" />
               <div className="h-4 w-40 rounded bg-gray-900" />
             </div>
             <div className="h-px bg-gray-900 mb-8 w-full max-w-xl" />
             <div className="w-full max-w-xl">
-              <div className="h-3 w-24 rounded bg-gray-900 mb-3" />
+              <div className="h-3 w-24 rounded bg-gray-900 mb-3 mx-auto" />
               <div className="grid grid-cols-4 gap-2 mb-8">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex flex-col items-start gap-2">
+                  <div key={i} className="flex flex-col items-center gap-2">
                     <div className="h-8 md:h-10 w-10 rounded bg-gray-900" />
                     <div className="h-3 w-4 rounded bg-gray-900" />
                   </div>
@@ -133,7 +133,7 @@ export function GrandPrixCountdown() {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gray-900 mb-8 w-full max-w-xl drop-shadow-lg" />
+          <div className="h-px bg-gray-900 mb-8 w-full max-w-xl mx-auto drop-shadow-lg" />
 
           {/* Countdown */}
           <div className="w-full max-w-xl drop-shadow-2xl">
@@ -145,7 +145,7 @@ export function GrandPrixCountdown() {
                 { v: countdown.minutes, l: "M" },
                 { v: countdown.seconds, l: "S" },
               ].map((it) => (
-                <div key={it.l} className="flex flex-col items-start">
+                <div key={it.l} className="flex flex-col items-center">
                   <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                     {String(it.v).padStart(2, "0")}
                   </span>
