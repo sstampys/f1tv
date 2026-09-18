@@ -1,9 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
-import { SplineScene } from "@/components/ui/splite";
 import { Spotlight } from "@/components/ui/spotlight";
-
-const ROBOT_SCENE = "https://prod.spline.design/kZDDjO5HuC9GJUM2/scene.splinecode";
 
 interface CountdownTime {
   days: number;
@@ -17,7 +14,6 @@ export function GrandPrixCountdown() {
   const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
-  const splineRef = useRef<any>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -38,24 +34,6 @@ export function GrandPrixCountdown() {
     const i = setInterval(update, 1000);
     return () => clearInterval(i);
   }, [session]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!splineRef.current) return;
-      
-      // Calculate normalized coordinates (-1 to 1)
-      const x = (e.clientX / window.innerWidth) * 2 - 1;
-      const y = -(e.clientY / window.innerHeight) * 2 + 1;
-      
-      // Try to access Spline's event system
-      if (splineRef.current?.emitEvent) {
-        splineRef.current.emitEvent('mouseMove', { x, y });
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
 
   if (loading) {
     return (
@@ -119,11 +97,6 @@ export function GrandPrixCountdown() {
 
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
-      <div className="absolute inset-0 z-0 hidden lg:block">
-        <div className="absolute inset-0 w-1/2 right-0">
-          {mounted && <SplineScene ref={splineRef} scene={ROBOT_SCENE} className="h-full w-full" />}
-        </div>
-      </div>
       <Spotlight size={420} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
 
       <div className="pointer-events-none relative z-20 mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
