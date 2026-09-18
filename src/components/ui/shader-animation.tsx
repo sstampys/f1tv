@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, type CSSProperties } from "react"
 import * as THREE from "three"
 
-export function ShaderAnimation() {
+export function ShaderAnimation({ style }: { style?: CSSProperties }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<{
     camera: THREE.Camera
@@ -133,10 +133,11 @@ export function ShaderAnimation() {
   return (
     <div
       ref={containerRef}
-      className="w-full h-screen"
+      className="w-full h-full"
       style={{
         background: "#000",
         overflow: "hidden",
+        ...style,
       }}
     />
   )
