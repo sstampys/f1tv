@@ -101,15 +101,15 @@ export function GrandPrixCountdown() {
 
       <div className="pointer-events-none relative z-20 mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
         {/* Left content */}
-        <div className="flex flex-col justify-center items-start text-left px-8 md:px-12 py-10">
-          {/* 2D track map with a polished silver finish */}
+        <div className="flex flex-col justify-center items-center text-center px-8 md:px-12 py-10">
+          {/* 2D track map */}
           {session.circuit_image && (
             <div
               role="img"
               aria-label={`${session.circuit_short_name} circuit layout`}
               className="mb-6 h-32 w-40 md:h-40 md:w-52 drop-shadow-2xl"
               style={{
-                backgroundImage: "var(--gradient-silver)",
+                backgroundImage: "linear-gradient(180deg, #fff, #d4d4d8)",
                 WebkitMaskImage: `url("${session.circuit_image}")`,
                 maskImage: `url("${session.circuit_image}")`,
                 WebkitMaskPosition: "center",
@@ -122,12 +122,9 @@ export function GrandPrixCountdown() {
             />
           )}
 
-          {/* Silver gradient title */}
+          {/* Title */}
           <div className="mb-8 drop-shadow-2xl">
-            <h1
-              className="f1-font text-5xl md:text-7xl font-bold tracking-tight bg-clip-text text-transparent mb-3"
-              style={{ backgroundImage: "var(--gradient-silver)" }}
-            >
+            <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight text-white mb-3">
               {title}
             </h1>
             <p className="f1-font text-xs text-gray-500 font-light tracking-wide">
