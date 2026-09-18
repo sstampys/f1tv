@@ -77,7 +77,7 @@ export function GrandPrixCountdown() {
   if (!session) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-gray-500 text-sm">No upcoming races</div>
+        <div className="text-gray-500 text-sm text-center">No upcoming races</div>
       </div>
     );
   }
@@ -123,7 +123,7 @@ export function GrandPrixCountdown() {
           )}
 
           {/* Title */}
-          <div className="mb-8 drop-shadow-2xl">
+          <div className="mb-8 drop-shadow-2xl text-center">
             <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight text-white mb-3">
               {title}
             </h1>
@@ -136,7 +136,7 @@ export function GrandPrixCountdown() {
           <div className="h-px bg-gray-900 mb-8 w-full max-w-xl mx-auto drop-shadow-lg" />
 
           {/* Countdown */}
-          <div className="w-full max-w-xl drop-shadow-2xl">
+          <div className="w-full max-w-xl drop-shadow-2xl text-center">
             <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
             <div className="grid grid-cols-4 gap-2 mb-8">
               {[
@@ -156,11 +156,11 @@ export function GrandPrixCountdown() {
 
             {/* Date / Time */}
             <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
+              <div className="flex-1 text-center">
                 <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
                 <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
               </div>
-              <div className="flex-1">
+              <div className="flex-1 text-center">
                 <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
                 <p className="f1-font text-sm text-white font-light">{formattedTime}</p>
               </div>
