@@ -37,7 +37,7 @@ export function GrandPrixCountdown() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black animate-pulse">
+      <div className="min-h-screen animate-pulse">
         <div className="mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
           <div className="flex flex-col justify-center items-start px-8 md:px-12 py-10">
             <div className="mb-6 h-32 w-40 md:h-40 md:w-52 rounded-lg bg-gray-900" />
@@ -96,7 +96,7 @@ export function GrandPrixCountdown() {
   const subheaderText = `${session.circuit_short_name} Circuit`;
 
   return (
-    <div className="relative min-h-screen bg-black overflow-hidden">
+    <div className="relative min-h-screen bg-transparent overflow-hidden">
       <Spotlight size={420} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
 
       <div className="pointer-events-none relative z-20 mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
