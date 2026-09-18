@@ -259,15 +259,12 @@ function Index() {
       {/* ShaderAnimation background */}
       <ShaderAnimation style={{ position: "fixed", inset: 0, zIndex: 0 }} />
 
-      {/* Text overlay - only visible when no stream is active */}
-      {!iframeSrc && (
-        <div className="absolute inset-0 flex items-center justify-center text-center w-full pointer-events-none">
-          <h1 className="text-5xl font-bold text-white/50">F1TV</h1>
+      {/* Show countdown inside the dynamic wrapper when no stream is available */}
+      {!loading && !iframeSrc && (
+        <div className="flex items-center justify-center min-h-screen">
+          <GrandPrixCountdown />
         </div>
       )}
-
-      {/* Show countdown inside the dynamic wrapper when no stream is available */}
-      {!loading && !iframeSrc && <GrandPrixCountdown />}
 
       {iframeSrc && /\.(mp4|webm|m3u8)(\?|$)/i.test(iframeSrc) ? (
         <video
