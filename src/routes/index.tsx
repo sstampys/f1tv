@@ -255,9 +255,9 @@ function Index() {
 
 
   return (
-    <div style={{ backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
+    <div style={{ position: "relative", backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
       {/* ShaderAnimation background */}
-      <ShaderAnimation style={{ position: "absolute", inset: 0, zIndex: -1 }} />
+      <ShaderAnimation style={{ position: "fixed", inset: 0, zIndex: 0 }} />
 
       {/* Show countdown inside the dynamic wrapper when no stream is available */}
       {!loading && !iframeSrc && <GrandPrixCountdown />}
