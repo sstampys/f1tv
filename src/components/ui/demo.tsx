@@ -5,6 +5,7 @@ export default function FloatingPathsBackgroundExample() {
     <FloatingPathsBackground
       className="aspect-16/9 flex items-center justify-center"
       position={-1}
+      children={undefined}
     >
     </FloatingPathsBackground>
   );
