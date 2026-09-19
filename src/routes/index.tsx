@@ -257,7 +257,7 @@ function Index() {
   return (
     <FloatingPathsBackground
       position={-1}
-      className="min-h-dvh w-full bg-background"
+      className="dark min-h-dvh w-full bg-background"
     >
 
       {/* Show countdown inside the dynamic wrapper when no stream is available */}
