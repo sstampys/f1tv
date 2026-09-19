@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
 import { Spotlight } from "@/components/ui/spotlight";
 
@@ -13,10 +13,8 @@ export function GrandPrixCountdown() {
   const [session, setSession] = useState<NextSession | null>(null);
   const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     (async () => {
       const next = await getNextSession();
       setSession(next);
@@ -38,8 +36,8 @@ export function GrandPrixCountdown() {
   if (loading) {
     return (
       <div className="min-h-screen animate-pulse">
-        <div className="mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
-          <div className="flex flex-col justify-center items-center text-center px-8 md:px-12 py-10">
+        <div className="mx-auto flex min-h-screen w-full items-center justify-center">
+          <div className="flex w-full max-w-3xl flex-col items-center justify-center px-8 py-10 text-center md:px-12">
             <div className="mb-6 h-32 w-40 md:h-40 md:w-52 rounded-lg bg-gray-900" />
             <div className="mb-8 flex flex-col items-center gap-3">
               <div className="h-12 md:h-16 w-64 md:w-96 rounded bg-gray-900" />
@@ -57,18 +55,17 @@ export function GrandPrixCountdown() {
                 ))}
               </div>
               <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1 flex flex-col items-start gap-2">
+                <div className="flex flex-1 flex-col items-center gap-2">
                   <div className="h-3 w-12 rounded bg-gray-900" />
                   <div className="h-4 w-28 rounded bg-gray-900" />
                 </div>
-                <div className="flex-1 flex flex-col items-start gap-2">
+                <div className="flex flex-1 flex-col items-center gap-2">
                   <div className="h-3 w-12 rounded bg-gray-900" />
                   <div className="h-4 w-24 rounded bg-gray-900" />
                 </div>
               </div>
             </div>
           </div>
-          <div className="hidden lg:block" />
         </div>
       </div>
     );
@@ -99,9 +96,8 @@ export function GrandPrixCountdown() {
     <div className="relative min-h-screen bg-transparent overflow-hidden">
       <Spotlight size={420} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
 
-      <div className="pointer-events-none relative z-20 mx-auto grid min-h-screen w-full max-w-7xl grid-cols-1 lg:grid-cols-2">
-        {/* Left content */}
-        <div className="flex flex-col justify-center items-center text-center px-8 md:px-12 py-10">
+      <div className="pointer-events-none relative z-20 mx-auto flex min-h-screen w-full items-center justify-center">
+        <div className="flex w-full max-w-3xl flex-col items-center justify-center px-8 py-10 text-center md:px-12">
           {/* 2D track map */}
           {session.circuit_image && (
             <div
@@ -168,7 +164,6 @@ export function GrandPrixCountdown() {
           </div>
         </div>
 
-        <div className="hidden lg:block" aria-hidden="true" />
       </div>
     </div>
   );
