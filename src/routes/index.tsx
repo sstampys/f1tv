@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
-import { ShaderAnimation } from "@/components/ui/shader-animation";
+import { FloatingPathsBackground } from "@/components/ui/floating-paths";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -255,9 +255,10 @@ function Index() {
 
 
   return (
-    <div style={{ backgroundColor: "#000", minHeight: "100dvh", width: "100%", margin: 0, padding: 0, overflowY: "auto" }}>
-      {/* ShaderAnimation background */}
-      <ShaderAnimation style={{ position: "fixed", inset: 0, zIndex: 0 }} />
+    <FloatingPathsBackground
+      position={-1}
+      className="min-h-dvh w-full bg-background"
+    >
 
       {/* Show countdown inside the dynamic wrapper when no stream is available */}
       {!loading && !iframeSrc && (
@@ -339,6 +340,6 @@ function Index() {
           </div>
         </div>
       )}
-    </div>
+    </FloatingPathsBackground>
   );
 }
