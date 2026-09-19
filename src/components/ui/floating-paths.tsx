@@ -13,7 +13,7 @@ export function FloatingPathsBackground({
   className?: string;
   children: React.ReactNode;
 }) {
-  const paths = Array.from({ length: 24 }, (_, i) => ({
+  const paths = Array.from({ length: 36 }, (_, i) => ({
     id: i,
     d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
       380 - i * 5 * position
@@ -48,9 +48,9 @@ export function FloatingPathsBackground({
                 pathOffset: [0, 1, 0],
               }}
               transition={{
-                duration: 10 + Math.random() * 10,
+                duration: 20 + Math.random() * 10,
                 repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
+                ease: "linear",
               }}
             />
           ))}
