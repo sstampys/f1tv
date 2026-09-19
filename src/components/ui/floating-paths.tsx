@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
 export function FloatingPathsBackground({
@@ -13,7 +13,6 @@ export function FloatingPathsBackground({
   className?: string;
   children: React.ReactNode;
 }) {
-  const prefersReducedMotion = useReducedMotion();
   const paths = Array.from({ length: 36 }, (_, i) => ({
     id: i,
     d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
@@ -23,45 +22,41 @@ export function FloatingPathsBackground({
     } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
       684 - i * 5 * position
     } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
-    opacity: 0.08 + i * 0.018,
+    color: `rgba(15,23,42,${0.1 + i * 0.03})`,
     width: 0.5 + i * 0.03,
   }));
 
   return (
-    <div className={cn("relative isolate overflow-hidden bg-background", className)}>
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+    <div className={cn("w-full relative", className)}>
+      <div className="absolute inset-0 pointer-events-none">
         <svg
-          className="h-full w-full text-foreground"
+          className="w-full h-full text-slate-950 dark:text-white"
           viewBox="0 0 696 316"
           fill="none"
-          preserveAspectRatio="xMidYMid slice"
         >
-          <title>Animated flowing paths</title>
-          <motion.g
-            animate={
-              prefersReducedMotion
-                ? undefined
-                : { x: [-10, 10, -10], y: [-4, 4, -4] }
-            }
-            transition={{
-              duration: 24,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            {paths.map((path) => (
-              <path
-                key={path.id}
-                d={path.d}
-                stroke="currentColor"
-                strokeWidth={path.width}
-                strokeOpacity={path.opacity}
-              />
-            ))}
-          </motion.g>
+          {paths.map((path) => (
+            <motion.path
+              key={path.id}
+              d={path.d}
+              stroke="currentColor"
+              strokeWidth={path.width}
+              strokeOpacity={0.1 + path.id * 0.03}
+              initial={{ pathLength: 0.3, opacity: 0.6 }}
+              animate={{
+                pathLength: 1,
+                opacity: [0.3, 0.6, 0.3],
+                pathOffset: [0, 1, 0],
+              }}
+              transition={{
+                duration: 20 + Math.random() * 10,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "linear",
+              }}
+            />
+          ))}
         </svg>
       </div>
-      <div className="relative z-10">{children}</div>
+      {children}
     </div>
   );
 }
