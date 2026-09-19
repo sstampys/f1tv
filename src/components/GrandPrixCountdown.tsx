@@ -163,7 +163,6 @@ export function GrandPrixCountdown() {
             </div>
           </div>
         </div>
-
       </div>
     );
   }
