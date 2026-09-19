@@ -37,30 +37,28 @@ export function FloatingPathsBackground({
           preserveAspectRatio="xMidYMid slice"
         >
           <title>Animated flowing paths</title>
-          {paths.map((path) => (
-            <motion.path
-              key={path.id}
-              d={path.d}
-              stroke="currentColor"
-              strokeWidth={path.width}
-              strokeOpacity={path.opacity}
-              initial={{ pathLength: 0.3, opacity: 0.35 }}
-              animate={
-                prefersReducedMotion
-                  ? { pathLength: 1, pathOffset: 0, opacity: 0.55 }
-                  : {
-                      pathLength: [0.3, 1, 0.3],
-                      pathOffset: [0, 0.2, 0],
-                      opacity: [0.35, 0.75, 0.35],
-                    }
-              }
-              transition={{
-                duration: 18 + (path.id % 8),
-                repeat: prefersReducedMotion ? 0 : Infinity,
-                ease: "linear",
-              }}
-            />
-          ))}
+          <motion.g
+            animate={
+              prefersReducedMotion
+                ? undefined
+                : { x: [-10, 10, -10], y: [-4, 4, -4] }
+            }
+            transition={{
+              duration: 24,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          >
+            {paths.map((path) => (
+              <path
+                key={path.id}
+                d={path.d}
+                stroke="currentColor"
+                strokeWidth={path.width}
+                strokeOpacity={path.opacity}
+              />
+            ))}
+          </motion.g>
         </svg>
       </div>
       <div className="relative z-10">{children}</div>
