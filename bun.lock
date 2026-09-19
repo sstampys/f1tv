@@ -47,6 +47,7 @@
         "framer-motion": "^13.2.0",
         "input-otp": "^1.4.2",
         "lucide-react": "^0.575.0",
+        "motion": "^13.4.0",
         "react": "^19.2.0",
         "react-day-picker": "^9.14.0",
         "react-dom": "^19.2.0",
@@ -811,6 +812,8 @@
 
     "minimatch": ["minimatch@3.1.5", "", { "dependencies": { "brace-expansion": "^1.1.7" } }, "sha512-VgjWUsnnT6n+NUk6eZq77zeFdpW2LWDzP6zFGrCbHXiYNul5Dzqk2HHQ5uFH2DNW5Xbp8+jVzaeNt94ssEEl4w=="],
 
+    "motion": ["motion@13.4.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/motion/-/motion-13.4.0.tgz", { "dependencies": { "framer-motion": "^13.4.0", "tslib": "^2.4.0" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["react", "react-dom"] }, "sha512-aiNSA29N+vgV5p5cJSB5cFzx8KTuuxB99z8zGtxsaqlwKtBK6sq8YgPRpkVQLkbJMOcLDU0q/ShdT95qpBy/0g=="],
+
     "motion-dom": ["motion-dom@13.2.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/motion-dom/-/motion-dom-13.2.0.tgz", { "dependencies": { "motion-utils": "^13.0.0" } }, "sha512-N6gdSoWRDk0Rh/fVtlqUtLs+fEN3ELFZI3cn3IQE9Mnf3E+Mh8wjO6MstzCOPFh4Yf0L1as5m2eUyYWj8ylVSQ=="],
 
     "motion-utils": ["motion-utils@13.0.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/motion-utils/-/motion-utils-13.0.0.tgz", {}, "sha512-7DnN7TmbLcYXcG4RVadXIihWlyuM9afoUww8Y5Agg431kGKiuL2/OMyP4mJ5wLz+pvN3t5ySClLOaVXJ+wekRQ=="],
@@ -1085,6 +1088,8 @@
 
     "h3-v2/srvx": ["srvx@0.11.15", "", { "bin": { "srvx": "bin/srvx.mjs" } }, "sha512-iXsux0UcOjdvs0LCMa2Ws3WwcDUozA3JN3BquNXkaFPP7TpRqgunKdEgoZ/uwb1J6xaYHfxtz9Twlh6yzwM6Tg=="],
 
+    "motion/framer-motion": ["framer-motion@13.4.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/framer-motion/-/framer-motion-13.4.0.tgz", { "dependencies": { "motion-dom": "^13.3.0", "motion-utils": "^13.3.0", "tslib": "^2.4.0" }, "peerDependencies": { "react": "^18.0.0 || ^19.0.0", "react-dom": "^18.0.0 || ^19.0.0" }, "optionalPeers": ["react", "react-dom"] }, "sha512-HCpqKM9BTu6UYKtj0u6J1QNxojnnirNcghcSDZ+SkpiL3myxvtsgXPS3ZGEELC2eSma7YiA937rAEXtRyydSXQ=="],
+
     "oxc-parser/@oxc-project/types": ["@oxc-project/types@0.120.0", "", {}, "sha512-k1YNu55DuvAip/MGE1FTsIuU3FUCn6v/ujG9V7Nq5Df/kX2CWb13hhwD0lmJGMGqE+bE1MXvv9SZVnMzEXlWcg=="],
 
     "prop-types/react-is": ["react-is@16.13.1", "", {}, "sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ=="],
@@ -1094,6 +1099,10 @@
     "vite/rolldown": ["rolldown@1.0.3", "", { "dependencies": { "@oxc-project/types": "=0.133.0", "@rolldown/pluginutils": "^1.0.0" }, "optionalDependencies": { "@rolldown/binding-android-arm64": "1.0.3", "@rolldown/binding-darwin-arm64": "1.0.3", "@rolldown/binding-darwin-x64": "1.0.3", "@rolldown/binding-freebsd-x64": "1.0.3", "@rolldown/binding-linux-arm-gnueabihf": "1.0.3", "@rolldown/binding-linux-arm64-gnu": "1.0.3", "@rolldown/binding-linux-arm64-musl": "1.0.3", "@rolldown/binding-linux-ppc64-gnu": "1.0.3", "@rolldown/binding-linux-s390x-gnu": "1.0.3", "@rolldown/binding-linux-x64-gnu": "1.0.3", "@rolldown/binding-linux-x64-musl": "1.0.3", "@rolldown/binding-openharmony-arm64": "1.0.3", "@rolldown/binding-wasm32-wasi": "1.0.3", "@rolldown/binding-win32-arm64-msvc": "1.0.3", "@rolldown/binding-win32-x64-msvc": "1.0.3" }, "bin": { "rolldown": "./bin/cli.mjs" } }, "sha512-i00lAJ2ks1BYr7rjNjKC7BcqAS7nVfiT3QX1SI5aY+AFHblCmaUf9OE9dbdzDvW6dJxbi2ZCZiy9v3CcwOiX3g=="],
 
     "@typescript-eslint/typescript-estree/minimatch/brace-expansion": ["brace-expansion@5.0.5", "", { "dependencies": { "balanced-match": "^4.0.2" } }, "sha512-VZznLgtwhn+Mact9tfiwx64fA9erHH/MCXEUfB/0bX/6Fz6ny5EGTXYltMocqg4xFAQZtnO3DHWWXi8RiuN7cQ=="],
+
+    "motion/framer-motion/motion-dom": ["motion-dom@13.3.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/motion-dom/-/motion-dom-13.3.0.tgz", { "dependencies": { "motion-utils": "^13.3.0" } }, "sha512-AmAnB6pHdZ1vHGzWzuzteG6Q3j1lHKeX/lbST6jGlgm0cjvLUgaCk1xhOuPMOy5SgovN6wnnUdwFrkcsus7Ftg=="],
+
+    "motion/framer-motion/motion-utils": ["motion-utils@13.3.0", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/motion-utils/-/motion-utils-13.3.0.tgz", {}, "sha512-sgSschQp7EseHInIlR7hBbMuvet3RA0bs28KPZAXJcGKGdxHGvh1ogpYDilY3bOMtl73EqPNmp75sAKHYPU5sg=="],
 
     "vite/rolldown/@oxc-project/types": ["@oxc-project/types@0.133.0", "", {}, "sha512-KzkdCd6Uxqnf6l3HOw1xfatAlUURA0g14cvBYFyJ5SaNOQbOUvBr9PKArcPcrNIeRsBdgcUzOGrhKveVpvOIGA=="],
 
