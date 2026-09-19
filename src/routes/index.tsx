@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
-import { FloatingPathsBackground } from "@/components/ui/floating-paths";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -255,91 +254,12 @@ function Index() {
 
 
   return (
-    <FloatingPathsBackground
-      position={-1}
-      className="dark min-h-dvh w-full bg-background text-foreground"
-    >
-
-      {/* Show countdown inside the dynamic wrapper when no stream is available */}
-      {!loading && !iframeSrc && (
-        <div className="flex items-center justify-center min-h-screen">
-          <GrandPrixCountdown />
-        </div>
-      )}
-
-      {iframeSrc && /\.(mp4|webm|m3u8)(\?|$)/i.test(iframeSrc) ? (
-        <video
-          key={iframeSrc}
-          src={iframeSrc}
-          autoPlay
-          muted
-          loop
-          playsInline
-          controls
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", objectFit: "contain", background: "#000" }}
-        />
-      ) : iframeSrc ? (
-        <iframe
-          key={iframeSrc}
-          src={iframeSrc}
-          title={streams[0]?.name ?? "F1 Live"}
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          allowFullScreen
-          style={{ position: "fixed", inset: 0, width: "100vw", height: "100dvh", border: "none", background: "#000" }}
-        />
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      {!loading && !iframeSrc ? (
+        <GrandPrixCountdown />
+      ) : loading ? (
+        <div className="text-white text-center">Loading...</div>
       ) : null}
-
-      {/* Tap/hover hotspot: events inside an iframe never reach the page, so
-          keep a small always-live area in the top-right to bring controls back. */}
-      {iframeSrc && sources.length > 1 && !controlsVisible && (
-        <div
-          onPointerDown={() => setControlsVisible(true)}
-          onPointerMove={() => setControlsVisible(true)}
-          style={{ position: "fixed", top: 0, right: 0, width: 160, height: 80, zIndex: 9 }}
-        />
-      )}
-
-      {iframeSrc && sources.length > 1 && (
-        <select
-          value={iframeSrc}
-          onChange={(e) => setSelected(e.target.value)}
-          aria-label="Stream source"
-          style={{
-            position: "fixed",
-            top: 16,
-            right: 16,
-            zIndex: 10,
-            background: "rgba(0,0,0,0.65)",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.25)",
-            borderRadius: 8,
-            padding: "6px 10px",
-            fontSize: 14,
-            opacity: controlsVisible ? 1 : 0,
-            pointerEvents: controlsVisible ? "auto" : "none",
-            transition: "opacity 300ms ease",
-          }}
-        >
-          {sources.map((s) => (
-            <option key={s.src} value={s.src} style={{ color: "#000" }}>
-              {s.label}
-            </option>
-          ))}
-        </select>
-      )}
-
-      {loading && (
-        <div className="flex flex-col items-center justify-center min-h-dvh bg-black animate-pulse">
-          <div className="w-full max-w-3xl px-4 flex flex-col items-center gap-4">
-            <div className="w-full aspect-video rounded-lg bg-gray-900" />
-            <div className="flex gap-3">
-              <div className="h-10 w-28 rounded bg-gray-900" />
-              <div className="h-10 w-28 rounded bg-gray-900" />
-              <div className="h-10 w-28 rounded bg-gray-900" />
-            </div>
-          </div>
-        </div>
-      )}
-    </FloatingPathsBackground>
+    </div>
   );
 }

@@ -35,33 +35,33 @@ export function GrandPrixCountdown() {
 
   if (loading) {
     return (
-      <div className="min-h-screen animate-pulse">
+      <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="mx-auto flex min-h-screen w-full items-center justify-center">
-          <div className="flex w-full max-w-3xl flex-col items-center justify-center px-8 py-10 text-center md:px-12">
-            <div className="mb-6 h-32 w-40 md:h-40 md:w-52 rounded-lg bg-gray-900" />
-            <div className="mb-8 flex flex-col items-center gap-3">
-              <div className="h-12 md:h-16 w-64 md:w-96 rounded bg-gray-900" />
-              <div className="h-4 w-40 rounded bg-gray-900" />
+          <div className="flex w-full max-w-4xl flex-col items-center justify-center px-8 py-12 text-center md:px-16">
+            <div className="mb-8 h-40 md:h-52 w-48 md:w-64 rounded-lg bg-gray-900" />
+            <div className="mb-10 flex flex-col items-center gap-4">
+              <div className="h-6 md:h-8 w-56 md:w-80 rounded bg-gray-900" />
+              <div className="h-5 w-48 rounded bg-gray-900" />
             </div>
-            <div className="h-px bg-gray-900 mb-8 w-full max-w-xl" />
+            <div className="h-px bg-gray-900 mb-10 w-full max-w-xl" />
             <div className="w-full max-w-xl">
-              <div className="h-3 w-24 rounded bg-gray-900 mb-3 mx-auto" />
-              <div className="grid grid-cols-4 gap-2 mb-8">
+              <div className="h-4 w-32 rounded bg-gray-900 mb-4 mx-auto" />
+              <div className="grid grid-cols-4 gap-3 mb-6">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex flex-col items-center gap-2">
-                    <div className="h-8 md:h-10 w-10 rounded bg-gray-900" />
-                    <div className="h-3 w-4 rounded bg-gray-900" />
+                  <div key={i} className="flex flex-col items-center gap-3">
+                    <div className="h-10 md:h-12 w-12 rounded bg-gray-900" />
+                    <div className="h-3 w-5 rounded bg-gray-900" />
                   </div>
                 ))}
               </div>
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex flex-1 flex-col items-center gap-2">
-                  <div className="h-3 w-12 rounded bg-gray-900" />
-                  <div className="h-4 w-28 rounded bg-gray-900" />
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1 flex-col items-center gap-3">
+                  <div className="h-4 w-16 rounded bg-gray-900" />
+                  <div className="h-5 w-36 rounded bg-gray-900" />
                 </div>
-                <div className="flex flex-1 flex-col items-center gap-2">
-                  <div className="h-3 w-12 rounded bg-gray-900" />
-                  <div className="h-4 w-24 rounded bg-gray-900" />
+                <div className="flex-1 flex-col items-center gap-3">
+                  <div className="h-4 w-16 rounded bg-gray-900" />
+                  <div className="h-5 w-32 rounded bg-gray-900" />
                 </div>
               </div>
             </div>
@@ -94,16 +94,16 @@ export function GrandPrixCountdown() {
 
   return (
     <div className="relative min-h-screen bg-transparent overflow-hidden">
-      <Spotlight size={420} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
+      <Spotlight size={480} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
 
       <div className="pointer-events-none relative z-20 mx-auto flex min-h-screen w-full items-center justify-center">
-        <div className="flex w-full max-w-3xl flex-col items-center justify-center px-8 py-10 text-center md:px-12">
+        <div className="flex w-full max-w-5xl flex-col items-center justify-center px-8 py-16 text-center md:px-20">
           {/* 2D track map */}
           {session.circuit_image && (
             <div
               role="img"
               aria-label={`${session.circuit_short_name} circuit layout`}
-              className="mb-6 h-32 w-40 md:h-40 md:w-52 drop-shadow-2xl"
+              className="mb-10 h-48 md:h-60 w-48 md:w-60 drop-shadow-2xl"
               style={{
                 backgroundImage: "linear-gradient(180deg, #fff, #d4d4d8)",
                 WebkitMaskImage: `url("${session.circuit_image}")`,
@@ -119,22 +119,22 @@ export function GrandPrixCountdown() {
           )}
 
           {/* Title */}
-          <div className="mb-8 drop-shadow-2xl text-center">
-            <h1 className="f1-font text-5xl md:text-7xl font-bold tracking-tight text-white mb-3">
+          <div className="mb-12 drop-shadow-2xl text-center">
+            <h1 className="f1-font text-6xl md:text-8xl font-bold tracking-tight text-white mb-4">
               {title}
             </h1>
-            <p className="f1-font text-xs text-gray-500 font-light tracking-wide">
+            <p className="f1-font text-sm text-gray-500 font-light tracking-wide">
               {subheaderText}
             </p>
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gray-900 mb-8 w-full max-w-xl mx-auto drop-shadow-lg" />
+          <div className="h-px bg-gray-900 mb-12 w-full max-w-xl mx-auto drop-shadow-lg" />
 
           {/* Countdown */}
           <div className="w-full max-w-xl drop-shadow-2xl text-center">
-            <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-3 font-bold">Countdown</p>
-            <div className="grid grid-cols-4 gap-2 mb-8">
+            <p className="f1-font text-sm text-gray-600 tracking-widest uppercase mb-4 font-bold">Countdown</p>
+            <div className="grid grid-cols-4 gap-4 mb-8">
               {[
                 { v: countdown.days, l: "D" },
                 { v: countdown.hours, l: "H" },
@@ -142,29 +142,29 @@ export function GrandPrixCountdown() {
                 { v: countdown.seconds, l: "S" },
               ].map((it) => (
                 <div key={it.l} className="flex flex-col items-center">
-                  <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
+                  <span className="f1-font text-3xl md:text-4xl font-bold text-white tracking-tight">
                     {String(it.v).padStart(2, "0")}
                   </span>
-                  <span className="f1-font text-xs text-gray-600 tracking-wide mt-1 font-bold">{it.l}</span>
+                  <span className="f1-font text-sm text-gray-600 tracking-wide mt-2 font-bold">{it.l}</span>
                 </div>
               ))}
             </div>
 
             {/* Date / Time */}
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1 text-center">
-                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
-                <p className="f1-font text-sm text-white font-light">{formattedDate}</p>
+                <p className="f1-font text-sm text-gray-600 tracking-widest uppercase mb-2 font-bold">Date</p>
+                <p className="f1-font text-base text-white font-light">{formattedDate}</p>
               </div>
               <div className="flex-1 text-center">
-                <p className="f1-font text-xs text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
-                <p className="f1-font text-sm text-white font-light">{formattedTime}</p>
+                <p className="f1-font text-sm text-gray-600 tracking-widest uppercase mb-2 font-bold">Time</p>
+                <p className="f1-font text-base text-white font-light">{formattedTime}</p>
               </div>
             </div>
           </div>
         </div>
 
       </div>
-    </div>
-  );
+    );
+  }
 }
