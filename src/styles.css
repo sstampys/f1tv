@@ -193,7 +193,7 @@ body {
   border: 3px solid rgba(255, 255, 255, 0.2);
   border-top-color: #fff;
   border-radius: 50%;
-  animation: loader-spin 0.8s linear infinite;
+  animation: loader-spin 1.2s ease-in-out infinite;
 }
 
 @keyframes loader-spin {
