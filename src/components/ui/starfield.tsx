@@ -164,6 +164,6 @@ const Starfield = memo(({
       <canvas ref={canvasRef} />
     </div>
   );
-};
+});
 
-export {Starfield};
+export { Starfield };
