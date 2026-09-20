@@ -55,9 +55,9 @@ const Starfield = ({
         Math.random() * (starEscapeWidth / 2) + starEscapeWidth,
       ];
       star.orbital = rands.reduce((p, c) => p + c, 0) / rands.length;
-      star.opacity = Math.floor(
+      star.opacity = Math.max(0, Math.floor(
         (1 - star.orbital / starEscapeWidth) * maxOpacity + Math.random() * 80
-      );
+      ));
       star.position = {
         x: size.x / 2,
         y: size.y / 2 + star.orbital,
@@ -100,9 +100,9 @@ const Starfield = ({
         star.position.y,
         star.rSpeed * currentTime
       );
-      star.opacity = Math.floor(
+      star.opacity = Math.max(0, Math.floor(
         (1 - star.orbital / starEscapeWidth) * maxOpacity + Math.random() * 80
-      );
+      ));
 
       // Draw new pixel
       const index =
