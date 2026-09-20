@@ -305,6 +305,6 @@ function Index() {
             }
           </>
         )
-      )
+    </div>
     </div>
   );
