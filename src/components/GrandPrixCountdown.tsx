@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
-import { Spotlight } from "@/components/ui/spotlight";
 
 interface CountdownTime {
   days: number;
