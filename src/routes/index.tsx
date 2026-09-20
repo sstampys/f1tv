@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
+import { LiquidGlassButton } from "../components/ui/apple-tahoe-liquid-glass-button";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -249,6 +250,12 @@ function Index() {
       clearTimeout(timer);
       events.forEach((e) => document.removeEventListener(e, show, { capture: true }));
       window.removeEventListener("focus", show);
+      const gl = glRef.current;
+      if (gl) {
+        if (glTexRef.current.bg) gl.deleteTexture(glTexRef.current.bg);
+        if (glTexRef.current.disp) gl.deleteTexture(glTexRef.current.disp);
+        if (glProgRef.current) gl.deleteProgram(glProgRef.current);
+      }
     };
   }, [iframeSrc]);
 
@@ -259,7 +266,44 @@ function Index() {
         <GrandPrixCountdown />
       ) : loading ? (
         <div className="text-white text-center">Loading...</div>
-      ) : null}
+      ) : (
+        <>
+          {/* Video container */}
+          <div className="relative w-full max-w-4xl mx-auto">
+            {/* Video iframe */}
+            <iframe
+              className="w-full h-[500px] md:h-[600px] rounded-lg"
+              title="F1 Live Stream"
+              src={iframeSrc}
+              allowFullScreen
+              allow="autoplay; fullscreen; picture-in-picture"
+              frameBorder="0"
+            />
+
+            {/* Source switcher */}
+            {sources.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
+                {sources.map((source) => (
+                  <LiquidGlassButton
+                    key={source.src}
+                    onClick={() => setSelected(source.src)}
+                    className="px-4 py-2 text-sm font-medium"
+                  >
+                    {source.label}
+                  </LiquidGlassButton>
+                ))}
+              </div>
+            )}
+
+            {/* Video title */}
+            {selected && (
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm font-medium bg-black/60 px-3 py-1 rounded-full z-20">
+                {sources.find(s => s.src === selected)?.label || "Live Stream"}
+              </div>
+            )}
+          </>
+        )
+      )}
     </div>
   );
 }
