@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 
-const Starfield = ({
+const Starfield = memo(({
   starCount = 25000,
   waveFrequency = 20,
   starEscapeWidth = 255,
@@ -16,6 +16,9 @@ const Starfield = ({
   const containerRef = useRef(null);
   const starsRef = useRef([]);
   const animationFrameRef = useRef(null);
+  // Orbit radius scaled to the viewport so stars fill the whole screen
+  // instead of clustering in a small ring around the center.
+  let escape = starEscapeWidth;
 
   useEffect(() => {
     const canvas = canvasRef.current;
