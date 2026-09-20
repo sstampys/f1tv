@@ -293,17 +293,18 @@ function Index() {
                   </LiquidGlassButton>
                 ))}
               </div>
-            )}
+            )
+            }
 
             {/* Video title */}
             {selected && (
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm font-medium bg-black/60 px-3 py-1 rounded-full z-20">
                 {sources.find(s => s.src === selected)?.label || "Live Stream"}
               </div>
-            )}
+            )
+            }
           </>
         )
-      )}
+      )
     </div>
   );
-}
