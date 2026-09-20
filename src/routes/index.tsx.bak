@@ -1,16 +1,4 @@
-i{sources.length > 1 && (
-  <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-    {sources.map((source) => (
-      <LiquidGlassButton
-        key={source.src}
-        onClick={() => setSelected(source.src)}
-        className="px-4 py-2 text-sm font-medium"
-      >
-        {source.label}
-      </LiquidGlassButton>
-    ))}
-  </div>
-)}mport { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 import { LiquidGlassButton } from "../components/ui/apple-tahoe-liquid-glass-button";
@@ -294,7 +282,6 @@ function Index() {
 
             {/* Source switcher */}
             {sources.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
                 {sources.map((source) => (
                   <LiquidGlassButton
@@ -306,18 +293,17 @@ function Index() {
                   </LiquidGlassButton>
                 ))}
               </div>
-            )
-            }
+            )}
 
             {/* Video title */}
             {selected && (
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm font-medium bg-black/60 px-3 py-1 rounded-full z-20">
                 {sources.find(s => s.src === selected)?.label || "Live Stream"}
               </div>
-            )
-            }
+            )}
           </>
         )
-    </div>
+      )}
     </div>
   );
+}
