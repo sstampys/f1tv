@@ -92,9 +92,7 @@ export function GrandPrixCountdown() {
   const subheaderText = `${session.circuit_short_name} Circuit`;
 
   return (
-    <div className="relative min-h-screen bg-transparent overflow-hidden">
-      <Spotlight size={480} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
-
+    <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="pointer-events-none relative z-20 mx-auto flex min-h-screen w-full items-center justify-center">
         <div className="flex w-full max-w-5xl flex-col items-center justify-center px-8 py-16 text-center md:px-20">
           {/* 2D track map */}
