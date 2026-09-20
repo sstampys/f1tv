@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
+import { Starfield } from "./ui/starfield";
 
 interface CountdownTime {
   days: number;
@@ -93,6 +94,10 @@ export function GrandPrixCountdown() {
 
   return (
     <div className="relative min-h-screen bg-black overflow-hidden">
+      {/* Animated starfield background */}
+      <div className="pointer-events-none fixed inset-0 z-0">
+        <Starfield starCount={12000} />
+      </div>
       <div className="pointer-events-none relative z-20 mx-auto flex min-h-screen w-full items-center justify-center">
         <div className="flex w-full max-w-5xl flex-col items-center justify-center px-8 py-16 text-center md:px-20">
           {/* 2D track map */}
