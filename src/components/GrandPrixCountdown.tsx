@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
-import { Spotlight } from "@/components/ui/spotlight";
 
 interface CountdownTime {
   days: number;
@@ -93,9 +92,7 @@ export function GrandPrixCountdown() {
   const subheaderText = `${session.circuit_short_name} Circuit`;
 
   return (
-    <div className="relative min-h-screen bg-transparent overflow-hidden">
-      <Spotlight size={480} className="z-10 from-zinc-200/60 via-zinc-400/30 to-zinc-600/10" />
-
+    <div className="relative min-h-screen bg-black overflow-hidden">
       <div className="pointer-events-none relative z-20 mx-auto flex min-h-screen w-full items-center justify-center">
         <div className="flex w-full max-w-5xl flex-col items-center justify-center px-8 py-16 text-center md:px-20">
           {/* 2D track map */}
@@ -103,7 +100,7 @@ export function GrandPrixCountdown() {
             <div
               role="img"
               aria-label={`${session.circuit_short_name} circuit layout`}
-              className="mb-10 h-48 md:h-60 w-48 md:w-60 drop-shadow-2xl"
+              className="mb-8 h-32 md:h-40 w-32 md:w-40 drop-shadow-2xl"
               style={{
                 backgroundImage: "linear-gradient(180deg, #fff, #d4d4d8)",
                 WebkitMaskImage: `url("${session.circuit_image}")`,
@@ -119,8 +116,8 @@ export function GrandPrixCountdown() {
           )}
 
           {/* Title */}
-          <div className="mb-12 drop-shadow-2xl text-center">
-            <h1 className="f1-font text-6xl md:text-8xl font-bold tracking-tight text-white mb-4">
+          <div className="mb-10 drop-shadow-2xl text-center">
+            <h1 className="f1-font text-3xl md:text-5xl font-bold tracking-tight text-white mb-3">
               {title}
             </h1>
             <p className="f1-font text-sm text-gray-500 font-light tracking-wide">
@@ -129,7 +126,7 @@ export function GrandPrixCountdown() {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gray-900 mb-12 w-full max-w-xl mx-auto drop-shadow-lg" />
+          <div className="h-px bg-gray-900 mb-10 w-full max-w-xl mx-auto drop-shadow-lg" />
 
           {/* Countdown */}
           <div className="w-full max-w-xl drop-shadow-2xl text-center">
@@ -142,7 +139,7 @@ export function GrandPrixCountdown() {
                 { v: countdown.seconds, l: "S" },
               ].map((it) => (
                 <div key={it.l} className="flex flex-col items-center">
-                  <span className="f1-font text-3xl md:text-4xl font-bold text-white tracking-tight">
+                  <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
                     {String(it.v).padStart(2, "0")}
                   </span>
                   <span className="f1-font text-sm text-gray-600 tracking-wide mt-2 font-bold">{it.l}</span>
