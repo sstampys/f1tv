@@ -14,23 +14,49 @@ export function GrandPrixCountdown() {
   const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
 
+  // Fetch session data on mount and periodically refresh
   useEffect(() => {
-    (async () => {
-      const next = await getNextSession();
-      setSession(next);
-      setLoading(false);
-    })();
+    const fetchSession = async () => {
+      try {
+        const next = await getNextSession();
+        setSession(next);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching session:", error);
+        setLoading(false);
+      }
+    };
+
+    // Fetch immediately on mount
+    fetchSession();
+
+    // Refresh session data every hour to catch any schedule changes
+    const intervalId = setInterval(fetchSession, 60 * 60 * 1000); // 1 hour
+
+    return () => clearInterval(intervalId);
   }, []);
 
+  // Update countdown every second from cached session data
   useEffect(() => {
     if (!session) return;
-    const update = () => {
+    
+    const updateCountdown = () => {
       const t = calculateTimeUntilRace(session.date_start);
-      setCountdown({ days: t.days, hours: t.hours, minutes: t.minutes, seconds: t.seconds });
+      setCountdown({ 
+        days: t.days, 
+        hours: t.hours, 
+        minutes: t.minutes, 
+        seconds: t.seconds 
+      });
     };
-    update();
-    const i = setInterval(update, 1000);
-    return () => clearInterval(i);
+
+    // Initial update
+    updateCountdown();
+    
+    // Update every second for smooth countdown
+    const intervalId = setInterval(updateCountdown, 1000);
+    
+    return () => clearInterval(intervalId);
   }, [session]);
 
   if (loading) {
