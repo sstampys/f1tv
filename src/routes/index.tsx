@@ -1,6 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Check, ChevronDown } from "lucide-react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
+import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -176,6 +184,7 @@ function Index() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (demo === "sample") {
@@ -222,6 +231,7 @@ function Index() {
 
   const sources = buildSources(streams);
   const iframeSrc = selected && sources.some((s) => s.src === selected) ? selected : (sources[0]?.src ?? null);
+  const currentSource = sources.find((source) => source.src === iframeSrc);
 
   useEffect(() => {
     document.title = iframeSrc ? "Stream" : "Countdown";
@@ -260,11 +270,80 @@ function Index() {
 
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
+    <div className="relative min-h-screen overflow-hidden bg-black">
       {!loading && !iframeSrc ? (
         <GrandPrixCountdown />
       ) : loading ? (
-        <div className="text-white text-center">Loading...</div>
+        <div className="flex min-h-screen items-center justify-center">
+          <div className="h-9 w-32 animate-pulse rounded-full bg-white/10" />
+        </div>
+      ) : null}
+
+      {iframeSrc ? (
+        demo === "sample" ? (
+          <video
+            key={iframeSrc}
+            className="absolute inset-0 h-full w-full bg-black object-contain"
+            src={iframeSrc}
+            autoPlay
+            controls
+            playsInline
+          />
+        ) : (
+          <iframe
+            key={iframeSrc}
+            src={iframeSrc}
+            title={currentSource?.label ?? "Live stream"}
+            className="absolute inset-0 h-full w-full border-0 bg-black"
+            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+            allowFullScreen
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        )
+      ) : null}
+
+      {iframeSrc && sources.length > 1 ? (
+        <>
+          <div
+            className="fixed right-0 top-0 z-40 h-24 w-56"
+            aria-hidden="true"
+            onPointerMove={() => setControlsVisible(true)}
+            onPointerDown={() => setControlsVisible(true)}
+            onTouchStart={() => setControlsVisible(true)}
+          />
+          <div
+            className={`fixed right-4 top-4 z-50 transition-all duration-300 sm:right-6 sm:top-6 ${
+              controlsVisible || menuOpen
+                ? "translate-y-0 opacity-100"
+                : "pointer-events-none -translate-y-2 opacity-0"
+            }`}
+          >
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <LiquidGlassButton aria-label="Change stream source">
+                  <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
+                  <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
+                </LiquidGlassButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="min-w-48 rounded-2xl border-white/25 bg-black/45 p-1.5 text-white shadow-2xl backdrop-blur-xl backdrop-saturate-150"
+              >
+                {sources.map((source) => (
+                  <DropdownMenuItem
+                    key={source.src}
+                    onSelect={() => setSelected(source.src)}
+                    className="cursor-pointer rounded-xl px-3 py-2.5 text-sm focus:bg-white/15 focus:text-white"
+                  >
+                    <span className="flex-1 truncate">{source.label}</span>
+                    {source.src === iframeSrc ? <Check className="size-4" /> : null}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </>
       ) : null}
     </div>
   );
