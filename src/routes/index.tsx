@@ -11,10 +11,12 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "F1TV" },
+      { title: "Countdown" },
       { name: "description", content: "Live Formula 1 Stream" },
-      { property: "og:title", content: "F1TV" },
+      { property: "og:title", content: "Countdown" },
       { property: "og:description", content: "Live Formula 1 Stream" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -220,6 +222,10 @@ function Index() {
 
   const sources = buildSources(streams);
   const iframeSrc = selected && sources.some((s) => s.src === selected) ? selected : (sources[0]?.src ?? null);
+
+  useEffect(() => {
+    document.title = iframeSrc ? "Stream" : "Countdown";
+  }, [iframeSrc]);
 
 
   // Mirror typical player-control auto-hide behavior

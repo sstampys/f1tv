@@ -6,6 +6,10 @@ export const Route = createFileRoute("/legal")({
     meta: [
       { title: "Legal - F1TV" },
       { name: "description", content: "Legal information and privacy policy" },
+      { property: "og:title", content: "Legal - F1TV" },
+      { property: "og:description", content: "Legal information and privacy policy" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Legal,
