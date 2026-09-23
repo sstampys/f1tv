@@ -124,15 +124,15 @@ function Replays() {
   }
 
   return (
-    <div className="relative min-h-screen bg-black">
-      <div className="mx-auto w-full max-w-4xl px-6 pb-16 pt-16 sm:pt-20">
-        <div className="flex items-baseline justify-between">
-          <h1 className="f1-font text-2xl font-bold tracking-[0.2em] text-white sm:text-3xl">
+    <div className="inter-font relative min-h-screen bg-black">
+      <div className="mx-auto w-full max-w-4xl px-6 pb-16 pt-16 text-center sm:pt-20">
+        <div className="flex flex-col items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-[0.2em] text-white sm:text-3xl">
             REPLAYS
           </h1>
           <Link
             to="/"
-            className="f1-font text-xs font-bold tracking-[0.25em] text-white/50 transition-colors hover:text-white"
+            className="text-xs font-bold tracking-[0.25em] text-white/50 transition-colors hover:text-white"
           >
             COUNTDOWN
           </Link>
