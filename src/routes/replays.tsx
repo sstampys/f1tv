@@ -115,7 +115,7 @@ function Replays() {
         />
         <button
           onClick={() => setActive(null)}
-          className="f1-font fixed left-4 top-4 z-50 text-xs font-bold tracking-[0.25em] text-white/60 transition-colors hover:text-white sm:left-6 sm:top-6"
+          className="inter-font fixed left-4 top-4 z-50 text-xs font-bold tracking-[0.25em] text-white/60 transition-colors hover:text-white sm:left-6 sm:top-6"
         >
           ‹ REPLAYS
         </button>
@@ -124,15 +124,15 @@ function Replays() {
   }
 
   return (
-    <div className="relative min-h-screen bg-black">
-      <div className="mx-auto w-full max-w-4xl px-6 pb-16 pt-16 sm:pt-20">
-        <div className="flex items-baseline justify-between">
-          <h1 className="f1-font text-2xl font-bold tracking-[0.2em] text-white sm:text-3xl">
+    <div className="inter-font relative min-h-screen bg-black">
+      <div className="mx-auto w-full max-w-4xl px-6 pb-16 pt-16 text-center sm:pt-20">
+        <div className="flex flex-col items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-[0.2em] text-white sm:text-3xl">
             REPLAYS
           </h1>
           <Link
             to="/"
-            className="f1-font text-xs font-bold tracking-[0.25em] text-white/50 transition-colors hover:text-white"
+            className="text-xs font-bold tracking-[0.25em] text-white/50 transition-colors hover:text-white"
           >
             COUNTDOWN
           </Link>
@@ -149,7 +149,7 @@ function Replays() {
             ))}
           </div>
         ) : replays.length === 0 ? (
-          <p className="f1-font mt-16 text-center text-sm tracking-[0.2em] text-white/40">
+          <p className="mt-16 text-sm tracking-[0.2em] text-white/40">
             NO REPLAYS AVAILABLE YET
           </p>
         ) : (
@@ -158,7 +158,7 @@ function Replays() {
               <button
                 key={r.id}
                 onClick={() => setActive(r)}
-                className="group text-left"
+                className="group"
               >
                 <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/10 bg-gray-950">
                   {r.poster ? (
@@ -171,10 +171,10 @@ function Replays() {
                   ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 </div>
-                <p className="f1-font mt-3 text-sm font-bold text-white">
+                <p className="mt-3 text-sm font-bold text-white">
                   {r.name}
                 </p>
-                <p className="f1-font mt-1 text-xs tracking-wide text-white/50">
+                <p className="mt-1 text-xs tracking-wide text-white/50">
                   {sourceLabel(r)} · {formatDate(r.starts_at)}
                 </p>
               </button>
