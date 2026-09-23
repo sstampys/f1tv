@@ -273,7 +273,7 @@ function Index() {
     <div className="relative min-h-screen overflow-hidden bg-black">
       <Link
         to="/replays"
-        className="f1-font fixed left-4 top-4 z-50 text-xs font-bold tracking-[0.25em] text-white/50 transition-colors hover:text-white sm:left-6 sm:top-6"
+        className="f1-font fixed left-1/2 top-4 z-50 -translate-x-1/2 text-xs font-bold tracking-[0.25em] text-white/50 transition-colors hover:text-white sm:top-6"
       >
         REPLAYS
       </Link>
