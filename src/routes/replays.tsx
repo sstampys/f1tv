@@ -25,6 +25,7 @@ type Replay = {
   source_tag?: string;
   tag?: string;
   poster?: string;
+  always_live: number;
   starts_at: number;
   ends_at: number;
 };
