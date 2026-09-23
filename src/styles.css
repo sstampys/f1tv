@@ -183,6 +183,10 @@ body {
   font-family: "SF Pro Display", ui-sans-serif, system-ui, sans-serif;
 }
 
+@utility inter-font {
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
 #lovable-badge {
   display: none !important;
 }
