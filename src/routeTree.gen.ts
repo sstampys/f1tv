@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReplaysRouteImport } from './routes/replays'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ReplaysRoute = ReplaysRouteImport.update({
+  id: '/replays',
+  path: '/replays',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalRoute = LegalRouteImport.update({
   id: '/legal',
   path: '/legal',
@@ -33,34 +39,45 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/replays': typeof ReplaysRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/replays': typeof ReplaysRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/replays': typeof ReplaysRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/legal'
+  fullPaths: '/' | '/demo' | '/legal' | '/replays'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/legal'
-  id: '__root__' | '/' | '/demo' | '/legal'
+  to: '/' | '/demo' | '/legal' | '/replays'
+  id: '__root__' | '/' | '/demo' | '/legal' | '/replays'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoRoute: typeof DemoRoute
   LegalRoute: typeof LegalRoute
+  ReplaysRoute: typeof ReplaysRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/replays': {
+      id: '/replays'
+      path: '/replays'
+      fullPath: '/replays'
+      preLoaderRoute: typeof ReplaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal': {
       id: '/legal'
       path: '/legal'
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoRoute: DemoRoute,
   LegalRoute: LegalRoute,
+  ReplaysRoute: ReplaysRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
