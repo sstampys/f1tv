@@ -61,8 +61,8 @@ export function GrandPrixCountdown() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-black">
-        <div className="mx-auto flex min-h-screen w-full items-center justify-center">
+      <div className="grid h-dvh w-full place-items-center overflow-hidden bg-black">
+        <div className="flex h-full w-full items-center justify-center">
           <div className="flex w-full max-w-xl flex-col items-center justify-center px-8 py-16 text-center">
             <div className="grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
@@ -80,19 +80,19 @@ export function GrandPrixCountdown() {
 
   if (!session) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
+      <div className="grid h-dvh w-full place-items-center overflow-hidden bg-black">
         <div className="text-white text-sm text-center">No upcoming races</div>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-black overflow-hidden">
+    <div className="relative h-dvh w-full overflow-hidden bg-black">
       {/* Animated starfield background */}
-      <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="pointer-events-none absolute inset-0 z-0">
         <Starfield starCount={12000} />
       </div>
-      <div className="pointer-events-none relative z-20 mx-auto flex min-h-screen w-full items-center justify-center">
+      <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
         <div className="flex w-full max-w-xl flex-col items-center justify-center px-8 py-16 text-center">
           {/* Countdown */}
           <div className="grid grid-cols-4 gap-4">
