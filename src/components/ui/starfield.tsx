@@ -199,8 +199,8 @@ const Starfield = memo(({
   }, [starCount, waveFrequency, starEscapeWidth, voidWidth, starColor, maxOpacity, rotationSpeed, waveSpeed]);
 
   return (
-    <div ref={containerRef} className={className} style={{ width: '100%', height: '100%' }}>
-      <canvas ref={canvasRef} />
+    <div ref={containerRef} className={`relative h-full w-full overflow-hidden ${className ?? ''}`}>
+      <canvas ref={canvasRef} className="block h-full w-full" />
     </div>
   );
 });
