@@ -149,7 +149,7 @@ function Replays() {
             ))}
           </div>
         ) : replays.length === 0 ? (
-          <p className="f1-font mt-16 text-center text-sm tracking-[0.2em] text-white/40">
+          <p className="mt-16 text-sm tracking-[0.2em] text-white/40">
             NO REPLAYS AVAILABLE YET
           </p>
         ) : (
