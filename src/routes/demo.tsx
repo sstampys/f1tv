@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
+import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,7 +99,7 @@ function extractIframeSrc(iframe?: string): string | null {
   return null;
 }
 
-type Source = { label: string; src: string };
+type Source = { label: string; src: string; language: SourceLanguage | null };
 
 function buildSources(streams: Stream[]): Source[] {
   const out: Source[] = [];
@@ -112,7 +113,8 @@ function buildSources(streams: Stream[]): Source[] {
       const src = extractIframeSrc(c.iframe) ?? (c === candidates[0] ? `https://ppv.st/live/${s.uri_name}` : null);
       if (!src || seen.has(src)) continue;
       seen.add(src);
-      out.push({ label: labelOf(c), src });
+      const label = labelOf(c);
+      out.push({ label, src, language: getSourceLanguage(label, src) });
     }
   }
   // Sky Sports first, then Apple TV, then the rest
@@ -314,16 +316,24 @@ function DemoRoute() {
               <DropdownMenuContent
                 align="end"
                 sideOffset={8}
-                className="min-w-48 rounded-2xl border-white/25 bg-black/45 p-1.5 text-white shadow-2xl backdrop-blur-xl backdrop-saturate-150"
+                className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-stream-border bg-stream-menu p-1.5 text-stream-text shadow-2xl backdrop-blur-xl backdrop-saturate-150"
               >
                 {sources.map((source) => (
                   <DropdownMenuItem
                     key={source.src}
                     onSelect={() => setSelected(source.src)}
-                    className="cursor-pointer rounded-xl px-3 py-2.5 text-sm focus:bg-white/15 focus:text-white"
+                    className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
                   >
                     <span className="flex-1 truncate">{source.label}</span>
-                    {source.src === iframeSrc ? <Check className="size-4" /> : null}
+                    {source.language ? (
+                      <span className="flex shrink-0 items-center gap-2">
+                        <span aria-hidden="true">{source.language.flag}</span>
+                        <span className="opacity-75">{source.language.name}</span>
+                      </span>
+                    ) : null}
+                    <span className="flex size-4 shrink-0 items-center justify-center">
+                      {source.src === iframeSrc ? <Check className="size-4" /> : null}
+                    </span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>

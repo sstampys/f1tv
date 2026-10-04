@@ -62,6 +62,10 @@ body {
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
+  --color-stream-menu: oklch(0 0 0 / 45%);
+  --color-stream-text: oklch(1 0 0);
+  --color-stream-border: oklch(1 0 0 / 25%);
+  --color-stream-hover: oklch(1 0 0 / 15%);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);

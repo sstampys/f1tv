@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Resolve broadcast languages through the shared source-language helper on both player pages; URL region hints disambiguate duplicate channel names without relying on source order.
