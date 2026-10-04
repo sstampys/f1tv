@@ -102,22 +102,6 @@ function extractIframeSrc(iframe?: string): string | null {
   return null;
 }
 
-// Route embed-provider players through our same-origin proxy (/api/embed).
-// The provider shows a red "Remove sandbox attributes" overlay when its
-// popup test fails inside a sandboxed frame (the Lovable preview); the proxy
-// injects a patch that neutralizes that detector.
-function playerSrc(src: string): string {
-  try {
-    const host = new URL(src).hostname.toLowerCase();
-    if (host === "embedindia.st" || host.endsWith(".embedindia.st")) {
-      return `/api/embed?url=${encodeURIComponent(src)}`;
-    }
-  } catch {
-    // not a valid URL — use as-is
-  }
-  return src;
-}
-
 type Source = { label: string; src: string; language: SourceLanguage | null };
 
 function buildSources(streams: Stream[]): Source[] {
@@ -312,7 +296,7 @@ function Index() {
         ) : (
           <iframe
             key={iframeSrc}
-            src={playerSrc(iframeSrc)}
+            src={iframeSrc}
             title={currentSource?.label ?? "Live stream"}
             className="absolute inset-0 h-full w-full border-0 bg-black"
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
