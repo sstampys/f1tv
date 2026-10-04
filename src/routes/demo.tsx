@@ -31,12 +31,14 @@ export const Route = createFileRoute("/demo")({
 });
 
 type Substream = {
+  locale?: string | null;
   source_tag?: string;
   tag?: string;
   iframe?: string;
 };
 
 type Stream = {
+  locale?: string | null;
   id: number;
   name: string;
   uri_name: string;
@@ -105,8 +107,8 @@ function buildSources(streams: Stream[]): Source[] {
   const out: Source[] = [];
   const seen = new Set<string>();
   for (const s of streams) {
-    const candidates: Array<{ source_tag?: string; tag?: string; iframe?: string }> = [
-      { source_tag: s.source_tag, tag: s.tag, iframe: s.iframe },
+    const candidates: Substream[] = [
+      { source_tag: s.source_tag, tag: s.tag, iframe: s.iframe, locale: s.locale },
       ...(s.substreams ?? []),
     ];
     for (const c of candidates) {
@@ -114,7 +116,7 @@ function buildSources(streams: Stream[]): Source[] {
       if (!src || seen.has(src)) continue;
       seen.add(src);
       const label = labelOf(c);
-      out.push({ label, src, language: getSourceLanguage(label, src) });
+      out.push({ label, src, language: getSourceLanguage(label, src, c.locale) });
     }
   }
   // Sky Sports first, then Apple TV, then the rest

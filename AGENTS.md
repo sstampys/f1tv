@@ -9,4 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Resolve broadcast languages through the shared source-language helper on both player pages; URL region hints disambiguate duplicate channel names without relying on source order.
+- Resolve broadcast languages through the shared source-language helper on both player pages, passing each stream/substream locale; explicit locales take priority over URL/name hints to disambiguate duplicate channels without relying on source order.

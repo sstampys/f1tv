@@ -10,9 +10,19 @@ const languages = {
   nl: { flag: "🇳🇱", name: "Nederlands" },
 } satisfies Record<string, SourceLanguage>;
 
-// Region hints disambiguate channels with identical names. Never infer a
-// language from their order or assign one to an unrecognized source.
-export function getSourceLanguage(label: string, src: string): SourceLanguage | null {
+// PPV's explicit locale takes priority; region hints are a fallback.
+// Never infer a language from source order.
+export function getSourceLanguage(label: string, src: string, locale?: string | null): SourceLanguage | null {
+  const code = locale?.trim().toLowerCase().replace(/_/g, "-");
+  if (code) {
+    const [language, region] = code.split("-");
+    if (language === "de") return languages.de;
+    if (language === "it") return languages.it;
+    if (language === "es") return languages.es;
+    if (language === "sv") return languages.sv;
+    if (language === "nl") return languages.nl;
+    if (language === "en") return region === "us" ? languages.enUS : languages.enGB;
+  }
   const hints = `${label} ${src}`.toLowerCase();
   if (/\b(german|deutsch|germany|de)\b/.test(hints)) return languages.de;
   if (/\b(italian|italiano|italy|it)\b/.test(hints)) return languages.it;
