@@ -86,6 +86,15 @@ export function GrandPrixCountdown() {
     );
   }
 
+  // Hide a unit when it reads 00 and every unit to its left is also hidden
+  // (leading zeros). Seconds are never hidden so the timer never disappears.
+  const visibleUnits = [
+    { v: countdown.days, l: "D", hidden: countdown.days === 0 },
+    { v: countdown.hours, l: "H", hidden: countdown.days === 0 && countdown.hours === 0 },
+    { v: countdown.minutes, l: "M", hidden: countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 },
+    { v: countdown.seconds, l: "S", hidden: false },
+  ].filter((it) => !it.hidden);
+
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-countdown-background">
       <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
