@@ -24,7 +24,7 @@ function Legal() {
       margin: 0, 
       padding: "40px 20px",
       color: "#fff",
-      fontFamily: "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      fontFamily: "var(--font-sans)",
       lineHeight: "1.6",
     }}>
       <div style={{ maxWidth: "800px", margin: "0 auto" }}>
