@@ -4,10 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Self-hosted from /public/fonts so the fonts resolve on any host (Vercel included). */
+/* Local files support external hosting; CDN fallbacks serve the uploaded fonts on Lovable. */
 @font-face {
   font-family: "SF Pro Display";
-  src: url("/fonts/SFPRODISPLAYREGULAR.OTF") format("opentype");
+  src: url("/fonts/SFPRODISPLAYREGULAR.OTF") format("opentype"),
+    url("/__l5e/assets-v1/cc8cebaf-12ab-4ac7-b476-9138687f2e9a/SFPRODISPLAYREGULAR.OTF") format("opentype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -15,7 +16,8 @@
 
 @font-face {
   font-family: "SF Pro Display";
-  src: url("/fonts/SFPRODISPLAYMEDIUM.OTF") format("opentype");
+  src: url("/fonts/SFPRODISPLAYMEDIUM.OTF") format("opentype"),
+    url("/__l5e/assets-v1/228f2b6e-b9db-452a-be0e-5db8c8277226/SFPRODISPLAYMEDIUM.OTF") format("opentype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -23,7 +25,8 @@
 
 @font-face {
   font-family: "SF Pro Display";
-  src: url("/fonts/SFPRODISPLAYBOLD.OTF") format("opentype");
+  src: url("/fonts/SFPRODISPLAYBOLD.OTF") format("opentype"),
+    url("/__l5e/assets-v1/10caa6ef-4b50-4107-90e0-cc1564f74c80/SFPRODISPLAYBOLD.OTF") format("opentype");
   font-weight: 600 900;
   font-style: normal;
   font-display: swap;
@@ -64,6 +67,8 @@ body {
   --color-background: var(--background);
   --color-stream-menu: oklch(0 0 0 / 45%);
   --color-stream-text: oklch(1 0 0);
+  --color-countdown-background: oklch(0 0 0);
+  --color-countdown-skeleton: oklch(0.21 0 0);
   --color-stream-border: oklch(1 0 0 / 25%);
   --color-stream-hover: oklch(1 0 0 / 15%);
   --color-foreground: var(--foreground);

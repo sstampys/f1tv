@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { getNextSession, calculateTimeUntilRace, type NextSession } from "../lib/f1-api";
 import { Starfield } from "./ui/starfield";
 
@@ -10,6 +11,7 @@ interface CountdownTime {
 }
 
 export function GrandPrixCountdown() {
+  const reducedMotion = useReducedMotion();
   const [session, setSession] = useState<NextSession | null>(null);
   const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
@@ -61,14 +63,14 @@ export function GrandPrixCountdown() {
 
   if (loading) {
     return (
-      <div className="grid h-dvh w-full place-items-center overflow-hidden bg-black">
+      <div className="grid h-dvh w-full place-items-center overflow-hidden bg-countdown-background">
         <div className="flex h-full w-full items-center justify-center">
           <div className="flex w-full max-w-xl flex-col items-center justify-center px-8 py-16 text-center">
             <div className="grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex flex-col items-center gap-3">
-                  <div className="h-10 md:h-12 w-12 rounded bg-gray-900" />
-                  <div className="h-3 w-5 rounded bg-gray-900" />
+                  <div className="h-10 md:h-12 w-12 rounded bg-countdown-skeleton" />
+                  <div className="h-3 w-5 rounded bg-countdown-skeleton" />
                 </div>
               ))}
             </div>
@@ -80,14 +82,14 @@ export function GrandPrixCountdown() {
 
   if (!session) {
     return (
-      <div className="grid h-dvh w-full place-items-center overflow-hidden bg-black">
-        <div className="text-white text-sm text-center">No upcoming races</div>
+      <div className="grid h-dvh w-full place-items-center overflow-hidden bg-countdown-background">
+        <div className="text-stream-text text-sm text-center">No upcoming races</div>
       </div>
     );
   }
 
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-black">
+    <div className="relative h-dvh w-full overflow-hidden bg-countdown-background">
       {/* Animated starfield background */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <Starfield starCount={12000} />
@@ -95,7 +97,7 @@ export function GrandPrixCountdown() {
       <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
         <div className="flex w-full max-w-xl flex-col items-center justify-center px-8 py-16 text-center">
           {/* Countdown */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-4 gap-4" role="timer" aria-label={`${countdown.days} days, ${countdown.hours} hours, ${countdown.minutes} minutes, ${countdown.seconds} seconds`}>
             {[
               { v: countdown.days, l: "D" },
               { v: countdown.hours, l: "H" },
@@ -103,10 +105,21 @@ export function GrandPrixCountdown() {
               { v: countdown.seconds, l: "S" },
             ].map((it) => (
               <div key={it.l} className="flex flex-col items-center">
-                <span className="f1-font text-2xl md:text-3xl font-bold text-white tracking-tight">
-                  {String(it.v).padStart(2, "0")}
+                <span className="relative block h-8 min-w-12 overflow-hidden font-display text-2xl font-bold tabular-nums text-stream-text md:h-9 md:text-3xl" aria-hidden="true">
+                  <AnimatePresence initial={false}>
+                    <motion.span
+                      key={it.v}
+                      className="absolute inset-0 flex items-center justify-center"
+                      initial={reducedMotion ? false : { y: "65%", opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={reducedMotion ? { opacity: 0 } : { y: "-65%", opacity: 0 }}
+                      transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      {String(it.v).padStart(2, "0")}
+                    </motion.span>
+                  </AnimatePresence>
                 </span>
-                <span className="f1-font text-sm text-white tracking-wide mt-2 font-bold">{it.l}</span>
+                <span className="font-display text-sm text-stream-text mt-2 font-bold" aria-hidden="true">{it.l}</span>
               </div>
             ))}
           </div>
