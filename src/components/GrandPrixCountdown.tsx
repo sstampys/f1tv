@@ -86,18 +86,28 @@ export function GrandPrixCountdown() {
     );
   }
 
+  // Hide a unit when it reads 00 and every unit to its left is also hidden
+  // (leading zeros). Seconds are never hidden so the timer never disappears.
+  const visibleUnits = [
+    { v: countdown.days, l: "D", hidden: countdown.days === 0 },
+    { v: countdown.hours, l: "H", hidden: countdown.days === 0 && countdown.hours === 0 },
+    { v: countdown.minutes, l: "M", hidden: countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 },
+    { v: countdown.seconds, l: "S", hidden: false },
+  ].filter((it) => !it.hidden);
+
   return (
     <div className="relative h-dvh w-full overflow-hidden bg-countdown-background">
       <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
         <div className="flex w-full max-w-xl flex-col items-center justify-center px-8 py-16 text-center">
-          {/* Countdown */}
-          <div className="grid grid-cols-4 gap-4" role="timer" aria-label={`${countdown.days} days, ${countdown.hours} hours, ${countdown.minutes} minutes, ${countdown.seconds} seconds`}>
-            {[
-              { v: countdown.days, l: "D" },
-              { v: countdown.hours, l: "H" },
-              { v: countdown.minutes, l: "M" },
-              { v: countdown.seconds, l: "S" },
-            ].map((it) => (
+          {/* Countdown — hidden units drop out and the rest recenter */}
+          <div
+            className="flex items-start justify-center gap-4"
+            role="timer"
+            aria-label={visibleUnits
+              .map((it) => `${it.v} ${it.l === "D" ? "days" : it.l === "H" ? "hours" : it.l === "M" ? "minutes" : "seconds"}`)
+              .join(", ")}
+          >
+            {visibleUnits.map((it) => (
               <div key={it.l} className="flex flex-col items-center">
                 <AnimateCount minDigits={2} className="h-8 min-w-12 font-display text-2xl font-bold text-stream-text md:h-9 md:text-3xl">
                   {it.v}
