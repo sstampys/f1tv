@@ -59,24 +59,8 @@ export function GrandPrixCountdown() {
     return () => clearInterval(intervalId);
   }, [session]);
 
-  if (loading) {
-    return (
-      <div className="grid h-dvh w-full place-items-center overflow-hidden bg-countdown-background">
-        <div className="flex h-full w-full items-center justify-center">
-          <div className="flex w-full max-w-xl flex-col items-center justify-center px-8 py-16 text-center">
-            <div className="grid grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex flex-col items-center gap-3">
-                  <div className="h-10 md:h-12 w-12 rounded bg-countdown-skeleton" />
-                  <div className="h-3 w-5 rounded bg-countdown-skeleton" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return null;
+
 
   if (!session) {
     return (

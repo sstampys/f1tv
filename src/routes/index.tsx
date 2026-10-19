@@ -275,13 +275,8 @@ function Index() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-countdown-background">
-      {!loading && !iframeSrc ? (
-        <GrandPrixCountdown />
-      ) : loading ? (
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="h-9 w-32 animate-pulse rounded-full bg-black/10" />
-        </div>
-      ) : null}
+      {!loading && !iframeSrc ? <GrandPrixCountdown /> : null}
+
 
       {iframeSrc ? (
         demo === "sample" ? (
