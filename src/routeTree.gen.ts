@@ -9,13 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LegalRouteImport } from './routes/legal'
-import { Route as DemoRouteImport } from './routes/demo'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as LegalRouteImport } from './routes/legal'
+import { Route as ApiEmbedRouteImport } from './routes/api/embed'
 
-const LegalRoute = LegalRouteImport.update({
-  id: '/legal',
-  path: '/legal',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoRoute = DemoRouteImport.update({
@@ -23,9 +24,14 @@ const DemoRoute = DemoRouteImport.update({
   path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const LegalRoute = LegalRouteImport.update({
+  id: '/legal',
+  path: '/legal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiEmbedRoute = ApiEmbedRouteImport.update({
+  id: '/api/embed',
+  path: '/api/embed',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -33,39 +39,43 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/api/embed': typeof ApiEmbedRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/api/embed': typeof ApiEmbedRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/api/embed': typeof ApiEmbedRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/legal'
+  fullPaths: '/' | '/demo' | '/legal' | '/api/embed'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/legal'
-  id: '__root__' | '/' | '/demo' | '/legal'
+  to: '/' | '/demo' | '/legal' | '/api/embed'
+  id: '__root__' | '/' | '/demo' | '/legal' | '/api/embed'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoRoute: typeof DemoRoute
   LegalRoute: typeof LegalRoute
+  ApiEmbedRoute: typeof ApiEmbedRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/legal': {
-      id: '/legal'
-      path: '/legal'
-      fullPath: '/legal'
-      preLoaderRoute: typeof LegalRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo': {
@@ -75,11 +85,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/legal': {
+      id: '/legal'
+      path: '/legal'
+      fullPath: '/legal'
+      preLoaderRoute: typeof LegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/embed': {
+      id: '/api/embed'
+      path: '/api/embed'
+      fullPath: '/api/embed'
+      preLoaderRoute: typeof ApiEmbedRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoRoute: DemoRoute,
   LegalRoute: LegalRoute,
+  ApiEmbedRoute: ApiEmbedRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
