@@ -81,7 +81,7 @@ export function GrandPrixCountdown() {
   if (!session) {
     return (
       <div className="grid h-dvh w-full place-items-center overflow-hidden bg-countdown-background">
-        <div className="text-stream-text text-sm text-center">No upcoming races</div>
+        <div className="text-countdown-text text-sm text-center">No upcoming races</div>
       </div>
     );
   }
@@ -109,10 +109,10 @@ export function GrandPrixCountdown() {
           >
             {visibleUnits.map((it) => (
               <div key={it.l} className="flex flex-col items-center">
-                <AnimateCount minDigits={2} className="h-8 min-w-12 font-display text-2xl font-bold text-stream-text md:h-9 md:text-3xl">
+                <AnimateCount minDigits={2} className="h-8 min-w-12 font-display text-2xl font-bold text-countdown-text md:h-9 md:text-3xl">
                   {it.v}
                 </AnimateCount>
-                <span className="font-display text-sm text-stream-text mt-2 font-bold" aria-hidden="true">{it.l}</span>
+                <span className="font-display text-sm text-countdown-text mt-2 font-bold" aria-hidden="true">{it.l}</span>
               </div>
             ))}
           </div>
