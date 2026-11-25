@@ -30,17 +30,16 @@ export function Navigation() {
   }, []);
 
   const navLinks = [
-    { href: "top", label: "Countdown" },
-    { href: "standings", label: "Standings" },
-    { href: "schedule", label: "Schedule" },
-    { href: "results", label: "Results" },
-  ];
+    { href: "/", label: "Countdown" },
+    { href: "/standings", label: "Standings" },
+    { href: "/schedule", label: "Schedule" },
+  ] as const;
 
-  const isActive = (href: string) => (location.hash || "top") === href;
+  const isActive = (href: string) => location.pathname === href;
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-16 backdrop-blur-[16px] backdrop-saturate-160 bg-white/78 border-b ${scrolled ? "border-hair" : "border-transparent"}`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-16 backdrop-blur-[16px] backdrop-saturate-160 bg-ground/80 border-b ${scrolled ? "border-hair" : "border-transparent"}`}
       role="navigation"
       aria-label="Main navigation"
     >
@@ -49,7 +48,7 @@ export function Navigation() {
         <Link to="/" className="flex items-center gap-2.5 font-medium text-ink" aria-label="F1Box Home">
           <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true" className="text-ink">
             <rect width="28" height="28" rx="6" fill="currentColor"/>
-            <path d="M8 10h12M8 14h8M8 18h4" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+            <path d="M8 10h12M8 14h8M8 18h4" stroke="var(--color-ground)" strokeWidth="2.5" strokeLinecap="round"/>
           </svg>
           <span className="text-lg">F1Box</span>
         </Link>
@@ -59,8 +58,7 @@ export function Navigation() {
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
-              to="/"
-              hash={href}
+              to={href}
               className={`nav-link text-sm font-medium transition-colors ${isActive(href) ? "text-ink" : "text-ink-3"}`}
               aria-current={isActive(href) ? "page" : undefined}
             >
@@ -89,13 +87,12 @@ export function Navigation() {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div id="mobile-menu" className="md:hidden border-t border-hair bg-white/95 backdrop-blur-[16px] backdrop-saturate-160 animate-slide-down">
+        <div id="mobile-menu" className="md:hidden border-t border-hair bg-ground/95 backdrop-blur-[16px] backdrop-saturate-160 animate-slide-down">
           <div className="px-[24px] py-4 space-y-2">
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
-                to="/"
-              hash={href}
+                to={href}
                 onClick={() => setMobileOpen(false)}
                 className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${isActive(href) ? "bg-wash text-ink" : "text-ink-3 hover:text-ink hover:bg-wash"}`}
                 aria-current={isActive(href) ? "page" : undefined}

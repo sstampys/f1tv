@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -23,10 +23,14 @@ export const Route = createFileRoute("/standings")({
       { name: "description", content: "Current Formula 1 driver and constructor championship standings." },
     ],
   }),
-  beforeLoad: () => {
-    throw redirect({ to: "/", hash: "standings" });
-  },
+  component: StandingsPage,
 });
+
+function StandingsPage() {
+  const { data: seasons } = useQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 });
+  const currentSeason = seasons?.[0];
+  return currentSeason ? <div className="pt-16"><StandingsSection currentSeason={currentSeason} /></div> : null;
+}
 
 export function StandingsSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);

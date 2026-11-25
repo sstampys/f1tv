@@ -35,14 +35,14 @@
 /* F1 Design System - extracted from F1 TV app */
 @theme {
   /* Colors */
-  --color-ink: #171717;
-  --color-ink-2: rgba(23, 23, 23, 0.5);
-  --color-ink-3: rgba(23, 23, 23, 0.36);
-  --color-hair: rgba(23, 23, 23, 0.09);
-  --color-pill: #ececec;
-  --color-ground: #fff;
-  --color-wash: #f3f3f2;
-  --color-hover: #f5f5f5;
+  --color-ink: #f2f2f2;
+  --color-ink-2: rgba(242, 242, 242, 0.62);
+  --color-ink-3: rgba(242, 242, 242, 0.45);
+  --color-hair: rgba(255, 255, 255, 0.1);
+  --color-pill: #3a3a3c;
+  --color-ground: #1f1f21;
+  --color-wash: #2a2a2d;
+  --color-hover: #2f2f32;
 
   /* Semantic color mappings for existing UI components */
   --color-background: var(--color-ground);
@@ -52,7 +52,7 @@
   --color-popover: var(--color-ground);
   --color-popover-foreground: var(--color-ink);
   --color-primary: var(--color-ink);
-  --color-primary-foreground: #fff;
+  --color-primary-foreground: #1f1f21;
   --color-secondary: var(--color-wash);
   --color-secondary-foreground: var(--color-ink);
   --color-muted: var(--color-wash);
@@ -172,10 +172,10 @@
 
 .btn-ink {
   background: var(--color-ink);
-  color: #fff;
+  color: var(--color-ground);
 }
 .btn-ink:hover {
-  background: #000;
+  background: #fff;
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(0,0,0,0.18);
 }
@@ -188,7 +188,7 @@
   color: var(--color-ink);
 }
 .btn-wash:hover {
-  background: #e4e4e4;
+  background: #48484a;
 }
 
 .btn-ground {

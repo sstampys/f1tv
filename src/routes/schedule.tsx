@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
@@ -21,10 +21,14 @@ export const Route = createFileRoute("/schedule")({
       { name: "description", content: "Formula 1 race calendar with dates and circuits." },
     ],
   }),
-  beforeLoad: () => {
-    throw redirect({ to: "/", hash: "schedule" });
-  },
+  component: SchedulePage,
 });
+
+function SchedulePage() {
+  const { data: seasons } = useQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 });
+  const currentSeason = seasons?.[0];
+  return currentSeason ? <div className="pt-16"><ScheduleSection currentSeason={currentSeason} /></div> : null;
+}
 
 export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);
@@ -143,13 +147,6 @@ function NextRaceCard({ race, countdown }: { race: Race; countdown: ReturnType<t
             </div>
           </div>
 
-          <Link
-            to="/results/$round" params={{ round: race.round }}
-            className="btn btn-ground whitespace-nowrap"
-            aria-label={`View ${race.raceName} details`}
-          >
-            View Race
-          </Link>
         </div>
       </div>
     </div>
@@ -259,8 +256,7 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
   isCurrent: boolean;
 }) {
   return (
-    <Link
-      to="/results/$round" params={{ round: race.round }}
+    <div
       className={`group block rounded-xl border transition-all duration-200 ${
         isCurrent
           ? "border-ink bg-wash shadow-[var(--shadow-card)] ring-2 ring-ink/10"
@@ -308,7 +304,7 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 

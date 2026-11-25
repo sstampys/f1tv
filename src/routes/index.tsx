@@ -11,11 +11,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
-import { getSeasons } from "@/lib/jolpica-api";
-import { StandingsSection } from "./standings";
-import { ScheduleSection } from "./schedule";
-import { ResultsSection } from "./results";
 
 type Substream = {
   locale?: string | null;
@@ -186,8 +181,6 @@ function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [streamLoaded, setStreamLoaded] = useState(false);
-  const { data: seasons } = useQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 });
-  const currentSeason = seasons?.[0];
 
   // Fetch streams
   useEffect(() => {
@@ -264,16 +257,9 @@ function Index() {
       {!hasStream ? (
         // Countdown Page
         <div>
-          <div id="top" className="relative min-h-screen">
+          <div className="relative min-h-screen">
             <GrandPrixCountdown />
           </div>
-          {currentSeason && (
-            <div className="bg-ground">
-              <StandingsSection currentSeason={currentSeason} />
-              <ScheduleSection currentSeason={currentSeason} />
-              <ResultsSection currentSeason={currentSeason} />
-            </div>
-          )}
         </div>
       ) : (
         // Stream Page - Embedded player with switcher at bottom
