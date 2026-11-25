@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Navigation } from "@/components/Navigation";
 
 export const Route = createFileRoute("/demo")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -58,8 +59,6 @@ type Category = {
 };
 
 function isF1(s: Stream) {
-  // Match on the event name only — the "Motorsports" category also carries
-  // non-F1 events (motocross, etc.) which must not be picked up.
   const hay = s.name.toLowerCase();
   return /\bf1\b|formula\s*1|grand\s*prix/.test(hay);
 }
@@ -85,8 +84,6 @@ async function fetchF1Streams(): Promise<Stream[]> {
     c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
   );
   const f1 = all.filter(isF1);
-  // Only show a stream that is actually live (with a 15 min pre-roll window).
-  // Otherwise fall through to the countdown.
   const live = f1.filter(
     (s) => s.always_live === 1 || (s.starts_at - 900 <= now && s.ends_at >= now),
   );
@@ -119,7 +116,6 @@ function buildSources(streams: Stream[]): Source[] {
       out.push({ label, src, language: getSourceLanguage(label, src, c.locale) });
     }
   }
-  // Sky Sports first, then Apple TV, then the rest
   return out.sort((a, b) => rank(a) - rank(b));
 }
 
@@ -130,10 +126,6 @@ function rank(s: Source) {
 }
 
 const DEMO_LABELS = ["Sky Sports", "Apple TV", "F1 TV Pro"];
-
-// Playable sample feeds used by ?demo=1. The real ppv embeds refuse to run
-// inside a sandboxed frame (the Lovable preview), which renders as a black
-// screen — these always play, so source switching can actually be verified.
 const DEMO_SAMPLE_SRCS = [
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
@@ -164,7 +156,6 @@ function makeDemoStream(srcs: string[]): Stream[] {
   ];
 }
 
-// ?demo=ppv — 3 random real 24/7 ppv channels, one per source label.
 async function fetchDemoStreams(): Promise<Stream[]> {
   const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
   const data = await res.json();
@@ -180,7 +171,6 @@ async function fetchDemoStreams(): Promise<Stream[]> {
   return makeDemoStream(srcs);
 }
 
-
 function DemoRoute() {
   const { demo } = Route.useSearch();
   const [streams, setStreams] = useState<Stream[]>([]);
@@ -190,9 +180,7 @@ function DemoRoute() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Auto-enable demo mode for the demo page
-    const demoMode = demo || "sample"; // Default to sample if not specified
-    
+    const demoMode = demo || "sample";
     if (demoMode === "sample") {
       setStreams(makeDemoStream(DEMO_SAMPLE_SRCS));
       setLoading(false);
@@ -208,11 +196,8 @@ function DemoRoute() {
           }
         })
         .catch(() => setLoading(false));
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }
-    // Default to sample demo
     setStreams(makeDemoStream(DEMO_SAMPLE_SRCS));
     setLoading(false);
   }, [demo]);
@@ -225,8 +210,6 @@ function DemoRoute() {
     document.title = iframeSrc ? "Stream Demo" : "Demo";
   }, [iframeSrc]);
 
-
-  // Mirror typical player-control auto-hide behavior
   useEffect(() => {
     if (!iframeSrc) return;
     let timer: ReturnType<typeof setTimeout>;
@@ -236,17 +219,9 @@ function DemoRoute() {
       timer = setTimeout(() => setControlsVisible(false), 3000);
     };
     const events = [
-      "pointermove",
-      "pointerdown",
-      "mousemove",
-      "touchstart",
-      "touchmove",
-      "click",
-      "keydown",
-      "scroll",
+      "pointermove", "pointerdown", "mousemove", "touchstart", "touchmove", "click", "keydown", "scroll",
     ] as const;
     show();
-    // Capture phase so events inside the video element still reach us.
     events.forEach((e) => document.addEventListener(e, show, { capture: true, passive: true }));
     window.addEventListener("focus", show);
     return () => {
@@ -256,89 +231,93 @@ function DemoRoute() {
     };
   }, [iframeSrc]);
 
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black">
-      {!loading && !iframeSrc ? (
-        // Fallback to Starfield if no streams (shouldn't happen in demo mode)
-        <div className="flex items-center justify-center min-h-screen bg-black">
-          <div className="text-white text-sm text-center">Demo Stream Loading...</div>
-        </div>
-      ) : null}
+    <div className="min-h-screen bg-ground">
+      <Navigation />
+      
+      <main className="pt-16 max-w-[1280px] mx-auto px-[24px] pb-20">
+        <header className="py-12 md:py-16">
+          <h1 className="text-4xl md:text-5xl font-semibold text-ink tracking-tight">Demo Stream</h1>
+          <p className="lead-text mt-2">Test the stream player with sample content</p>
+        </header>
 
-      {iframeSrc ? (
-        demo === "sample" || demo === "ppv" ? (
-          <video
-            key={iframeSrc}
-            className="absolute inset-0 h-full w-full bg-black object-contain"
-            src={iframeSrc}
-            autoPlay
-            controls
-            playsInline
-          />
-        ) : (
-          <video
-            key={iframeSrc}
-            className="absolute inset-0 h-full w-full bg-black object-contain"
-            src={iframeSrc}
-            autoPlay
-            controls
-            playsInline
-          />
-        )
-      ) : null}
-
-      {iframeSrc && sources.length > 1 ? (
-        <>
-          <div
-            className="fixed right-0 top-0 z-40 h-24 w-56"
-            aria-hidden="true"
-            onPointerMove={() => setControlsVisible(true)}
-            onPointerDown={() => setControlsVisible(true)}
-            onTouchStart={() => setControlsVisible(true)}
-          />
-          <div
-            className={`fixed right-4 top-4 z-50 transition-all duration-300 sm:right-6 sm:top-6 ${
-              controlsVisible || menuOpen
-                ? "translate-y-0 opacity-100"
-                : "pointer-events-none -translate-y-2 opacity-0"
-            }`}
-          >
-            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <LiquidGlassButton aria-label="Change stream source">
-                  <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
-                  <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
-                </LiquidGlassButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                sideOffset={8}
-                className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-stream-border bg-stream-menu p-1.5 text-stream-text shadow-2xl backdrop-blur-xl backdrop-saturate-150"
-              >
-                {sources.map((source) => (
-                  <DropdownMenuItem
-                    key={source.src}
-                    onSelect={() => setSelected(source.src)}
-                    className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
-                  >
-                    <span className="flex-1 truncate">{source.label}</span>
-                    {source.language ? (
-                      <span className="flex shrink-0 items-center gap-2">
-                        <span aria-hidden="true">{source.language.flag}</span>
-                        <span className="opacity-75">{source.language.name}</span>
-                      </span>
-                    ) : null}
-                    <span className="flex size-4 shrink-0 items-center justify-center">
-                      {source.src === iframeSrc ? <Check className="size-4" /> : null}
-                    </span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+        {!loading && !iframeSrc ? (
+          <div className="flex items-center justify-center min-h-[40vh] bg-ground">
+            <div className="text-ink-2 text-sm text-center">Demo Stream Loading...</div>
           </div>
-        </>
-      ) : null}
+        ) : null}
+
+        {iframeSrc ? (
+          <div className="relative rounded-xl overflow-hidden bg-black shadow-[var(--shadow-card)]" style={{ aspectRatio: "16 / 9" }}>
+            <video
+              key={iframeSrc}
+              className="absolute inset-0 w-full h-full object-contain"
+              src={iframeSrc}
+              autoPlay
+              controls
+              playsInline
+            />
+
+            {iframeSrc && sources.length > 1 ? (
+              <>
+                <div
+                  className="fixed right-0 top-0 z-40 h-24 w-56"
+                  aria-hidden="true"
+                  onPointerMove={() => setControlsVisible(true)}
+                  onPointerDown={() => setControlsVisible(true)}
+                  onTouchStart={() => setControlsVisible(true)}
+                />
+                <div
+                  className={`fixed right-4 top-4 z-50 transition-all duration-300 sm:right-6 sm:top-6 ${
+                    controlsVisible || menuOpen
+                      ? "translate-y-0 opacity-100"
+                      : "pointer-events-none -translate-y-2 opacity-0"
+                  }`}
+                >
+                  <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                    <DropdownMenuTrigger asChild>
+                      <LiquidGlassButton aria-label="Change stream source">
+                        <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
+                        <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
+                      </LiquidGlassButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      sideOffset={8}
+                      className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-stream-border bg-stream-menu p-1.5 text-stream-text shadow-2xl backdrop-blur-xl backdrop-saturate-150"
+                    >
+                      {sources.map((source) => (
+                        <DropdownMenuItem
+                          key={source.src}
+                          onSelect={() => setSelected(source.src)}
+                          className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
+                        >
+                          <span className="flex-1 truncate">{source.label}</span>
+                          {source.language ? (
+                            <span className="flex shrink-0 items-center gap-2">
+                              <span aria-hidden="true">{source.language.flag}</span>
+                              <span className="opacity-75">{source.language.name}</span>
+                            </span>
+                          ) : null}
+                          <span className="flex size-4 shrink-0 items-center justify-center">
+                            {source.src === iframeSrc ? <Check className="size-4" /> : null}
+                          </span>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+      </main>
+
+      <footer className="border-t border-hair py-6">
+        <div className="max-w-[1280px] mx-auto px-[24px] text-center text-sm text-ink-3">
+          <p>Demo mode - Built with TanStack Start & Tailwind CSS</p>
+        </div>
+      </footer>
     </div>
   );
 }

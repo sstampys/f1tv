@@ -12,7 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as LegalRouteImport } from './routes/legal'
+import { Route as ResultsRouteImport } from './routes/results'
+import { Route as ScheduleRouteImport } from './routes/schedule'
+import { Route as StandingsRouteImport } from './routes/standings'
 import { Route as ApiEmbedRouteImport } from './routes/api/embed'
+import { Route as ResultsRoundRouteImport } from './routes/results/$round'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -29,43 +33,103 @@ const LegalRoute = LegalRouteImport.update({
   path: '/legal',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResultsRoute = ResultsRouteImport.update({
+  id: '/results',
+  path: '/results',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StandingsRoute = StandingsRouteImport.update({
+  id: '/standings',
+  path: '/standings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiEmbedRoute = ApiEmbedRouteImport.update({
   id: '/api/embed',
   path: '/api/embed',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ResultsRoundRoute = ResultsRoundRouteImport.update({
+  id: '/$round',
+  path: '/$round',
+  getParentRoute: () => ResultsRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/results': typeof ResultsRouteWithChildren
+  '/schedule': typeof ScheduleRoute
+  '/standings': typeof StandingsRoute
   '/api/embed': typeof ApiEmbedRoute
+  '/results/$round': typeof ResultsRoundRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/results': typeof ResultsRouteWithChildren
+  '/schedule': typeof ScheduleRoute
+  '/standings': typeof StandingsRoute
   '/api/embed': typeof ApiEmbedRoute
+  '/results/$round': typeof ResultsRoundRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/demo': typeof DemoRoute
   '/legal': typeof LegalRoute
+  '/results': typeof ResultsRouteWithChildren
+  '/schedule': typeof ScheduleRoute
+  '/standings': typeof StandingsRoute
   '/api/embed': typeof ApiEmbedRoute
+  '/results/$round': typeof ResultsRoundRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/legal' | '/api/embed'
+  fullPaths:
+    | '/'
+    | '/demo'
+    | '/legal'
+    | '/results'
+    | '/schedule'
+    | '/standings'
+    | '/api/embed'
+    | '/results/$round'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/legal' | '/api/embed'
-  id: '__root__' | '/' | '/demo' | '/legal' | '/api/embed'
+  to:
+    | '/'
+    | '/demo'
+    | '/legal'
+    | '/results'
+    | '/schedule'
+    | '/standings'
+    | '/api/embed'
+    | '/results/$round'
+  id:
+    | '__root__'
+    | '/'
+    | '/demo'
+    | '/legal'
+    | '/results'
+    | '/schedule'
+    | '/standings'
+    | '/api/embed'
+    | '/results/$round'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoRoute: typeof DemoRoute
   LegalRoute: typeof LegalRoute
+  ResultsRoute: typeof ResultsRouteWithChildren
+  ScheduleRoute: typeof ScheduleRoute
+  StandingsRoute: typeof StandingsRoute
   ApiEmbedRoute: typeof ApiEmbedRoute
 }
 
@@ -92,6 +156,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LegalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/results': {
+      id: '/results'
+      path: '/results'
+      fullPath: '/results'
+      preLoaderRoute: typeof ResultsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/standings': {
+      id: '/standings'
+      path: '/standings'
+      fullPath: '/standings'
+      preLoaderRoute: typeof StandingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/embed': {
       id: '/api/embed'
       path: '/api/embed'
@@ -99,13 +184,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEmbedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/results/$round': {
+      id: '/results/$round'
+      path: '/$round'
+      fullPath: '/results/$round'
+      preLoaderRoute: typeof ResultsRoundRouteImport
+      parentRoute: typeof ResultsRoute
+    }
   }
 }
+
+interface ResultsRouteChildren {
+  ResultsRoundRoute: typeof ResultsRoundRoute
+}
+
+const ResultsRouteChildren: ResultsRouteChildren = {
+  ResultsRoundRoute: ResultsRoundRoute,
+}
+
+const ResultsRouteWithChildren =
+  ResultsRoute._addFileChildren(ResultsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoRoute: DemoRoute,
   LegalRoute: LegalRoute,
+  ResultsRoute: ResultsRouteWithChildren,
+  ScheduleRoute: ScheduleRoute,
+  StandingsRoute: StandingsRoute,
   ApiEmbedRoute: ApiEmbedRoute,
 }
 export const routeTree = rootRouteImport

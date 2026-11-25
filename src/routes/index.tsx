@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Loader2, X, Maximize2, Minimize2 } from "lucide-react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
 import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
@@ -10,26 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export const Route = createFileRoute("/")({
-  validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
-    const raw = String(search.demo ?? "").toLowerCase();
-    if (raw === "ppv") return { demo: "ppv" };
-    if (raw === "1" || raw === "true" || raw === "sample") return { demo: "sample" };
-    return {};
-  },
-  head: () => ({
-    meta: [
-      { title: "Countdown" },
-      { name: "description", content: "Live Formula 1 Stream" },
-      { property: "og:title", content: "Countdown" },
-      { property: "og:description", content: "Live Formula 1 Stream" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: Index,
-});
+import { Button } from "@/components/ui/button";
 
 type Substream = {
   locale?: string | null;
@@ -59,8 +40,6 @@ type Category = {
 };
 
 function isF1(s: Stream) {
-  // Match on the event name only — the "Motorsports" category also carries
-  // non-F1 events (motocross, etc.) which must not be picked up.
   const hay = s.name.toLowerCase();
   return /\bf1\b|formula\s*1|grand\s*prix/.test(hay);
 }
@@ -86,8 +65,6 @@ async function fetchF1Streams(): Promise<Stream[]> {
     c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
   );
   const f1 = all.filter(isF1);
-  // Only show a stream that is actually live (with a 15 min pre-roll window).
-  // Otherwise fall through to the countdown.
   const live = f1.filter(
     (s) => s.always_live === 1 || (s.starts_at - 900 <= now && s.ends_at >= now),
   );
@@ -120,7 +97,6 @@ function buildSources(streams: Stream[]): Source[] {
       out.push({ label, src, language: getSourceLanguage(label, src, c.locale) });
     }
   }
-  // Sky Sports first, then Apple TV, then the rest
   return out.sort((a, b) => rank(a) - rank(b));
 }
 
@@ -131,10 +107,6 @@ function rank(s: Source) {
 }
 
 const DEMO_LABELS = ["Sky Sports", "Apple TV", "F1 TV Pro"];
-
-// Playable sample feeds used by ?demo=1. The real ppv embeds refuse to run
-// inside a sandboxed frame (the Lovable preview), which renders as a black
-// screen — these always play, so source switching can actually be verified.
 const DEMO_SAMPLE_SRCS = [
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
   "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
@@ -165,7 +137,6 @@ function makeDemoStream(srcs: string[]): Stream[] {
   ];
 }
 
-// ?demo=ppv — 3 random real 24/7 ppv channels, one per source label.
 async function fetchDemoStreams(): Promise<Stream[]> {
   const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
   const data = await res.json();
@@ -181,6 +152,25 @@ async function fetchDemoStreams(): Promise<Stream[]> {
   return makeDemoStream(srcs);
 }
 
+export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
+    const raw = String(search.demo ?? "").toLowerCase();
+    if (raw === "ppv") return { demo: "ppv" };
+    if (raw === "1" || raw === "true" || raw === "sample") return { demo: "sample" };
+    return {};
+  },
+  head: () => ({
+    meta: [
+      { title: "F1Box — Live F1 Countdown & Streams" },
+      { name: "description", content: "Live Formula 1 countdown to next race with stream embed when live." },
+      { property: "og:title", content: "F1Box — Live F1 Countdown & Streams" },
+      { property: "og:description", content: "Live Formula 1 countdown to next race with stream embed when live." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Index,
+});
 
 function Index() {
   const { demo } = Route.useSearch();
@@ -189,7 +179,10 @@ function Index() {
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [streamLoaded, setStreamLoaded] = useState(false);
 
+  // Fetch streams
   useEffect(() => {
     if (demo === "sample") {
       setStreams(makeDemoStream(DEMO_SAMPLE_SRCS));
@@ -206,9 +199,7 @@ function Index() {
           }
         })
         .catch(() => setLoading(false));
-      return () => {
-        cancelled = true;
-      };
+      return () => { cancelled = true; };
     }
     let cancelled = false;
     const load = async () => {
@@ -227,24 +218,17 @@ function Index() {
     };
     load();
     const id = setInterval(load, 60_000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
+    return () => { cancelled = true; clearInterval(id); };
   }, [demo]);
 
   const sources = buildSources(streams);
   const iframeSrc = selected && sources.some((s) => s.src === selected) ? selected : (sources[0]?.src ?? null);
   const currentSource = sources.find((source) => source.src === iframeSrc);
+  const hasStream = !!iframeSrc;
 
+  // Auto-hide controls for embedded stream
   useEffect(() => {
-    document.title = iframeSrc ? "Stream" : "Countdown";
-  }, [iframeSrc]);
-
-
-  // Mirror typical player-control auto-hide behavior
-  useEffect(() => {
-    if (!iframeSrc) return;
+    if (!hasStream) return;
     let timer: ReturnType<typeof setTimeout>;
     const show = () => {
       setControlsVisible(true);
@@ -252,17 +236,9 @@ function Index() {
       timer = setTimeout(() => setControlsVisible(false), 3000);
     };
     const events = [
-      "pointermove",
-      "pointerdown",
-      "mousemove",
-      "touchstart",
-      "touchmove",
-      "click",
-      "keydown",
-      "scroll",
+      "pointermove", "pointerdown", "mousemove", "touchstart", "touchmove", "click", "keydown", "scroll",
     ] as const;
     show();
-    // Capture phase so events inside the video element still reach us.
     events.forEach((e) => document.addEventListener(e, show, { capture: true, passive: true }));
     window.addEventListener("focus", show);
     return () => {
@@ -270,88 +246,189 @@ function Index() {
       events.forEach((e) => document.removeEventListener(e, show, { capture: true }));
       window.removeEventListener("focus", show);
     };
-  }, [iframeSrc]);
+  }, [hasStream]);
 
+  const handleIframeLoad = () => setStreamLoaded(true);
+
+  const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-countdown-background">
-      {!loading && !iframeSrc ? <GrandPrixCountdown /> : null}
+    <div className="min-h-screen bg-ground">
+      {!hasStream ? (
+        // Countdown Page
+        <div className="relative min-h-screen">
+          <GrandPrixCountdown />
+        </div>
+      ) : (
+        // Stream Page - Embedded player with switcher at bottom
+        <div className="min-h-screen bg-ground">
+          <div className="max-w-[1280px] mx-auto px-[24px] py-8">
+            {/* Stream Header */}
+            <div className="mb-6">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="tag bg-ink text-white text-sm">LIVE STREAM</span>
+                {demo && <span className="tag bg-pill border-hair text-ink text-xs">DEMO</span>}
+              </div>
+              <h1 className="text-2xl md:text-3xl font-semibold text-ink">{currentSource?.label || "F1 Stream"}</h1>
+              {currentSource?.language && (
+                <p className="text-ink-2 text-sm mt-1 flex items-center gap-1">
+                  <span className="text-lg">{currentSource.language.flag}</span>
+                  {currentSource.language.name}
+                </p>
+              )}
+            </div>
 
+            {/* Embedded Video Player */}
+            <div className="relative rounded-xl overflow-hidden bg-black shadow-[var(--shadow-card)]" style={{ aspectRatio: "16 / 9" }}>
+              {demo === "sample" ? (
+                <video
+                  key={iframeSrc}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  src={iframeSrc}
+                  autoPlay
+                  controls
+                  playsInline
+                  onLoadStart={() => setStreamLoaded(false)}
+                  onCanPlay={handleIframeLoad}
+                />
+              ) : (
+                <iframe
+                  key={iframeSrc}
+                  src={iframeSrc}
+                  title={currentSource?.label ?? "Live stream"}
+                  className="absolute inset-0 w-full h-full border-0 bg-black"
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  onLoad={handleIframeLoad}
+                />
+              )}
 
-      {iframeSrc ? (
-        demo === "sample" ? (
-          <video
-            key={iframeSrc}
-            className="absolute inset-0 h-full w-full bg-black object-contain"
-            src={iframeSrc}
-            autoPlay
-            controls
-            playsInline
-          />
-        ) : (
-          <iframe
-            key={iframeSrc}
-            src={iframeSrc}
-            title={currentSource?.label ?? "Live stream"}
-            className="absolute inset-0 h-full w-full border-0 bg-black"
-            allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-            allowFullScreen
-            referrerPolicy="no-referrer-when-downgrade"
-          />
-        )
-      ) : null}
+              {/* Loading overlay */}
+              {!streamLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-10">
+                  <div className="text-center text-white">
+                    <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin text-white" />
+                    <p className="text-lg">Loading stream...</p>
+                  </div>
+                </div>
+              )}
 
-      {iframeSrc && sources.length > 1 ? (
-        <>
-          <div
-            className="fixed right-0 top-0 z-40 h-24 w-56"
-            aria-hidden="true"
-            onPointerMove={() => setControlsVisible(true)}
-            onPointerDown={() => setControlsVisible(true)}
-            onTouchStart={() => setControlsVisible(true)}
-          />
-          <div
-            className={`fixed right-4 top-4 z-50 transition-all duration-300 sm:right-6 sm:top-6 ${
-              controlsVisible || menuOpen
-                ? "translate-y-0 opacity-100"
-                : "pointer-events-none -translate-y-2 opacity-0"
-            }`}
-          >
-            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <LiquidGlassButton aria-label="Change stream source">
-                  <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
-                  <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
-                </LiquidGlassButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                sideOffset={8}
-                className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-stream-border bg-stream-menu p-1.5 text-stream-text shadow-2xl backdrop-blur-xl backdrop-saturate-150"
-              >
-                {sources.map((source) => (
-                  <DropdownMenuItem
-                    key={source.src}
-                    onSelect={() => setSelected(source.src)}
-                    className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
-                  >
-                    <span className="flex-1 truncate">{source.label}</span>
-                    {source.language ? (
-                      <span className="flex shrink-0 items-center gap-2">
-                        <span aria-hidden="true">{source.language.flag}</span>
-                        <span className="opacity-75">{source.language.name}</span>
-                      </span>
-                    ) : null}
-                    <span className="flex size-4 shrink-0 items-center justify-center">
-                      {source.src === iframeSrc ? <Check className="size-4" /> : null}
-                    </span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+              {/* Controls overlay */}
+              {hasStream && sources.length > 1 && (
+                <div
+                  className={`absolute bottom-0 left-0 right-0 z-20 transition-all duration-300 px-4 pb-4 ${
+                    controlsVisible || menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="btn btn-wash gap-2" aria-label="Change stream source">
+                            <span className="max-w-36 truncate hidden sm:block">{currentSource?.label ?? "Sources"}</span>
+                            <span className="sm:hidden">{currentSource?.label ?? "Sources"}</span>
+                            <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          sideOffset={8}
+                          className="w-72 max-w-[calc(100vw-2rem)] rounded-xl border-hair bg-white p-1.5 text-ink shadow-[var(--shadow-card)] backdrop-blur-xl backdrop-saturate-150"
+                        >
+                          {sources.map((source) => (
+                            <DropdownMenuItem
+                              key={source.src}
+                              onSelect={() => { setSelected(source.src); setStreamLoaded(false); }}
+                              className="cursor-pointer gap-3 rounded-lg px-3 py-2 text-sm focus:bg-wash focus:text-ink"
+                            >
+                              <span className="flex-1 truncate">{source.label}</span>
+                              {source.language ? (
+                                <span className="flex shrink-0 items-center gap-2">
+                                  <span aria-hidden="true">{source.language.flag}</span>
+                                  <span className="opacity-75">{source.language.name}</span>
+                                </span>
+                              ) : null}
+                              <span className="flex size-4 shrink-0 items-center justify-center">
+                                {source.src === iframeSrc ? <Check className="size-4 text-ink" /> : null}
+                              </span>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={toggleFullscreen}
+                      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                      className={controlsVisible || menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"}
+                    >
+                      {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Fullscreen overlay */}
+              {isFullscreen && (
+                <div className="fixed inset-0 z-50 bg-black" onClick={() => setIsFullscreen(false)}>
+                  <div className="absolute top-4 right-4 z-60">
+                    <Button variant="ghost" size="icon" onClick={() => setIsFullscreen(false)} aria-label="Exit fullscreen">
+                      <X className="w-6 h-6 text-white" />
+                    </Button>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {demo === "sample" ? (
+                      <video
+                        key={`${iframeSrc}-fs`}
+                        className="max-h-[90vh] max-w-[90vw] object-contain"
+                        src={iframeSrc}
+                        autoPlay
+                        controls
+                        playsInline
+                      />
+                    ) : (
+                      <iframe
+                        key={`${iframeSrc}-fs`}
+                        src={iframeSrc}
+                        title={currentSource?.label ?? "Live stream"}
+                        className="max-h-[90vh] max-w-[90vw] border-0 bg-black"
+                        allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick links below stream */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+              <a href="/standings" className="btn btn-wash justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Driver Standings
+              </a>
+              <a href="/schedule" className="btn btn-wash justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Race Schedule
+              </a>
+              <a href="/results" className="btn btn-wash justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Race Results
+              </a>
+            </div>
           </div>
-        </>
-      ) : null}
+        </div>
+      )}
     </div>
   );
 }
