@@ -26,17 +26,17 @@ export function Navigation() {
     const style = document.createElement("style");
     style.textContent = slideDownCSS;
     document.head.appendChild(style);
-    return () => document.head.removeChild(style);
+    return () => { document.head.removeChild(style); };
   }, []);
 
   const navLinks = [
-    { href: "/", label: "Countdown" },
-    { href: "/standings", label: "Standings" },
-    { href: "/schedule", label: "Schedule" },
-    { href: "/results", label: "Results" },
+    { href: "top", label: "Countdown" },
+    { href: "standings", label: "Standings" },
+    { href: "schedule", label: "Schedule" },
+    { href: "results", label: "Results" },
   ];
 
-  const isActive = (href: string) => location.pathname === href || (href !== "/" && location.pathname.startsWith(href));
+  const isActive = (href: string) => (location.hash || "top") === href;
 
   return (
     <nav
@@ -59,7 +59,8 @@ export function Navigation() {
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
-              to={href}
+              to="/"
+              hash={href}
               className={`nav-link text-sm font-medium transition-colors ${isActive(href) ? "text-ink" : "text-ink-3"}`}
               aria-current={isActive(href) ? "page" : undefined}
             >
@@ -93,7 +94,8 @@ export function Navigation() {
             {navLinks.map(({ href, label }) => (
               <Link
                 key={href}
-                to={href}
+                to="/"
+              hash={href}
                 onClick={() => setMobileOpen(false)}
                 className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${isActive(href) ? "bg-wash text-ink" : "text-ink-3 hover:text-ink hover:bg-wash"}`}
                 aria-current={isActive(href) ? "page" : undefined}

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
@@ -9,7 +9,6 @@ import {
   type DriverStanding,
   type ConstructorStanding
 } from "@/lib/jolpica-api";
-import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,23 +21,12 @@ export const Route = createFileRoute("/standings")({
       { name: "description", content: "Current Formula 1 driver and constructor championship standings." },
     ],
   }),
-  loader: async ({ context: { queryClient } }) => {
-    const seasons = await getSeasons();
-    const currentSeason = seasons[0];
-
-    await Promise.all([
-      queryClient.prefetchQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 }),
-      queryClient.prefetchQuery({ queryKey: ["driverStandings", currentSeason], queryFn: () => getDriverStandings(currentSeason), staleTime: 30 * 60 * 1000 }),
-      queryClient.prefetchQuery({ queryKey: ["constructorStandings", currentSeason], queryFn: () => getConstructorStandings(currentSeason), staleTime: 30 * 60 * 1000 }),
-    ]);
-
-    return { currentSeason };
+  beforeLoad: () => {
+    throw redirect({ to: "/", hash: "standings" });
   },
-  component: StandingsPage,
 });
 
-function StandingsPage() {
-  const { currentSeason } = Route.useLoaderData();
+export function StandingsSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);
 
   const { data: seasons, isLoading: seasonsLoading } = useQuery({
@@ -55,9 +43,8 @@ function StandingsPage() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <Navigation />
 
-      <main className="pt-16 max-w-[1280px] mx-auto px-[24px] pb-24 md:pb-32">
+      <section id="standings" className="scroll-mt-16 max-w-[1280px] mx-auto px-[24px] pb-24 md:pb-32">
         <header className="py-10 md:py-14">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
             <div>
@@ -116,7 +103,7 @@ function StandingsPage() {
             </TabsContent>
           </Tabs>
         )}
-      </main>
+      </section>
     </div>
   );
 }

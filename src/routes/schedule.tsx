@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import {
@@ -10,7 +10,6 @@ import {
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
-import { Navigation } from "@/components/Navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar, MapPin, Flag, CheckCircle, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
@@ -22,23 +21,12 @@ export const Route = createFileRoute("/schedule")({
       { name: "description", content: "Formula 1 race calendar with dates and circuits." },
     ],
   }),
-  loader: async ({ context: { queryClient } }) => {
-    const seasons = await getSeasons();
-    const currentSeason = seasons[0];
-
-    await Promise.all([
-      queryClient.prefetchQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 }),
-      queryClient.prefetchQuery({ queryKey: ["schedule", currentSeason], queryFn: () => getRaceSchedule(currentSeason), staleTime: 60 * 60 * 1000 }),
-      queryClient.prefetchQuery({ queryKey: ["nextRace", currentSeason], queryFn: () => getNextRace(currentSeason), staleTime: 60 * 60 * 1000 }),
-    ]);
-
-    return { currentSeason };
+  beforeLoad: () => {
+    throw redirect({ to: "/", hash: "schedule" });
   },
-  component: SchedulePage,
 });
 
-function SchedulePage() {
-  const { currentSeason } = Route.useLoaderData();
+export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);
 
   const { data: seasons, isLoading: seasonsLoading } = useQuery({
@@ -65,9 +53,8 @@ function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <Navigation />
 
-      <main className="pt-16 max-w-[1280px] mx-auto px-[24px] pb-24 md:pb-32">
+      <section id="schedule" className="scroll-mt-16 max-w-[1280px] mx-auto px-[24px] pb-24 md:pb-32">
         <header className="py-10 md:py-14">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
             <div>
@@ -114,7 +101,7 @@ function SchedulePage() {
         ) : (
           <EmptyState message="No races scheduled for this season." />
         )}
-      </main>
+      </section>
     </div>
   );
 }
