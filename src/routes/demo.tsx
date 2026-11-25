@@ -264,10 +264,6 @@ function DemoRoute() {
         <div className="flex items-center justify-center min-h-screen bg-black">
           <div className="text-white text-sm text-center">Demo Stream Loading...</div>
         </div>
-      ) : loading ? (
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="h-9 w-32 animate-pulse rounded-full bg-white/10" />
-        </div>
       ) : null}
 
       {iframeSrc ? (
