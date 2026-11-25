@@ -95,7 +95,7 @@ export function GrandPrixCountdown() {
           <div className="mb-10 md:mb-12 w-full max-w-xl mx-auto rise" style={{ "--i": "0" }}>
             <div className="flex items-center justify-center gap-2 mb-4">
               <span className="tag bg-ink text-white text-sm">
-                {race.sessionType === "Race" ? "RACE" : race.sessionType?.toUpperCase() || "RACE"}
+                RACE
               </span>
               {isRaceWeek && (
                 <span className="tag bg-red-500 border-red-500 text-white text-sm animate-pulse">

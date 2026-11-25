@@ -51,7 +51,7 @@ export function ResultsSection({ currentSeason }: { currentSeason: string }) {
             </div>
 
             {!seasonsLoading && seasons && (
-              <Select value={season} onValueChange={setSeason} className="w-full sm:w-48 rise" style={{ "--i": "2" }}>
+              <Select value={season} onValueChange={setSeason}>
                 <SelectTrigger className="input-field h-11">
                   <SelectValue placeholder="Select season" />
                 </SelectTrigger>
@@ -86,7 +86,7 @@ function RaceResultsList({ races }: { races: Race[] }) {
         return (
           <Link
             key={race.round}
-            to={`/results/${race.round}`}
+            to="/results/$round" params={{ round: race.round }}
             className="group block rounded-xl border border-hair bg-ground p-4 md:p-6 lg:p-7 transition-all duration-200 hover:border-ink/50 hover:bg-wash/50 hover:shadow-[var(--shadow-card)]"
             style={{ "--i": String(index % 10) }}
           >

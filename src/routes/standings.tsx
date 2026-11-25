@@ -8,6 +8,8 @@ import {
   getSeasons,
   type DriverStanding,
   type ConstructorStanding
+,
+  type Constructor
 } from "@/lib/jolpica-api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -58,7 +60,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
             {/* Season Selector */}
             {!seasonsLoading && seasons && (
-              <Select value={season} onValueChange={setSeason} className="w-full sm:w-48 rise" style={{ "--i": "2" }}>
+              <Select value={season} onValueChange={setSeason}>
                 <SelectTrigger className="input-field h-11">
                   <SelectValue placeholder="Select season" />
                 </SelectTrigger>

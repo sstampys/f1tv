@@ -67,7 +67,7 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
             </div>
 
             {!seasonsLoading && seasons && (
-              <Select value={season} onValueChange={setSeason} className="w-full sm:w-48 rise" style={{ "--i": "2" }}>
+              <Select value={season} onValueChange={setSeason}>
                 <SelectTrigger className="input-field h-11">
                   <SelectValue placeholder="Select season" />
                 </SelectTrigger>
@@ -97,7 +97,7 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
         ) : scheduleError ? (
           <ErrorState message="Failed to load schedule. Please try again." />
         ) : schedule && schedule.length > 0 ? (
-          <RaceCalendar races={schedule} nextRace={nextRace} />
+          <RaceCalendar races={schedule} nextRace={nextRace ?? null} />
         ) : (
           <EmptyState message="No races scheduled for this season." />
         )}
@@ -144,7 +144,7 @@ function NextRaceCard({ race, countdown }: { race: Race; countdown: ReturnType<t
           </div>
 
           <Link
-            to={`/results/${race.round}`}
+            to="/results/$round" params={{ round: race.round }}
             className="btn btn-ground whitespace-nowrap"
             aria-label={`View ${race.raceName} details`}
           >
@@ -260,7 +260,7 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
 }) {
   return (
     <Link
-      to={`/results/${race.round}`}
+      to="/results/$round" params={{ round: race.round }}
       className={`group block rounded-xl border transition-all duration-200 ${
         isCurrent
           ? "border-ink bg-wash shadow-[var(--shadow-card)] ring-2 ring-ink/10"

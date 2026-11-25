@@ -8,6 +8,8 @@ import {
   formatRaceDateTime,
   type Race,
   type RaceResult
+,
+  type Constructor
 } from "@/lib/jolpica-api";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +19,7 @@ import { useState, useEffect } from "react";
 
 export const Route = createFileRoute("/results/$round")({
   validateSearch: (search: Record<string, unknown>) => ({
-    season: (search.season as string) || "",
+    ...(typeof search.season === "string" && search.season ? { season: search.season } : {}),
   }),
   head: () => ({
     meta: [
@@ -25,9 +27,10 @@ export const Route = createFileRoute("/results/$round")({
       { name: "description", content: "Formula 1 race results with positions, points, and fastest laps." },
     ],
   }),
-  loader: async ({ params: { round }, search, context: { queryClient } }) => {
+  loaderDeps: ({ search }) => ({ season: search.season }),
+  loader: async ({ params: { round }, deps, context: { queryClient } }) => {
     const seasons = await getSeasons();
-    const searchSeason = (search as { season?: string } | undefined)?.season;
+    const searchSeason = deps.season;
     const currentSeason = searchSeason || seasons[0];
 
     await Promise.all([
@@ -100,7 +103,7 @@ function ResultsPage() {
           <nav className="flex items-center gap-2 text-sm text-ink-3" aria-label="Breadcrumb">
             <Link to="/results" className="hover:text-ink transition-colors">Results</Link>
             <ChevronRight className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-            <Link to={`/results/${round}`} className="hover:text-ink transition-colors font-medium text-ink">
+            <Link to="/results/$round" params={{ round: round }} className="hover:text-ink transition-colors font-medium text-ink">
               Round {round}
             </Link>
           </nav>
@@ -131,7 +134,7 @@ function ResultsPage() {
 
               {/* Season Selector */}
               {!seasonsLoading && seasons && (
-                <Select value={season} onValueChange={handleSeasonChange} className="w-full sm:w-56">
+                <Select value={season} onValueChange={handleSeasonChange}>
                   <SelectTrigger className="input-field h-11">
                     <SelectValue placeholder="Select season" />
                   </SelectTrigger>
@@ -149,7 +152,7 @@ function ResultsPage() {
             {/* Adjacent Race Navigation */}
             <div className="flex items-center justify-between">
               <Link
-                to={adjacentRaces.prev ? `/results/${adjacentRaces.prev.round}` : "#"}
+                to="/results/$round" params={{ round: adjacentRaces.prev?.round ?? round }}
                 className={`btn btn-wash gap-2 ${!adjacentRaces.prev ? "opacity-50 pointer-events-none" : ""}`}
                 aria-disabled={!adjacentRaces.prev}
                 aria-label={adjacentRaces.prev ? `Previous race: ${adjacentRaces.prev.raceName}` : "No previous race"}
@@ -164,7 +167,7 @@ function ResultsPage() {
               </div>
 
               <Link
-                to={adjacentRaces.next ? `/results/${adjacentRaces.next.round}` : "#"}
+                to="/results/$round" params={{ round: adjacentRaces.next?.round ?? round }}
                 className={`btn btn-wash gap-2 ${!adjacentRaces.next ? "opacity-50 pointer-events-none" : ""}`}
                 aria-disabled={!adjacentRaces.next}
                 aria-label={adjacentRaces.next ? `Next race: ${adjacentRaces.next.raceName}` : "No next race"}
@@ -190,7 +193,7 @@ function ResultsPage() {
 
         {/* Points System Reference */}
         {race && results && results.length > 0 && isCompleted && (
-          <PointsSystem className="mt-10 md:mt-12 rise" style={{ "--i": "2" }} />
+          <div className="mt-10 md:mt-12 rise" style={{ "--i": "2" }}><PointsSystem /></div>
         )}
       </main>
     </div>
@@ -280,9 +283,9 @@ function ResultsTable({ race, results, isCompleted }: { race: Race; results: Rac
                         {hasFastestLap && <Trophy className="w-4 h-4 text-amber-500" aria-label="Fastest lap" />}
                         <span className="font-mono text-sm text-ink-2">
                           {result.FastestLap.Time.time}
-                          {result.FastestLap.AverageSpeed && (
+                          {result.FastestLap.Time.AverageSpeed && (
                             <span className="text-xs text-ink-3 ml-1">
-                              ({result.FastestLap.AverageSpeed.speed} km/h)
+                              ({result.FastestLap.Time.AverageSpeed.speed} km/h)
                             </span>
                           )}
                         </span>

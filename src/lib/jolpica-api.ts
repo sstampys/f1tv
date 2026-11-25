@@ -163,7 +163,8 @@ export interface RaceResult {
 
 /** Get all available seasons */
 export async function getSeasons(): Promise<string[]> {
-  const data = await fetchWithCache("seasons", `${API_BASE}/seasons.json?limit=100`, "schedule");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await fetchWithCache("seasons", `${API_BASE}/seasons.json?limit=100`, "schedule");
   return data.MRData.SeasonTable.Seasons.map((s: { season: string }) => s.season).reverse();
 }
 
@@ -172,7 +173,8 @@ export async function getDriverStandings(year?: string): Promise<DriverStanding[
   const targetYear = year || new Date().getFullYear().toString();
   const key = `standings_${targetYear}`;
   const url = `${API_BASE}/${targetYear}/driverStandings.json`;
-  const data = await fetchWithCache(key, url, "standings");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await fetchWithCache(key, url, "standings");
   const lists = data.MRData.StandingsTable.StandingsLists;
   return lists[lists.length - 1]?.DriverStandings || [];
 }
@@ -182,7 +184,8 @@ export async function getConstructorStandings(year?: string): Promise<Constructo
   const targetYear = year || new Date().getFullYear().toString();
   const key = `constructor_standings_${targetYear}`;
   const url = `${API_BASE}/${targetYear}/constructorStandings.json`;
-  const data = await fetchWithCache(key, url, "standings");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await fetchWithCache(key, url, "standings");
   const lists = data.MRData.StandingsTable.StandingsLists;
   return lists[lists.length - 1]?.ConstructorStandings || [];
 }
@@ -192,7 +195,8 @@ export async function getRaceSchedule(year?: string): Promise<Race[]> {
   const targetYear = year || new Date().getFullYear().toString();
   const key = `schedule_${targetYear}`;
   const url = `${API_BASE}/${targetYear}.json`;
-  const data = await fetchWithCache(key, url, "schedule");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await fetchWithCache(key, url, "schedule");
   return data.MRData.RaceTable.Races || [];
 }
 
@@ -200,7 +204,8 @@ export async function getRaceSchedule(year?: string): Promise<Race[]> {
 export async function getRaceResults(year: string, round: string): Promise<RaceResult[]> {
   const key = `results_${year}_${round}`;
   const url = `${API_BASE}/${year}/${round}/results.json`;
-  const data = await fetchWithCache(key, url, "results");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = await fetchWithCache(key, url, "results");
   const races = data.MRData.RaceTable.Races;
   return races[0]?.Results || [];
 }
