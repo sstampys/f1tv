@@ -247,12 +247,13 @@
   --motion-reveal-root-margin: 0px 0px -6% 0px;
 }
 
-/* Initial state for all reveal targets (visible with JS disabled) */
+/* Initial hidden state for all reveal targets — animates in when .is-in is added.
+   Includes a noscript fallback in __root.tsx so content is visible without JS. */
 [data-reveal],
 .reveal,
 .rise {
-  opacity: 1;
-  transform: translateY(0);
+  opacity: var(--motion-reveal-opacity-from);
+  transform: translateY(var(--motion-reveal-distance));
   transition:
     opacity var(--motion-reveal-duration) var(--motion-reveal-ease),
     transform var(--motion-reveal-duration) var(--motion-reveal-ease);

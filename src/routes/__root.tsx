@@ -8,11 +8,10 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-
-import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navigation } from "@/components/Navigation";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
   return (
@@ -105,6 +104,16 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en" className="h-full">
       <head>
         <HeadContent />
+        <noscript>
+          <style>{`
+            [data-reveal],
+            .reveal,
+            .rise {
+              opacity: 1 !important;
+              transform: none !important;
+            }
+          `}</style>
+        </noscript>
       </head>
       <body className="bg-ground text-ink min-h-screen flex flex-col">
         {children}
@@ -125,7 +134,7 @@ function RootComponent() {
         <Outlet />
       </main>
       <footer className="quiet-footer">
-        <p data-reveal>Built with TanStack Start &amp; Tailwind CSS</p>
+        <p data-reveal>Built with TanStack Start & Tailwind CSS</p>
         <p data-reveal>
           Formula 1 data is sourced from the{' '}
           <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
