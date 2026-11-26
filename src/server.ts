@@ -44,12 +44,25 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+/**
+ * The HTML shell depends on no user data, so the CDN may hold it briefly and
+ * revalidate in the background. Hashed assets get immutable caching from
+ * Nitro's generated `_headers`; this only covers the shell.
+ */
+function withShellCache(response: Response): Response {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (response.status !== 200 || !contentType.includes("text/html")) return response;
+  const headers = new Headers(response.headers);
+  headers.set("cache-control", "public, max-age=0, s-maxage=60, stale-while-revalidate=300");
+  return new Response(response.body, { status: response.status, headers });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return withShellCache(await normalizeCatastrophicSsrResponse(response));
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

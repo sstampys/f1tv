@@ -1,10 +1,14 @@
 import { memo, useEffect, useState } from "react";
 import {
-  getUpcomingRace,
+  seasonsRes,
+  scheduleRes,
+  findNextRace,
   getTimeUntilRace,
   formatRaceDateTime,
   type Race
 } from "../lib/jolpica-api";
+import { useResource } from "../lib/data/use-resource";
+import { currentYear } from "../lib/data/config";
 
 const unitsFor = (race: Race) => {
   const t = getTimeUntilRace(race.date, race.time);
@@ -47,30 +51,20 @@ const Ticker = memo(function Ticker({ race }: { race: Race }) {
 });
 
 export function GrandPrixCountdown() {
-  const [race, setRace] = useState<Race | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Next race is derived entirely from cached schedule data — no polling and no
+  // per-tick network activity. Both resources are SWR-cached (the early inline
+  // script usually started them before this code runs).
+  const seasons = useResource(seasonsRes);
+  const year = seasons.data?.[0] ?? currentYear();
+  const schedule = useResource(scheduleRes(year));
+  const races = schedule.data;
 
-  useEffect(() => {
-    const fetchRace = async () => {
-      try {
-        const nextRace = await getUpcomingRace();
-        setRace(nextRace);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching next race:", error);
-        setLoading(false);
-      }
-    };
-
-    fetchRace();
-    const intervalId = setInterval(fetchRace, 60 * 60 * 1000);
-    return () => clearInterval(intervalId);
-  }, []);
-
-  if (loading) {
-    // Keep the page frame while the next race is fetched, but show nothing.
+  if (!races && !schedule.error) {
+    // Nothing to show yet: an empty frame, matching the server render exactly.
     return <section className="rows" />;
   }
+
+  const race = races ? findNextRace(races) : null;
 
   if (!race) {
     return (

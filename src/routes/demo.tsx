@@ -4,6 +4,8 @@ import { Check, ChevronDown } from "lucide-react";
 import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
 import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
 import { setStreamPlaying } from "@/lib/stream-status";
+import { request } from "@/lib/data/client";
+import { ENDPOINTS, KEYS } from "@/lib/data/config";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,8 +82,7 @@ function isSkySports(x: { source_tag?: string; tag?: string }) {
 }
 
 async function fetchF1Streams(): Promise<Stream[]> {
-  const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
-  const data = await res.json();
+  const data = await request<{ streams?: Category[] }>(KEYS.streams, ENDPOINTS.streams);
   const cats: Category[] = data?.streams ?? [];
   const now = Math.floor(Date.now() / 1000);
   const all = cats.flatMap((c) =>
@@ -161,8 +162,7 @@ function makeDemoStream(srcs: string[]): Stream[] {
 }
 
 async function fetchDemoStreams(): Promise<Stream[]> {
-  const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
-  const data = await res.json();
+  const data = await request<{ streams?: Category[] }>(KEYS.streams, ENDPOINTS.streams);
   const cats: Category[] = data?.streams ?? [];
   const all = cats.flatMap((c) =>
     c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),

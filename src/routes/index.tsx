@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
 import { setStreamPlaying } from "@/lib/stream-status";
+import { useResource, type Resource } from "@/lib/data/use-resource";
+import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
+import { earlyFetchScript } from "@/lib/data/early";
 
 // Stream page body is loaded on demand, so the countdown page never ships the
 // player, the source dropdown or their UI dependencies.
@@ -52,19 +55,24 @@ function isSkySports(x: { source_tag?: string; tag?: string }) {
   return /sky\s*sports|\bsky\b/.test(labelOf(x).toLowerCase());
 }
 
-async function fetchF1Streams(): Promise<Stream[]> {
-  const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
-  const data = await res.json();
-  const cats: Category[] = data?.streams ?? [];
-  const now = Math.floor(Date.now() / 1000);
-  const all = cats.flatMap((c) =>
+const streamsResource: Resource<{ streams?: Category[] }> = {
+  key: KEYS.streams,
+  url: ENDPOINTS.streams,
+  ttl: TTL.streams,
+  parse: (raw) => raw,
+};
+
+function allStreams(cats: Category[]): Stream[] {
+  return cats.flatMap((c) =>
     c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
   );
-  const f1 = all.filter(isF1);
-  const live = f1.filter(
-    (s) => s.always_live === 1 || (s.starts_at - 900 <= now && s.ends_at >= now),
-  );
-  return live;
+}
+
+function liveF1Streams(cats: Category[]): Stream[] {
+  const now = Math.floor(Date.now() / 1000);
+  return allStreams(cats)
+    .filter(isF1)
+    .filter((s) => s.always_live === 1 || (s.starts_at - 900 <= now && s.ends_at >= now));
 }
 
 function extractIframeSrc(iframe?: string): string | null {
@@ -133,14 +141,8 @@ function makeDemoStream(srcs: string[]): Stream[] {
   ];
 }
 
-async function fetchDemoStreams(): Promise<Stream[]> {
-  const res = await fetch("https://api.ppv.st/api/streams", { cache: "no-store" });
-  const data = await res.json();
-  const cats: Category[] = data?.streams ?? [];
-  const all = cats.flatMap((c) =>
-    c.streams.map((s) => ({ ...s, category_name: s.category_name || c.category })),
-  );
-  const alwaysLive = all.filter((s) => Number(s.always_live) === 1 && s.iframe);
+function demoPpvStreams(cats: Category[]): Stream[] {
+  const alwaysLive = allStreams(cats).filter((s) => Number(s.always_live) === 1 && s.iframe);
   const shuffled = [...alwaysLive].sort(() => Math.random() - 0.5).slice(0, 3);
   const srcs = shuffled
     .map((s) => extractIframeSrc(s.iframe))
@@ -168,60 +170,39 @@ export const Route = createFileRoute("/")({
     links: [
       { rel: "canonical", href: "https://www.f1box.org/" },
     ],
+    scripts: [
+      // Kick off the countdown's data during HTML parse, before the bundle runs.
+      {
+        children: earlyFetchScript([
+          { url: ENDPOINTS.seasons, key: KEYS.seasons, ttl: TTL.completedSeason },
+          { url: ENDPOINTS.schedule(currentYear()), key: KEYS.schedule(currentYear()), ttl: scheduleTtl(currentYear()) },
+        ]),
+      },
+    ],
   }),
   component: Index,
 });
 
 function Index() {
   const { demo } = Route.useSearch();
-  const [streams, setStreams] = useState<Stream[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [streamLoaded, setStreamLoaded] = useState(false);
 
-  // Fetch streams
-  useEffect(() => {
-    if (demo === "sample") {
-      setStreams(makeDemoStream(DEMO_SAMPLE_SRCS));
-      setLoading(false);
-      return;
-    }
-    if (demo === "ppv") {
-      let cancelled = false;
-      fetchDemoStreams()
-        .then((s) => {
-          if (!cancelled) {
-            setStreams(s);
-            setLoading(false);
-          }
-        })
-        .catch(() => setLoading(false));
-      return () => { cancelled = true; };
-    }
-    let cancelled = false;
-    const load = async () => {
-      try {
-        const s = await fetchF1Streams();
-        if (!cancelled) {
-          setStreams((prev) => {
-            const sameIds = prev.map((p) => p.id).join(",") === s.map((p) => p.id).join(",");
-            return sameIds ? prev : s;
-          });
-          setLoading(false);
-        }
-      } catch {
-        setLoading(false);
-      }
-    };
-    load();
-    const id = setInterval(load, 60_000);
-    return () => { cancelled = true; clearInterval(id); };
-  }, [demo]);
+  // Stream links come from the shared SWR cache (short TTL, 30-60s). The sample
+  // demo needs no network at all.
+  const streamsState = useResource(streamsResource, demo !== "sample");
 
-  const sources = buildSources(streams);
+  const streamList = useMemo<Stream[]>(() => {
+    if (demo === "sample") return makeDemoStream(DEMO_SAMPLE_SRCS);
+    const cats = streamsState.data?.streams ?? [];
+    if (demo === "ppv") return demoPpvStreams(cats);
+    return liveF1Streams(cats);
+  }, [demo, streamsState.data]);
+
+  const sources = buildSources(streamList);
   const iframeSrc = selected && sources.some((s) => s.src === selected) ? selected : (sources[0]?.src ?? null);
   const currentSource = sources.find((source) => source.src === iframeSrc);
   const hasStream = !!iframeSrc;

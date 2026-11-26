@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import {
-  getRaceSchedule,
-  getNextRace,
-  getSeasons,
+  seasonsRes,
+  scheduleRes,
+  findNextRace,
   formatRaceDateTime,
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
 import { useState, useMemo } from "react";
+import { useResource } from "@/lib/data/use-resource";
+import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
+import { earlyFetchScript } from "@/lib/data/early";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -24,37 +26,39 @@ export const Route = createFileRoute("/schedule")({
     links: [
       { rel: "canonical", href: "https://www.f1box.org/schedule" },
     ],
+    scripts: [
+      {
+        children: earlyFetchScript([
+          { url: ENDPOINTS.seasons, key: KEYS.seasons, ttl: TTL.completedSeason },
+          { url: ENDPOINTS.schedule(currentYear()), key: KEYS.schedule(currentYear()), ttl: scheduleTtl(currentYear()) },
+        ]),
+      },
+    ],
   }),
   component: SchedulePage,
 });
 
 function SchedulePage() {
-  const { data: seasons } = useQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 });
-  const currentSeason = seasons?.[0];
+  const seasons = useResource(seasonsRes);
+  const currentSeason = seasons.data?.[0];
   return currentSeason ? <ScheduleSection currentSeason={currentSeason} /> : <div className="page" />;
 }
 
 export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);
 
-  const { data: seasons, isLoading: seasonsLoading } = useQuery({
-    queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000,
-  });
+  const seasons = useResource(seasonsRes);
+  const schedule = useResource(scheduleRes(season));
 
-  const { data: schedule, isLoading: scheduleLoading, error: scheduleError } = useQuery({
-    queryKey: ["schedule", season], queryFn: () => getRaceSchedule(season), enabled: !!season, staleTime: 60 * 60 * 1000,
-  });
-
-  const { data: nextRace } = useQuery({
-    queryKey: ["nextRace", season], queryFn: () => getNextRace(season), enabled: !!season, staleTime: 60 * 60 * 1000,
-  });
+  // The next race is derived from the schedule already in hand — no extra request.
+  const nextRace = useMemo(() => (schedule.data ? findNextRace(schedule.data) : null), [schedule.data]);
 
   return (
     <div className="page">
       <section id="schedule" className="rows">
         <div className="page-container head">
           <h1 data-reveal>Race Schedule</h1>
-          {!seasonsLoading && seasons && (
+          {seasons.data && (
             <select
               className="control"
               aria-label="Season"
@@ -62,19 +66,19 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
               onChange={(event) => setSeason(event.target.value)}
               data-reveal
             >
-              {seasons.map((s) => (
+              {seasons.data.map((s) => (
                 <option key={s} value={s}>{s} Season</option>
               ))}
             </select>
           )}
         </div>
 
-        {scheduleLoading && !schedule ? null : scheduleError ? (
+        {!schedule.data && !schedule.error ? null : schedule.error ? (
           <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
-        ) : schedule && schedule.length > 0 ? (
+        ) : schedule.data && schedule.data.length > 0 ? (
           <RaceCalendar
-            races={schedule}
-            nextRace={nextRace ?? null}
+            races={schedule.data}
+            nextRace={nextRace}
             isCurrentSeason={season === currentSeason}
           />
         ) : (

@@ -48,21 +48,29 @@ function Legal() {
           <h2 className="row__label" data-reveal>Hosting, analytics and storage</h2>
           <div className="row__body prose">
             <p data-reveal>
-              F1Box is hosted on Vercel. Its servers process the standard request information needed to deliver the
-              site and keep it secure — your IP address, location derived from it, browser and device details, the
-              pages requested, and timestamps — which Vercel may keep in server and request logs under its own
-              retention practices. F1Box does not use this data to identify or profile individual visitors. Vercel's
-              handling is described in the Vercel Privacy Notice at{' '}
+              F1Box is hosted on Vercel, which delivers the site's files to your browser. When you visit, Vercel's
+              servers process standard request information needed to deliver the site and keep it secure, including
+              your IP address, location derived from your IP address, browser and device details, the files requested,
+              and timestamps. Vercel may keep this in logs under its own retention practices, described in the Vercel
+              Privacy Notice (
               <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
                 vercel.com/legal/privacy-policy
-              </a>.
+              </a>
+              ). F1Box's own servers do not request race data or streams on your behalf, and F1Box does not use this
+              technical data to identify or profile visitors.
             </p>
             <p data-reveal>
-              F1Box runs no analytics tools, so the only usage data is that infrastructure-level logging. It also sets
-              no cookies of its own and no advertising or cross-site tracking cookies; it stores only a lightweight
-              cache of race data and a one-time navigation flag in your browser's local and session storage, on your
-              device only. Streams load through third-party players that are independent and may use their own cookies
-              or similar technologies, which F1Box doesn't control.
+              F1Box does not run any analytics tools. The only usage data is the infrastructure-level logging by
+              Vercel described above.
+            </p>
+            <p data-reveal>
+              F1Box does not set cookies of its own and does not use advertising or cross-site tracking cookies. To
+              load faster, F1Box saves copies of recently loaded race data — schedule, standings and results — in your
+              browser's local storage on your own device, under keys beginning f1box:. This is public
+              Formula&nbsp;1 data, it stays on your device, it is never sent to F1Box, and you can remove it at any
+              time by clearing this site's data in your browser settings. F1Box also keeps a one-time navigation flag
+              in session storage. Stream players that load inside F1Box are operated by third parties and may use their
+              own cookies or similar technologies, which F1Box doesn't control.
             </p>
           </div>
         </div>
@@ -71,19 +79,24 @@ function Legal() {
           <h2 className="row__label" data-reveal>Third-party services and data</h2>
           <div className="row__body prose">
             <p data-reveal>
-              Race schedules, standings, and results come from the{' '}
+              Race schedules, standings and results are loaded by your browser directly from the{' '}
               <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">Jolpica-F1 API</a>{' '}
-              (the successor to the Ergast API) and live stream links come from{' '}
-              <a href="https://ppv.st" target="_blank" rel="noopener noreferrer">ppv.st</a>. Your browser connects to
-              these services directly, so they can see your IP address and standard request details as with any website
-              you visit; their own policies govern how they handle it, and issues with stream availability, quality, or
-              content should go to the respective provider.
+              (api.jolpi.ca), and live stream links directly from{' '}
+              <a href="https://ppv.st" target="_blank" rel="noopener noreferrer">ppv.st</a> (api.ppv.st). Because your
+              browser contacts these services directly, they can see your IP address, browser details and the request
+              itself, as with any website you visit. These requests do not pass through F1Box's servers and F1Box does
+              not receive a copy. Each provider's handling of data is governed by its own policies.
             </p>
             <p data-reveal>
               F1Box is an aggregator only: we do not host or store audio, video, or media on our servers, and we do not
-              control third-party stream content or metadata. We don't sell, rent, or share personal data because we
-              don't hold any ourselves; technical data processed by Vercel and the providers above is kept according to
-              their own policies.
+              control third-party stream content or metadata. When a stream is shown, the player is served by a third
+              party whose domain varies per stream and which may load its own content, ads and cookies that F1Box does
+              not control.
+            </p>
+            <p data-reveal>
+              We don't sell, rent, or share personal data because we don't hold any ourselves; technical data processed
+              by Vercel and the providers above is kept according to their own policies. For issues related to stream
+              availability, quality or content, please contact the respective third-party provider.
             </p>
           </div>
         </div>

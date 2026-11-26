@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  getDriverStandings,
-  getConstructorStandings,
-  getSeasons,
+  seasonsRes,
+  driverStandingsRes,
+  constructorStandingsRes,
   type DriverStanding,
   type ConstructorStanding,
-  type Constructor
 } from "@/lib/jolpica-api";
+import { useResource } from "@/lib/data/use-resource";
+import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
+import { earlyFetchScript } from "@/lib/data/early";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/standings")({
@@ -25,39 +26,60 @@ export const Route = createFileRoute("/standings")({
     links: [
       { rel: "canonical", href: "https://www.f1box.org/standings" },
     ],
+    scripts: [
+      // Only the default tab's data is started early; the other tab loads on idle.
+      {
+        children: earlyFetchScript([
+          { url: ENDPOINTS.seasons, key: KEYS.seasons, ttl: TTL.completedSeason },
+          { url: ENDPOINTS.driverStandings(currentYear()), key: KEYS.driverStandings(currentYear()), ttl: standingsTtl(currentYear()) },
+        ]),
+      },
+    ],
   }),
   component: StandingsPage,
 });
 
 function StandingsPage() {
-  const { data: seasons } = useQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 });
-  const currentSeason = seasons?.[0];
+  const seasons = useResource(seasonsRes);
+  const currentSeason = seasons.data?.[0];
   return currentSeason ? <StandingsSection currentSeason={currentSeason} /> : <div className="page" />;
 }
 
 export function StandingsSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);
+  const [tab, setTab] = useState("drivers");
+  const [otherEnabled, setOtherEnabled] = useState(false);
 
-  const { data: seasons, isLoading: seasonsLoading } = useQuery({
-    queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000,
-  });
+  // The inactive tab's data is requested on idle (or when that tab is opened),
+  // so only the default tab's request sits on the critical path.
+  useEffect(() => {
+    type IdleWindow = Window & {
+      requestIdleCallback?: (cb: () => void) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    const w = window as IdleWindow;
+    if (typeof w.requestIdleCallback === "function") {
+      const id = w.requestIdleCallback(() => setOtherEnabled(true));
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const id = window.setTimeout(() => setOtherEnabled(true), 1200);
+    return () => window.clearTimeout(id);
+  }, []);
 
-  const { data: driverStandings, isLoading: driversLoading, error: driversError } = useQuery({
-    queryKey: ["driverStandings", season], queryFn: () => getDriverStandings(season), enabled: !!season, staleTime: 30 * 60 * 1000,
-  });
+  const seasons = useResource(seasonsRes);
+  const drivers = useResource(driverStandingsRes(season));
+  const constructors = useResource(constructorStandingsRes(season), otherEnabled || tab === "constructors");
 
-  const { data: constructorStandings, isLoading: constructorsLoading, error: constructorsError } = useQuery({
-    queryKey: ["constructorStandings", season], queryFn: () => getConstructorStandings(season), enabled: !!season, staleTime: 30 * 60 * 1000,
-  });
-
-  const loading = (driversLoading || constructorsLoading) && !driverStandings && !constructorStandings;
+  const anyError = drivers.error || constructors.error;
+  const hasData = !!(drivers.data || constructors.data);
+  const loading = !hasData && !anyError;
 
   return (
     <div className="page">
       <section id="standings" className="rows">
         <div className="page-container head">
           <h1 data-reveal>Championship Standings</h1>
-          {!seasonsLoading && seasons && (
+          {seasons.data && (
             <select
               className="control"
               aria-label="Season"
@@ -65,28 +87,34 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
               onChange={(event) => setSeason(event.target.value)}
               data-reveal
             >
-              {seasons.map((s) => (
+              {seasons.data.map((s) => (
                 <option key={s} value={s}>{s} Season</option>
               ))}
             </select>
           )}
         </div>
 
-        {loading ? null : driversError || constructorsError ? (
+        {loading ? null : anyError && !hasData ? (
           <Notice title="Unable to load standings" message="Failed to load standings. Please try again." retry />
         ) : (
           <div className="page-container">
-            <Tabs defaultValue="drivers">
+            <Tabs defaultValue="drivers" onValueChange={setTab}>
               <TabsList className="tabs-list" data-reveal>
                 <TabsTrigger value="drivers">Drivers</TabsTrigger>
-                <TabsTrigger value="constructors">Constructors</TabsTrigger>
+                <TabsTrigger
+                  value="constructors"
+                  onPointerEnter={() => setOtherEnabled(true)}
+                  onFocus={() => setOtherEnabled(true)}
+                >
+                  Constructors
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="drivers">
-                <DriverStandingsTable standings={driverStandings || []} />
+                <DriverStandingsTable standings={drivers.data || []} loading={!drivers.data} />
               </TabsContent>
               <TabsContent value="constructors">
-                <ConstructorStandingsTable standings={constructorStandings || []} />
+                <ConstructorStandingsTable standings={constructors.data || []} loading={!constructors.data} />
               </TabsContent>
             </Tabs>
           </div>
@@ -96,7 +124,8 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
   );
 }
 
-function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
+function DriverStandingsTable({ standings, loading }: { standings: DriverStanding[]; loading?: boolean }) {
+  if (loading && !standings.length) return null;
   if (!standings.length) return <Notice title="No Data Available" message="No driver standings available for this season." />;
 
   return (
@@ -133,7 +162,8 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
   );
 }
 
-function ConstructorStandingsTable({ standings }: { standings: ConstructorStanding[] }) {
+function ConstructorStandingsTable({ standings, loading }: { standings: ConstructorStanding[]; loading?: boolean }) {
+  if (loading && !standings.length) return null;
   if (!standings.length) return <Notice title="No Data Available" message="No constructor standings available for this season." />;
 
   return (

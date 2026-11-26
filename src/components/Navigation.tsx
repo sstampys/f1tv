@@ -1,11 +1,22 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { useStreamPlaying } from "@/lib/stream-status";
+import { prefetchResource } from "@/lib/data/use-resource";
+import { seasonsRes, scheduleRes, driverStandingsRes } from "@/lib/jolpica-api";
+import { currentYear } from "@/lib/data/config";
 
 const links = [
   { href: "/", label: "Countdown" },
   { href: "/standings", label: "Standings" },
   { href: "/schedule", label: "Schedule" },
 ] as const;
+
+/** Prefetch a link's data on intent, respecting the cache and the limiter. */
+function prefetchFor(href: string) {
+  const year = currentYear();
+  prefetchResource(seasonsRes);
+  if (href === "/standings") prefetchResource(driverStandingsRes(year));
+  else prefetchResource(scheduleRes(year)); // "/" and "/schedule" share the schedule
+}
 
 export function Navigation() {
   const location = useLocation();
@@ -26,6 +37,8 @@ export function Navigation() {
             data-live={live ? "true" : undefined}
             className="site-nav__link"
             style={{ "--i": index + 1 }}
+            onPointerEnter={() => prefetchFor(href)}
+            onFocus={() => prefetchFor(href)}
           >
             {live ? "Live" : label}
           </Link>

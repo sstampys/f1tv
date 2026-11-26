@@ -1,8 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
-  createRootRouteWithContext,
+  createRootRoute,
   useRouter,
   useRouterState,
   HeadContent,
@@ -65,7 +64,7 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -126,11 +125,10 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <Navigation />
       <ScrollReveal />
       <main className="flex-1">
@@ -145,6 +143,6 @@ function RootComponent() {
           </div>
         </footer>
       )}
-    </QueryClientProvider>
+    </>
   );
 }

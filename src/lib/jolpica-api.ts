@@ -1,78 +1,16 @@
 /**
- * Jolpica-F1 API Client
- * Free, no-auth F1 data API (community-maintained Ergast successor)
- * Base: https://api.jolpi.ca/ergast/f1/
- * 
- * Caching: localStorage with 30-minute TTL for standings/results,
- * 1-hour TTL for schedule (changes rarely)
+ * Jolpica-F1 API client (browser only).
+ *
+ * Every request goes through the shared browser data layer: persistent
+ * stale-while-revalidate cache, in-flight de-duplication, a limiter that keeps
+ * the app under the API's burst limit and retry with backoff. No server-side
+ * fetching anywhere. Values live in lib/data/config.
  */
 
-const API_BASE = "https://api.jolpi.ca/ergast/f1";
-const CACHE_PREFIX = "f1box_";
-const CACHE_TTL = {
-  standings: 30 * 60 * 1000,   // 30 minutes
-  schedule: 60 * 60 * 1000,    // 1 hour
-  results: 30 * 60 * 1000,     // 30 minutes
-};
-
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-}
-
-function getCache<T>(key: string): T | null {
-  // Skip cache on server (no localStorage)
-  if (typeof window === "undefined" || typeof localStorage === "undefined") return null;
-
-  try {
-    const entry = localStorage.getItem(CACHE_PREFIX + key);
-    if (!entry) return null;
-    const parsed: CacheEntry<T> = JSON.parse(entry);
-    const age = Date.now() - parsed.timestamp;
-    const ttl = CACHE_TTL[key.split("_")[0] as keyof typeof CACHE_TTL] || CACHE_TTL.standings;
-    if (age > ttl) {
-      localStorage.removeItem(CACHE_PREFIX + key);
-      return null;
-    }
-    return parsed.data;
-  } catch {
-    return null;
-  }
-}
-
-function setCache<T>(key: string, data: T): void {
-  // Skip cache on server
-  if (typeof window === "undefined" || typeof localStorage === "undefined") return;
-
-  try {
-    const entry: CacheEntry<T> = { data, timestamp: Date.now() };
-    localStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
-  } catch {
-    // Ignore quota errors
-  }
-}
-
-async function fetchWithCache<T>(key: string, url: string, ttlKey: keyof typeof CACHE_TTL = "standings"): Promise<T> {
-  const cached = getCache<T>(key);
-  if (cached) return cached;
-
-  const response = await fetch(url, {
-    headers: {
-      "Accept": "application/json",
-      "User-Agent": "F1Box/1.0 (+https://f1box.org)"
-    },
-    // Use force-cache for 5 min browser cache as additional layer
-    cache: "force-cache"
-  });
-
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status} ${response.statusText}`);
-  }
-
-  const data = await response.json();
-  setCache(key, data);
-  return data;
-}
+import { ENDPOINTS, KEYS, TTL, scheduleTtl, standingsTtl, resultsTtl, currentYear } from "./data/config";
+import { request } from "./data/client";
+import { readEntry, writeEntry } from "./data/store";
+import type { Resource } from "./data/use-resource";
 
 // ============================================
 // Types (matching Ergast/Jolpica response structure)
@@ -153,98 +91,126 @@ export interface RaceResult {
   FastestLap?: {
     rank: string;
     lap: string;
-    Time: { time: string; AverageSpeed?: { units: string; speed: string } };
+    Time: { time: string; averageSpeed?: { units: string; speed: string } };
   };
 }
 
 // ============================================
-// API Functions
+// Parsers (raw Jolpica JSON -> app shape)
 // ============================================
 
-/** Get all available seasons */
-export async function getSeasons(): Promise<string[]> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = await fetchWithCache("seasons", `${API_BASE}/seasons.json?limit=100`, "schedule");
-  return data.MRData.SeasonTable.Seasons.map((s: { season: string }) => s.season).reverse();
-}
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const parseSeasons = (raw: any): string[] =>
+  raw.MRData.SeasonTable.Seasons.map((s: { season: string }) => s.season).reverse();
 
-/** Get driver standings for a season (defaults to latest) */
-export async function getDriverStandings(year?: string): Promise<DriverStanding[]> {
-  const targetYear = year || new Date().getFullYear().toString();
-  const key = `standings_${targetYear}`;
-  const url = `${API_BASE}/${targetYear}/driverStandings.json`;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = await fetchWithCache(key, url, "standings");
-  const lists = data.MRData.StandingsTable.StandingsLists;
+const parseSchedule = (raw: any): Race[] => raw.MRData.RaceTable.Races || [];
+
+const parseDriverStandings = (raw: any): DriverStanding[] => {
+  const lists = raw.MRData.StandingsTable.StandingsLists;
   return lists[lists.length - 1]?.DriverStandings || [];
-}
+};
 
-/** Get constructor standings for a season */
-export async function getConstructorStandings(year?: string): Promise<ConstructorStanding[]> {
-  const targetYear = year || new Date().getFullYear().toString();
-  const key = `constructor_standings_${targetYear}`;
-  const url = `${API_BASE}/${targetYear}/constructorStandings.json`;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = await fetchWithCache(key, url, "standings");
-  const lists = data.MRData.StandingsTable.StandingsLists;
+const parseConstructorStandings = (raw: any): ConstructorStanding[] => {
+  const lists = raw.MRData.StandingsTable.StandingsLists;
   return lists[lists.length - 1]?.ConstructorStandings || [];
-}
+};
 
-/** Get full race schedule for a season */
-export async function getRaceSchedule(year?: string): Promise<Race[]> {
-  const targetYear = year || new Date().getFullYear().toString();
-  const key = `schedule_${targetYear}`;
-  const url = `${API_BASE}/${targetYear}.json`;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = await fetchWithCache(key, url, "schedule");
-  return data.MRData.RaceTable.Races || [];
-}
+const parseResults = (raw: any): RaceResult[] => raw.MRData.RaceTable.Races[0]?.Results || [];
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
-/** Get race results for a specific round */
-export async function getRaceResults(year: string, round: string): Promise<RaceResult[]> {
-  const key = `results_${year}_${round}`;
-  const url = `${API_BASE}/${year}/${round}/results.json`;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data: any = await fetchWithCache(key, url, "results");
-  const races = data.MRData.RaceTable.Races;
-  return races[0]?.Results || [];
-}
+// ============================================
+// Resources (consumed by useResource and the prefetcher)
+// ============================================
 
-/** Get the next upcoming race */
-export async function getNextRace(year?: string): Promise<Race | null> {
-  const schedule = await getRaceSchedule(year);
-  const now = new Date();
-  return schedule.find(race => new Date(`${race.date}T${normalizeTime(race.time)}Z`) > now) || null;
-}
+export const seasonsRes: Resource<string[]> = {
+  key: KEYS.seasons,
+  url: ENDPOINTS.seasons,
+  ttl: TTL.completedSeason,
+  parse: parseSeasons,
+};
+
+export const scheduleRes = (year: string): Resource<Race[]> => ({
+  key: KEYS.schedule(year),
+  url: ENDPOINTS.schedule(year),
+  ttl: scheduleTtl(year),
+  parse: parseSchedule,
+});
+
+export const driverStandingsRes = (year: string): Resource<DriverStanding[]> => ({
+  key: KEYS.driverStandings(year),
+  url: ENDPOINTS.driverStandings(year),
+  ttl: standingsTtl(year),
+  parse: parseDriverStandings,
+});
+
+export const constructorStandingsRes = (year: string): Resource<ConstructorStanding[]> => ({
+  key: KEYS.constructorStandings(year),
+  url: ENDPOINTS.constructorStandings(year),
+  ttl: standingsTtl(year),
+  parse: parseConstructorStandings,
+});
+
+export const raceResultsRes = (year: string, round: string): Resource<RaceResult[]> => ({
+  key: KEYS.results(year, round),
+  url: ENDPOINTS.results(year, round),
+  ttl: resultsTtl(year),
+  parse: parseResults,
+});
+
+// ============================================
+// Cached loaders (imperative callers and prefetch)
+// ============================================
 
 /**
- * Next race for the current season.
- *
- * The season lookup and the calendar-year schedule start together, so the
- * countdown waits on one round trip instead of two whenever the latest
- * published season is the calendar year (the usual case). The selection is
- * unchanged: it is the same season and the same "first race in the future".
+ * Resolve a resource from cache or network. Fresh cache short-circuits the
+ * network entirely; if a revalidation fails but a stale value exists, the stale
+ * value is returned so a populated page is never blanked.
  */
-export async function getUpcomingRace(): Promise<Race | null> {
-  const year = new Date().getFullYear().toString();
-  const [season, yearSchedule] = await Promise.all([getCurrentSeason(), getRaceSchedule(year)]);
-  const schedule = season === year ? yearSchedule : await getRaceSchedule(season);
-  const now = new Date();
-  return schedule.find(race => new Date(`${race.date}T${normalizeTime(race.time)}Z`) > now) || null;
+async function load<T>(res: Resource<T>): Promise<T> {
+  const entry = readEntry<T>(res.key);
+  if (entry && Date.now() - entry.t < res.ttl) return entry.d;
+  try {
+    const data = await request<unknown>(res.key, res.url).then(res.parse);
+    writeEntry(res.key, data);
+    return data;
+  } catch (error) {
+    if (entry) return entry.d;
+    throw error;
+  }
 }
 
-/** Get the most recent completed race */
+export const getSeasons = (): Promise<string[]> => load(seasonsRes);
+export const getRaceSchedule = (year?: string): Promise<Race[]> => load(scheduleRes(year || currentYear()));
+export const getDriverStandings = (year?: string): Promise<DriverStanding[]> =>
+  load(driverStandingsRes(year || currentYear()));
+export const getConstructorStandings = (year?: string): Promise<ConstructorStanding[]> =>
+  load(constructorStandingsRes(year || currentYear()));
+export const getRaceResults = (year: string, round: string): Promise<RaceResult[]> =>
+  load(raceResultsRes(year, round));
+
+/** Get current season (latest published), falling back to the calendar year. */
+export async function getCurrentSeason(): Promise<string> {
+  const seasons = await getSeasons();
+  return seasons[0] || currentYear();
+}
+
+/** The first race in a schedule whose start is still in the future. */
+export function findNextRace(schedule: Race[]): Race | null {
+  const now = new Date();
+  return schedule.find((race) => new Date(`${race.date}T${normalizeTime(race.time)}Z`) > now) || null;
+}
+
+/** Get the next upcoming race for a season's schedule. */
+export async function getNextRace(year?: string): Promise<Race | null> {
+  return findNextRace(await getRaceSchedule(year));
+}
+
+/** Get the most recent completed race for a season's schedule. */
 export async function getLastRace(year?: string): Promise<Race | null> {
   const schedule = await getRaceSchedule(year);
   const now = new Date();
-  const past = schedule.filter(race => new Date(`${race.date}T${normalizeTime(race.time)}Z`) <= now);
+  const past = schedule.filter((race) => new Date(`${race.date}T${normalizeTime(race.time)}Z`) <= now);
   return past[past.length - 1] || null;
-}
-
-/** Get current season (latest available) */
-export async function getCurrentSeason(): Promise<string> {
-  const seasons = await getSeasons();
-  return seasons[0] || new Date().getFullYear().toString();
 }
 
 // ============================================
@@ -253,7 +219,6 @@ export async function getCurrentSeason(): Promise<string> {
 
 /** Convert UTC race date/time to user's local timezone */
 export function formatRaceDateTime(date: string, time: string, options: Intl.DateTimeFormatOptions = {}): string {
-  // API returns time like "04:00:00Z" - strip trailing Z if present to avoid double-Z
   const cleanTime = time.endsWith("Z") ? time.slice(0, -1) : time;
   const utcString = `${date}T${cleanTime}Z`;
   const raceDate = new Date(utcString);
@@ -303,7 +268,11 @@ export function isRaceCompleted(date: string, time: string): boolean {
 
 /** Clear all F1 caches (for testing) */
 export function clearF1Cache(): void {
-  Object.keys(localStorage).forEach(key => {
-    if (key.startsWith(CACHE_PREFIX)) localStorage.removeItem(key);
-  });
+  try {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("f1box:")) localStorage.removeItem(key);
+    });
+  } catch {
+    // ignore
+  }
 }
