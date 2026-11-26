@@ -8,7 +8,7 @@ export function ScrollReveal() {
     if (typeof window === "undefined") return;
 
     const revealAll = (instant = false) => {
-      const els = [...document.querySelectorAll<HTMLElement>("[data-reveal]")];
+      const els = [...document.querySelectorAll<HTMLElement>("[data-reveal], .reveal, .rise")];
       // Sort by document position (top-left to bottom-right reading order)
       els.sort((a, b) => {
         const ra = a.getBoundingClientRect();
@@ -29,10 +29,10 @@ export function ScrollReveal() {
       return;
     }
 
-    // Reveal everything currently in the DOM, staggered.
+    // Immediately reveal ALL elements currently in DOM, staggered.
     revealAll(false);
 
-    // Catch async / dynamically-added targets (standings rows, races, etc.)
+    // Catch dynamically-added reveal targets (standings rows, races, etc.)
     const mo = new MutationObserver(() => revealAll(false));
     mo.observe(document.body, { childList: true, subtree: true });
 
