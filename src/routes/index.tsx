@@ -261,7 +261,6 @@ function Index() {
             <div className="page-container" style={{ 
               display: 'flex', 
               flexDirection: 'column', 
-              justifyContent: 'center', 
               gap: 'clamp(var(--s6), 9vh, var(--s15))',
               paddingTop: 'calc(var(--nav-room) + clamp(var(--s6), 7vw, var(--s8)))',
               paddingBottom: 'var(--s4)',

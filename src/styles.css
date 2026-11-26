@@ -328,6 +328,7 @@
 /* Tabs */
 .editorial-tabs,
 [data-slot="tabs-list"] {
+  display: inline-flex;
   background: none;
   padding: 0;
   gap: var(--s3);
@@ -536,6 +537,13 @@
   max-height: 5000px;
 }
 
+/* Page wrapper for countdown (constrains width like page-container) */
+.page {
+  width: var(--page-w);
+  margin: 0 auto;
+  padding: 0 var(--m);
+}
+
 /* Hero / Countdown */
 .hero {
   padding: calc(var(--nav-room) + clamp(var(--s6), 7vw, var(--s8))) var(--m) var(--s6);
@@ -701,6 +709,46 @@
 }
 .btn--quiet:hover {
   background: color-mix(in srgb, var(--soft) 55%, transparent);
+}
+
+/* Tags - small pill indicators (officecommun pattern) */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--ctl);
+  min-height: var(--ctl);
+  padding: 0 14px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: none;
+  color: var(--ink);
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 400;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tag.bg-ink {
+  background: var(--ink);
+  color: #fff;
+}
+.tag.bg-pill {
+  background: var(--pill);
+}
+.tag.border-hair {
+  border-color: var(--hair);
+}
+.tag.text-ink-2 {
+  color: var(--ink-2);
+}
+.tag.text-ink {
+  color: var(--ink);
+}
+.tag.text-player-text {
+  color: var(--player-text);
 }
 
 /* Pills */

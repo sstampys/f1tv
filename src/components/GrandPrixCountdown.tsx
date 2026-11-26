@@ -87,7 +87,7 @@ export function GrandPrixCountdown() {
   return (
     <div className="page">
       <section className="hero">
-        <div className="flex items-center gap-2 mb-4 rise" style={{ "--i": "0" }} data-reveal>
+        <div className="flex gap-2 mb-4 rise" style={{ "--i": "0" }} data-reveal>
           <span className="tag">RACE</span>
           {isRaceWeek && <span className="tag">THIS WEEK</span>}
         </div>
