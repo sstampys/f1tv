@@ -134,9 +134,9 @@ function RootComponent() {
       </main>
       <footer className="site-footer">
         <div className="page-container">
-          <a href="https://xurl.com/legal" data-reveal>
+          <Link to="/legal" data-reveal>
             Privacy &amp; Legal
-          </a>
+          </Link>
         </div>
       </footer>
     </QueryClientProvider>

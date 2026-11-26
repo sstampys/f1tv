@@ -193,7 +193,7 @@ function analyse(res, opts) {
     const full = ops.find((o) => o[1] >= 0.999);
     const an = L.anims.filter((a) => a.k === e.k);
     return {
-      k: e.k, txt: e.txt, h: Math.round(e.h), via: e.via,
+      k: e.k, txt: e.txt, pk: e.pk, h: Math.round(e.h), via: e.via,
       dist: +(e.vh - e.layoutTop).toFixed(1), // layout top measured up from the bottom edge when the reveal was applied
       ioDist: io ? +(io.vh - (io.top - io.ty)).toFixed(1) : null, // same, from the IO entry itself
       ioTy: io ? +io.ty.toFixed(1) : null,
