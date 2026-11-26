@@ -270,7 +270,7 @@
 .site-nav__home {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--s2);
   height: var(--nav-ctl);
   color: var(--nav-ink);
   letter-spacing: -.01em;
@@ -278,7 +278,7 @@
 .site-nav__link {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: var(--s2);
   height: var(--nav-ctl);
   color: var(--nav-mute);
   transition: color var(--t-ui);
@@ -290,8 +290,9 @@
 }
 .site-nav__mark {
   display: block;
-  width: 12px;
-  height: 13px;
+  width: var(--nav-ctl);
+  height: var(--nav-ctl);
+  object-fit: contain;
 }
 
 /* Page container - centered max-width column (officecommun pattern) */
