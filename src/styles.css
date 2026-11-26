@@ -92,7 +92,7 @@
   --nav-pad-x: var(--s2);
   --nav-pad-y: 4px;
   --nav-gap: var(--s3);
-  --nav-mark: var(--s3);
+  --nav-mark: calc(var(--s3) * 3 / 4);
 
   /* p, h1, h2 use `font: inherit`: the reference has one text size */
   --t-statement: var(--t);
