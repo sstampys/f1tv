@@ -74,7 +74,7 @@ const INIT = (cfg) => {
         const docTop = rect.top - y + scrollY;
         const delay = cfg.kind === "ref" ? parseFloat(getComputedStyle(el).transitionDelay) * 1000 || 0 : (L.anims.filter((a) => a.k === k).pop() || {}).delay || 0;
         const ioPrev = L.io.filter((x) => x.k === k && x.isI).length > 0;
-        L.inn.push({ t, k, txt: txt(el), layoutTop: rect.top - y, h: rect.height, left: rect.left, docTop, ty: y, vh: innerHeight, sy: scrollY, delay, via: ioPrev ? "io" : "fallback" });
+        L.inn.push({ t, k, txt: txt(el), pk: el.parentElement ? id(el.parentElement) : 0, layoutTop: rect.top - y, h: rect.height, left: rect.left, docTop, ty: y, vh: innerHeight, sy: scrollY, delay, via: ioPrev ? "io" : "fallback" });
       }
     }).observe(document, { attributes: true, subtree: true, attributeFilter: ["class", "data-in"] });
   }

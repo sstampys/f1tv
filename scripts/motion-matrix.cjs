@@ -23,14 +23,27 @@ const OFFSET = +(process.env.OFFSET || 12); // measured on the reference: dist -
 
 // the ordering rule: rows by >50% vertical overlap, rows by top, in-row by left
 function visualOrder(items) {
-  const s = [...items].sort((a, b) => a.top - b.top || a.left - b.left);
+  // mirrors visualOrder() in src/lib/reveal.ts: leaves sharing a parent are one
+  // cell, banded on the cell box, then cells left to right, lines top to bottom
+  const groups = new Map();
+  for (const it of items) {
+    const key = it.pk !== undefined ? it.pk : it.txt;
+    let g = groups.get(key);
+    if (!g) { g = { t: it.top, b: it.top + it.h, items: [] }; groups.set(key, g); }
+    g.items.push(it);
+    g.t = Math.min(g.t, it.top);
+    g.b = Math.max(g.b, it.top + it.h);
+  }
+  const left = (g) => Math.min(...g.items.map((i) => i.left));
+  const ordered = [...groups.values()].sort((a, b) => a.t - b.t || left(a) - left(b));
   const rows = [];
-  for (const it of s) {
-    const row = rows.find((r) => { const o = Math.min(r.b, it.top + it.h) - Math.max(r.t, it.top); return o > 0.5 * Math.min(r.h, it.h); });
-    if (row) row.items.push(it); else rows.push({ t: it.top, b: it.top + it.h, h: it.h, items: [it] });
+  for (const g of ordered) {
+    const h = g.b - g.t;
+    const row = rows.find((r) => { const o = Math.min(r.b, g.b) - Math.max(r.t, g.t); return o > 0.5 * Math.min(r.b - r.t, h); });
+    if (row) row.groups.push(g); else rows.push({ t: g.t, b: g.b, groups: [g] });
   }
   rows.sort((a, b) => a.t - b.t);
-  return rows.flatMap((r) => r.items.sort((a, b) => a.left - b.left));
+  return rows.flatMap((r) => r.groups.sort((a, b) => left(a) - left(b)).flatMap((g) => g.items.sort((a, b) => a.top - b.top || a.left - b.left)));
 }
 
 function reduce(res, opts) {

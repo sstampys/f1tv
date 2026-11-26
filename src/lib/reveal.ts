@@ -77,22 +77,54 @@ const INTERACTIVE = 'a[href], button, input, select, textarea, [tabindex]:not([t
  * Visual reading order: boxes whose vertical ranges overlap by more than half
  * of the shorter one share a row; rows run top to bottom and the boxes inside
  * a row run left to right (right to left on an RTL page).
+ *
+ * `cell` groups leaves that belong to one container of several lines — for
+ * example a countdown column, the numeral above its unit letter. The lines of a
+ * cell are kept together and the cell is banded as a single box, so the order
+ * runs cell by cell instead of putting every numeral before every letter.
  */
-export function visualOrder<T>(items: T[], box: (item: T) => DOMRectReadOnly, rtl = false): T[] {
-  const sorted = [...items].sort((a, b) => box(a).top - box(b).top || box(a).left - box(b).left);
-  const rows: Array<{ top: number; bottom: number; cells: T[] }> = [];
-  for (const item of sorted) {
+export function visualOrder<T>(
+  items: T[],
+  box: (item: T) => DOMRectReadOnly,
+  rtl = false,
+  cell?: (item: T) => unknown,
+): T[] {
+  const cellOf = cell ?? ((item: T) => item);
+  const byKey = new Map<unknown, { items: T[]; top: number; bottom: number; left: number }>();
+  const groups: Array<{ items: T[]; top: number; bottom: number; left: number }> = [];
+  for (const item of items) {
+    const key = cellOf(item);
     const r = box(item);
+    let group = byKey.get(key);
+    if (!group) {
+      group = { items: [], top: r.top, bottom: r.bottom, left: r.left };
+      byKey.set(key, group);
+      groups.push(group);
+    }
+    group.items.push(item);
+    group.top = Math.min(group.top, r.top);
+    group.bottom = Math.max(group.bottom, r.bottom);
+    group.left = Math.min(group.left, r.left);
+  }
+
+  const ordered = [...groups].sort((a, b) => a.top - b.top || a.left - b.left);
+  const rows: Array<{ top: number; bottom: number; groups: typeof groups }> = [];
+  for (const group of ordered) {
+    const height = group.bottom - group.top;
     const row = rows.find((candidate) => {
-      const overlap = Math.min(candidate.bottom, r.bottom) - Math.max(candidate.top, r.top);
-      return overlap > 0.5 * Math.min(candidate.bottom - candidate.top, r.height);
+      const overlap = Math.min(candidate.bottom, group.bottom) - Math.max(candidate.top, group.top);
+      return overlap > 0.5 * Math.min(candidate.bottom - candidate.top, height);
     });
-    if (row) row.cells.push(item);
-    else rows.push({ top: r.top, bottom: r.bottom, cells: [item] });
+    if (row) row.groups.push(group);
+    else rows.push({ top: group.top, bottom: group.bottom, groups: [group] });
   }
   rows.sort((a, b) => a.top - b.top);
   const dir = rtl ? -1 : 1;
-  return rows.flatMap((row) => row.cells.sort((a, b) => dir * (box(a).left - box(b).left)));
+  return rows.flatMap((row) =>
+    row.groups
+      .sort((a, b) => dir * (a.left - b.left))
+      .flatMap((group) => group.items.sort((a, b) => box(a).top - box(b).top || dir * (box(a).left - box(b).left))),
+  );
 }
 
 type Engine = {
@@ -153,7 +185,7 @@ export function startReveal(): () => void {
     const batch = queue.filter(({ el }) => el.isConnected && !isRevealed(el));
     queue = [];
     if (!batch.length || !tokens) return;
-    const ordered = visualOrder(batch, (q) => q.rect, rtl);
+    const ordered = visualOrder(batch, (q) => q.rect, rtl, (q) => q.el.parentElement);
     const steps = ordered.length - 1;
     const interval = steps > tokens.cap ? (tokens.cap * tokens.stagger) / steps : tokens.stagger;
     const waits = ordered.map(({ el }) => whenImagesReady(el)).filter((w): w is Promise<void> => w !== null);

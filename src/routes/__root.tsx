@@ -133,23 +133,10 @@ function RootComponent() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <div className="page-container stack-tight">
-          <p data-reveal>Built with TanStack Start & Tailwind CSS</p>
-          <p data-reveal>
-            Formula 1 data is sourced from the{' '}
-            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
-              Jolpica-F1 API
-            </a>{' '}
-            (Ergast successor)
-          </p>
-          <p data-reveal>
-            Formula 1 race data is sourced from the{' '}
-            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
-              Jolpica-F1 API
-            </a>{' '}
-            and live stream links are aggregated from{' '}
-            <a href="https://ppv.st" target="_blank" rel="noopener noreferrer">ppv.st</a>. No media is stored on our servers.
-          </p>
+        <div className="page-container">
+          <a href="https://xurl.com/legal" data-reveal>
+            Privacy &amp; Legal
+          </a>
         </div>
       </footer>
     </QueryClientProvider>
