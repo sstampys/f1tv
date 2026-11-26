@@ -8,13 +8,11 @@ import {
   getConstructorStandings,
   getSeasons,
   type DriverStanding,
-  type ConstructorStanding
-,
+  type ConstructorStanding,
   type Constructor
 } from "@/lib/jolpica-api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Trophy, Flag } from "lucide-react";
 
 export const Route = createFileRoute("/standings")({
@@ -54,36 +52,37 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
   return (
     <div className="min-h-screen bg-ground">
-
       <section id="standings" className="editorial-page">
         <header className="">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-            <div>
-              <h1 className="text-ink  rise" style={{ "--i": "0" }} data-reveal>
-                Championship Standings
-              </h1>
-              <p className="lead-text mt-2 rise" style={{ "--i": "1" }} data-reveal>
-                Formula 1 {season} driver and constructor championship points
-              </p>
-            </div>
-
-            {/* Season Selector */}
-            {!seasonsLoading && seasons && (
-              <div data-reveal>
-                <Select value={season} onValueChange={setSeason}>
-                  <SelectTrigger className="input-field h-11">
-                    <SelectValue placeholder="Select season" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-ground border-hair rounded-xl">
-                    {seasons.map((s) => (
-                      <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
-                        {s} Season
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+          <div className="page-container">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4" style={{ marginBottom: 'var(--s15)' }}>
+              <div>
+                <h1 className="text-ink rise" style={{ "--i": "0" }} data-reveal>
+                  Championship Standings
+                </h1>
+                <p className="lead-text rise" style={{ "--i": "1", marginTop: 'var(--s1)' }} data-reveal>
+                  Formula 1 {season} driver and constructor championship points
+                </p>
               </div>
-            )}
+
+              {/* Season Selector */}
+              {!seasonsLoading && seasons && (
+                <div data-reveal>
+                  <Select value={season} onValueChange={setSeason}>
+                    <SelectTrigger className="input-field" style={{ height: 'var(--ctl)' }}>
+                      <SelectValue placeholder="Select season" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-ground border-hair rounded-xl">
+                      {seasons.map((s) => (
+                        <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
+                          {s} Season
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -92,23 +91,25 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
         ) : driversError || constructorsError ? (
           <ErrorState message="Failed to load standings. Please try again." />
         ) : (
-          <Tabs defaultValue="drivers" className="w-full">
-            <TabsList className="editorial-tabs mb-8" style={{ "--i": "0" }} data-reveal>
-              <TabsTrigger value="drivers" className="px-6 py-2.5 text-sm font-medium">
-                Drivers
-              </TabsTrigger>
-              <TabsTrigger value="constructors" className="px-6 py-2.5 text-sm font-medium">
-                Constructors
-              </TabsTrigger>
-            </TabsList>
+          <div className="page-container">
+            <Tabs defaultValue="drivers" className="w-full">
+              <TabsList className="editorial-tabs" style={{ "--i": "0", marginBottom: 'var(--s4)' }} data-reveal>
+                <TabsTrigger value="drivers" className="px-6 py-2.5 text-sm font-medium">
+                  Drivers
+                </TabsTrigger>
+                <TabsTrigger value="constructors" className="px-6 py-2.5 text-sm font-medium">
+                  Constructors
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="drivers" className="rise" style={{ "--i": "1" }}>
-              <DriverStandingsTable standings={driverStandings || []} />
-            </TabsContent>
-            <TabsContent value="constructors" className="rise" style={{ "--i": "2" }}>
-              <ConstructorStandingsTable standings={constructorStandings || []} />
-            </TabsContent>
-          </Tabs>
+              <TabsContent value="drivers" className="rise" style={{ "--i": "1" }}>
+                <DriverStandingsTable standings={driverStandings || []} />
+              </TabsContent>
+              <TabsContent value="constructors" className="rise" style={{ "--i": "2" }}>
+                <ConstructorStandingsTable standings={constructorStandings || []} />
+              </TabsContent>
+            </Tabs>
+          </div>
         )}
       </section>
     </div>
@@ -132,7 +133,7 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
         </thead>
         <tbody className="divide-y divide-hair">
           {standings.map((standing, index) => (
-            <tr key={standing.Driver.driverId} className="hover:bg-wash/50" data-reveal>
+            <tr key={standing.Driver.driverId} className="hover:bg-wash/50" data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}
@@ -140,7 +141,7 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
               </td>
               <td className="px-4 py-4">
                 <div className="flex items-center gap-3">
-                  <span className="text-ink-3 text-xs uppercase  hidden sm:block">
+                  <span className="driver-code" aria-hidden="true">
                     {standing.Driver.code}
                   </span>
                   <div>
@@ -152,9 +153,7 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
                 </div>
               </td>
               <td className="px-4 py-4">
-                <div className="flex items-center gap-2">
-                  <ConstructorBadge constructor={standing.Constructors[0]} />
-                </div>
+                <ConstructorBadge constructor={standing.Constructors[0]} />
               </td>
               <td className="px-4 py-4 text-right font-sans text-lg font-semibold text-ink">
                 {standing.points}
@@ -185,21 +184,15 @@ function ConstructorStandingsTable({ standings }: { standings: ConstructorStandi
           </tr>
         </thead>
         <tbody className="divide-y divide-hair">
-          {standings.map((standing) => (
-            <tr key={standing.Constructor.constructorId} className="hover:bg-wash/50" data-reveal>
+          {standings.map((standing, index) => (
+            <tr key={standing.Constructor.constructorId} className="hover:bg-wash/50" data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}
                 </span>
               </td>
               <td className="px-4 py-4">
-                <div className="flex items-center gap-3">
-                  <ConstructorBadge constructor={standing.Constructor} size="lg" />
-                  <div>
-                    <p className="font-medium text-ink">{standing.Constructor.name}</p>
-                    <p className="text-xs text-ink-3">{standing.Constructor.nationality}</p>
-                  </div>
-                </div>
+                <ConstructorBadge constructor={standing.Constructor} size="lg" />
               </td>
               <td className="px-4 py-4 text-right font-sans text-lg font-semibold text-ink">
                 {standing.points}
@@ -218,7 +211,6 @@ function ConstructorStandingsTable({ standings }: { standings: ConstructorStandi
 function ConstructorBadge({ constructor, size = "md" }: { constructor: Constructor; size?: "sm" | "md" | "lg" }) {
   if (!constructor) return null;
   const baseClass = "team-badge";
-  const sizeClass = size === "lg" ? "font-semibold text-lg" : "font-medium text-sm";
   return (
     <span className={baseClass} aria-label={constructor?.name}>
       {constructor.name}
@@ -232,7 +224,7 @@ function getPositionClass(position: string): string {
 
 function StandingsSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="page-container space-y-4">
       <div className="h-12 bg-wash rounded-xl" />
       <div className="rounded-xl border border-hair bg-ground overflow-hidden">
         <div className="bg-wash border-b border-hair px-4 py-3" />
@@ -254,10 +246,10 @@ function StandingsSkeleton() {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="text-center py-16 md:py-24">
-      <h3 className="text-lg font-medium text-ink mb-2">Unable to load standings</h3>
-      <p className="text-ink-2 mb-4">{message}</p>
-      <Button onClick={() => window.location.reload()} className="btn btn-ink">
+    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
+      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>Unable to load standings</h3>
+      <p className="text-ink-2" style={{ marginBottom: 'var(--s4)' }}>{message}</p>
+      <Button onClick={() => window.location.reload()} className="btn btn--primary">
         Try Again
       </Button>
     </div>
@@ -266,8 +258,8 @@ function ErrorState({ message }: { message: string }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="text-center py-16 md:py-24">
-      <h3 className="text-lg font-medium text-ink mb-2">No Data Available</h3>
+    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
+      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>No Data Available</h3>
       <p className="text-ink-2">{message}</p>
     </div>
   );

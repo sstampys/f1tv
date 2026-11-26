@@ -257,23 +257,33 @@ function Index() {
       {!hasStream ? (
         // Countdown Page
         <div>
-          <div className="relative min-h-screen">
-            <GrandPrixCountdown />
-          </div>
+          <section className="editorial-page" aria-labelledby="countdown-title">
+            <div className="page-container" style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center', 
+              gap: 'clamp(var(--s6), 9vh, var(--s15))',
+              paddingTop: 'calc(var(--nav-room) + clamp(var(--s6), 7vw, var(--s8)))',
+              paddingBottom: 'var(--s4)',
+              flex: 1
+            }}>
+              <GrandPrixCountdown />
+            </div>
+          </section>
         </div>
       ) : (
         // Stream Page - Embedded player with switcher at bottom
         <div className="min-h-screen bg-ground">
-          <div className="stream-page">
+          <section className="stream-page">
             {/* Stream Header */}
-            <div className="mb-6">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="page-container" style={{ marginBottom: 'var(--s6)' }}>
+              <div className="flex items-center gap-2" style={{ marginBottom: 'var(--s2)' }}>
                 <span className="tag text-sm" data-reveal>LIVE STREAM</span>
                 {demo && <span className="tag bg-pill border-hair text-ink text-xs" data-reveal>DEMO</span>}
               </div>
               <h1 className="text-2xl md:text-3xl font-semibold text-ink" data-reveal>{currentSource?.label || "F1 Stream"}</h1>
               {currentSource?.language && (
-                <p className="text-ink-2 text-sm mt-1 flex items-center gap-1" data-reveal>
+                <p className="text-ink-2 text-sm flex items-center gap-1" style={{ marginTop: 'var(--s1)' }} data-reveal>
                   <span className="text-lg">{currentSource.language.flag}</span>
                   {currentSource.language.name}
                 </p>
@@ -327,7 +337,7 @@ function Index() {
                     <div className="flex items-center gap-3">
                       <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="outline" className="btn btn-wash gap-2" aria-label="Change stream source">
+                          <Button variant="outline" className="btn btn--secondary gap-2" aria-label="Change stream source">
                             <span className="max-w-36 truncate hidden sm:block">{currentSource?.label ?? "Sources"}</span>
                             <span className="sm:hidden">{currentSource?.label ?? "Sources"}</span>
                             <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
@@ -359,7 +369,7 @@ function Index() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                    
+
                     <Button
                       variant="ghost"
                       size="icon"
@@ -408,7 +418,7 @@ function Index() {
             </div>
 
             {/* Quick links below stream */}
-            <div className="stream-links">
+            <div className="page-container stream-links">
               <a href="/standings" className="" data-reveal>
                 Driver Standings
               </a>
@@ -419,7 +429,7 @@ function Index() {
                 Race Results
               </a>
             </div>
-          </div>
+          </section>
         </div>
       )}
     </div>

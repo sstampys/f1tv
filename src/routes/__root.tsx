@@ -15,17 +15,17 @@ import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ground px-4">
-      <div className="max-w-md text-center">
+    <div className="flex min-h-screen items-center justify-center bg-ground" style={{ padding: '0 var(--edge)' }}>
+      <div className="max-w-md text-center" style={{ width: 'var(--page-w)', margin: '0 auto' }}>
         <h1 className="text-7xl font-bold text-ink">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-ink">Page not found</h2>
-        <p className="mt-2 text-sm text-ink-3">
+        <h2 className="text-xl font-semibold text-ink" style={{ marginTop: 'var(--s4)' }}>Page not found</h2>
+        <p className="text-sm text-ink-3" style={{ marginTop: 'var(--s2)' }}>
           The page you're looking for doesn't exist or has been moved.
         </p>
-        <div className="mt-6">
+        <div style={{ marginTop: 'var(--s6)' }}>
           <Link
             to="/"
-            className="btn btn-ink"
+            className="btn btn--primary"
           >
             Go home
           </Link>
@@ -42,25 +42,25 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ground px-4">
-      <div className="max-w-md text-center">
+    <div className="flex min-h-screen items-center justify-center bg-ground" style={{ padding: '0 var(--edge)' }}>
+      <div className="max-w-md text-center" style={{ width: 'var(--page-w)', margin: '0 auto' }}>
         <h1 className="text-xl font-semibold tracking-tight text-ink">
           This page didn't load
         </h1>
-        <p className="mt-2 text-sm text-ink-3">
+        <p className="text-sm text-ink-3" style={{ marginTop: 'var(--s2)' }}>
           Something went wrong on our end. You can try refreshing or head back home.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+        <div style={{ marginTop: 'var(--s6)', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--s2)' }}>
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="btn btn-ink"
+            className="btn btn--primary"
           >
             Try again
           </button>
-          <Link to="/" className="btn btn-wash">
+          <Link to="/" className="btn btn--secondary">
             Go home
           </Link>
         </div>
@@ -133,7 +133,7 @@ function RootComponent() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="quiet-footer">
+      <footer className="site-footer">
         <p data-reveal>Built with TanStack Start & Tailwind CSS</p>
         <p data-reveal>
           Formula 1 data is sourced from the{' '}

@@ -232,85 +232,87 @@ function DemoRoute() {
 
   return (
     <div className="min-h-screen bg-ground">
-
-      
-      <main className="editorial-page">
+      <section className="editorial-page demo-page">
         <header className="">
-          <h1 className="text-ink " data-reveal>Demo Stream</h1>
-          <p className="lead-text mt-2" data-reveal>Test the stream player with sample content</p>
+          <div className="page-container">
+            <h1 className="text-ink" data-reveal>Demo Stream</h1>
+            <p className="lead-text" style={{ marginTop: 'var(--s1)' }} data-reveal>Test the stream player with sample content</p>
+          </div>
         </header>
 
-        {!loading && !iframeSrc ? (
-          <div className="flex items-center justify-center min-h-[40vh] bg-ground">
-            <div className="text-ink-2 text-sm text-center">Demo Stream Loading...</div>
-          </div>
-        ) : null}
+        <div className="page-container">
+          {!loading && !iframeSrc ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', background: 'var(--ground)' }}>
+              <div className="text-ink-2 text-sm text-center">Demo Stream Loading...</div>
+            </div>
+          ) : null}
 
-        {iframeSrc ? (
-          <div className="stream-player" data-reveal>
-            <video
-              key={iframeSrc}
-              className="absolute inset-0 w-full h-full object-contain"
-              src={iframeSrc}
-              autoPlay
-              controls
-              playsInline
-            />
+          {iframeSrc ? (
+            <div className="stream-player" data-reveal>
+              <video
+                key={iframeSrc}
+                className="absolute inset-0 w-full h-full object-contain"
+                src={iframeSrc}
+                autoPlay
+                controls
+                playsInline
+              />
 
-            {iframeSrc && sources.length > 1 ? (
-              <>
-                <div
-                  className="fixed right-0 top-0 z-40 h-24 w-56"
-                  aria-hidden="true"
-                  onPointerMove={() => setControlsVisible(true)}
-                  onPointerDown={() => setControlsVisible(true)}
-                  onTouchStart={() => setControlsVisible(true)}
-                />
-                <div
-                  className={`player-controls absolute right-4 bottom-4 z-40 transition-all duration-300 ${
-                    controlsVisible || menuOpen
-                      ? "translate-y-0 opacity-100"
-                      : "pointer-events-none -translate-y-2 opacity-0"
-                  }`}
-                >
-                  <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <LiquidGlassButton aria-label="Change stream source">
-                        <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
-                        <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
-                      </LiquidGlassButton>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      sideOffset={8}
-                      className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
-                    >
-                      {sources.map((source) => (
-                        <DropdownMenuItem
-                          key={source.src}
-                          onSelect={() => setSelected(source.src)}
-                          className="source-item cursor-pointer gap-3 px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
-                        >
-                          <span className="flex-1 truncate">{source.label}</span>
-                          {source.language ? (
-                            <span className="flex shrink-0 items-center gap-2">
-                              <span aria-hidden="true">{source.language.flag}</span>
-                              <span className="opacity-75">{source.language.name}</span>
+              {iframeSrc && sources.length > 1 ? (
+                <>
+                  <div
+                    className="fixed right-0 top-0 z-40 h-24 w-56"
+                    aria-hidden="true"
+                    onPointerMove={() => setControlsVisible(true)}
+                    onPointerDown={() => setControlsVisible(true)}
+                    onTouchStart={() => setControlsVisible(true)}
+                  />
+                  <div
+                    className={`player-controls absolute right-4 bottom-4 z-40 transition-all duration-300 ${
+                      controlsVisible || menuOpen
+                        ? "translate-y-0 opacity-100"
+                        : "pointer-events-none -translate-y-2 opacity-0"
+                    }`}
+                  >
+                    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+                      <DropdownMenuTrigger asChild>
+                        <LiquidGlassButton aria-label="Change stream source">
+                          <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
+                          <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
+                        </LiquidGlassButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        sideOffset={8}
+                        className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
+                      >
+                        {sources.map((source) => (
+                          <DropdownMenuItem
+                            key={source.src}
+                            onSelect={() => setSelected(source.src)}
+                            className="source-item cursor-pointer gap-3 px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
+                          >
+                            <span className="flex-1 truncate">{source.label}</span>
+                            {source.language ? (
+                              <span className="flex shrink-0 items-center gap-2">
+                                <span aria-hidden="true">{source.language.flag}</span>
+                                <span className="opacity-75">{source.language.name}</span>
+                              </span>
+                            ) : null}
+                            <span className="flex size-4 shrink-0 items-center justify-center">
+                              {source.src === iframeSrc ? <Check className="size-4" /> : null}
                             </span>
-                          ) : null}
-                          <span className="flex size-4 shrink-0 items-center justify-center">
-                            {source.src === iframeSrc ? <Check className="size-4" /> : null}
-                          </span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </>
-            ) : null}
-          </div>
-        ) : null}
-      </main>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </section>
     </div>
   );
 }

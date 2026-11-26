@@ -51,46 +51,48 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
 
   return (
     <div className="min-h-screen bg-ground">
-
       <section id="schedule" className="editorial-page">
         <header className="">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
-            <div>
-              <h1 className="text-ink  rise" style={{ "--i": "0" }} data-reveal>
-                Race Schedule
-              </h1>
-              <p className="lead-text mt-2 rise" style={{ "--i": "1" }} data-reveal>
-                Formula 1 {season} calendar
-              </p>
+          <div className="page-container">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4" style={{ marginBottom: 'var(--s15)' }}>
+              <div>
+                <h1 className="text-ink rise" style={{ "--i": "0" }} data-reveal>
+                  Race Schedule
+                </h1>
+                <p className="lead-text rise" style={{ "--i": "1", marginTop: 'var(--s1)' }} data-reveal>
+                  Formula 1 {season} calendar
+                </p>
+              </div>
+
+              {!seasonsLoading && seasons && (
+                <Select value={season} onValueChange={setSeason}>
+                  <SelectTrigger className="input-field" style={{ height: 'var(--ctl)' }}>
+                    <SelectValue placeholder="Select season" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-ground border-hair rounded-xl">
+                    {seasons.map((s) => (
+                      <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
+                        {s} Season
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-
-            {!seasonsLoading && seasons && (
-              <Select value={season} onValueChange={setSeason}>
-                <SelectTrigger className="input-field h-11">
-                  <SelectValue placeholder="Select season" />
-                </SelectTrigger>
-                <SelectContent className="bg-ground border-hair rounded-xl">
-                  {seasons.map((s) => (
-                    <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
-                      {s} Season
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
           </div>
-
         </header>
 
-        {(scheduleLoading && !schedule) ? (
-          <ScheduleSkeleton />
-        ) : scheduleError ? (
-          <ErrorState message="Failed to load schedule. Please try again." />
-        ) : schedule && schedule.length > 0 ? (
-          <RaceCalendar races={schedule} nextRace={nextRace ?? null} />
-        ) : (
-          <EmptyState message="No races scheduled for this season." />
-        )}
+        <div className="page-container">
+          {(scheduleLoading && !schedule) ? (
+            <ScheduleSkeleton />
+          ) : scheduleError ? (
+            <ErrorState message="Failed to load schedule. Please try again." />
+          ) : schedule && schedule.length > 0 ? (
+            <RaceCalendar races={schedule} nextRace={nextRace ?? null} />
+          ) : (
+            <EmptyState message="No races scheduled for this season." />
+          )}
+        </div>
       </section>
     </div>
   );
@@ -124,7 +126,7 @@ function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | nul
   }, [races]);
 
   return (
-    <div className="space-y-3 md:space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s3)' }}>
       {/* Upcoming / Current Races (shown by default) */}
       {upcomingRaces.map((race, index) => {
         const isNext = race.round === nextRaceRound;
@@ -148,7 +150,7 @@ function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | nul
         <>
           <Button
             onClick={() => setShowPast(!showPast)}
-            className="btn btn-text gap-2"
+            className="btn btn--secondary gap-2"
             aria-expanded={showPast}
             aria-controls="past-races"
             data-reveal
@@ -166,7 +168,15 @@ function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | nul
             )}
           </Button>
 
-          <div id="past-races" className={`space-y-3 md:space-y-4 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${showPast ? "opacity-100 max-h-[5000px]" : "opacity-0 max-h-0 pointer-events-none"}`}>
+          <div
+            id="past-races"
+            className={`${showPast ? "expanded" : "collapsed"}`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 'var(--s3)',
+            }}
+          >
             {pastRaces.map((race, index) => {
               const isNext = race.round === nextRaceRound;
               const isCompleted = isRaceCompleted(race.date, race.time);
@@ -203,7 +213,7 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
       style={{ "--i": String(index % 10) }}
       data-reveal
     >
-      <div className="p-4 md:p-6 lg:p-7">
+      <div style={{ padding: 'var(--s2) var(--s3) var(--s2) var(--s4)' }}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
           {/* Round & Status */}
           <div className="flex items-center gap-4 flex-shrink-0">
@@ -245,9 +255,9 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
 
 function ScheduleSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s3)' }}>
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="rounded-xl border border-hair bg-ground p-6">
+        <div key={i} className="rounded-xl border border-hair bg-ground" style={{ padding: 'var(--s4)' }}>
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-xl bg-wash" />
             <div className="flex-1 space-y-2">
@@ -263,18 +273,18 @@ function ScheduleSkeleton() {
 
 function ErrorState({ message }: { message: string }) {
   return (
-    <div className="text-center py-16 md:py-24">
-      <h3 className="text-lg font-medium text-ink mb-2">Unable to load schedule</h3>
-      <p className="text-ink-2 mb-4">{message}</p>
-      <Button onClick={() => window.location.reload()} className="btn btn-ink">Try Again</Button>
+    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
+      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>Unable to load schedule</h3>
+      <p className="text-ink-2" style={{ marginBottom: 'var(--s4)' }}>{message}</p>
+      <Button onClick={() => window.location.reload()} className="btn btn--primary">Try Again</Button>
     </div>
   );
 }
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="text-center py-16 md:py-24">
-      <h3 className="text-lg font-medium text-ink mb-2">No Races Scheduled</h3>
+    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
+      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>No Races Scheduled</h3>
       <p className="text-ink-2">{message}</p>
     </div>
   );
