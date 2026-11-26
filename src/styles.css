@@ -566,28 +566,36 @@
 .page {
   width: var(--page-w);
   margin: 0 auto;
-  padding: 0 var(--m);
 }
 
-/* Hero / Countdown */
-.hero {
-  padding: calc(var(--nav-room) + clamp(var(--s6), 7vw, var(--s8))) var(--m) var(--s6);
+/* Countdown labels - small section labels (officecommun label pattern) */
+.countdown-label {
+  display: inline-flex;
+  align-items: center;
+  color: var(--mute);
+  font-size: var(--t);
+  line-height: var(--lh);
+  font-weight: 400;
+  letter-spacing: .01em;
+  text-transform: uppercase;
 }
+
+/* Countdown grid - column gap matches reference grid gutter */
 .countdown {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
-  gap: var(--s2);
+  gap: var(--gutter);
 }
 .countdown__unit {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--s1);
   min-width: 0;
 }
 .countdown__value {
-  font-size: clamp(24px, 4vw, 36px);
+  font-size: var(--t);
   line-height: 1;
   font-weight: 400;
   letter-spacing: -.02em;
@@ -595,7 +603,7 @@
   color: var(--ink);
 }
 .countdown__label {
-  font-size: 12px;
+  font-size: var(--t);
   line-height: 1;
   letter-spacing: .01em;
   color: var(--mute);
@@ -608,7 +616,7 @@
 }
 .countdown--sm .countdown__unit {
   align-items: flex-end;
-  gap: 8px;
+  gap: var(--s1);
 }
 .countdown--sm .countdown__value {
   font-size: clamp(24px, 3vw, 32px);

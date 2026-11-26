@@ -6,8 +6,6 @@ import {
   formatRaceDateTime,
   type Race
 } from "../lib/jolpica-api";
-import { AnimateCount } from "./ui/animate-count";
-import { MapPin, Loader2 } from "lucide-react";
 
 interface CountdownTime {
   days: number;
@@ -64,7 +62,6 @@ export function GrandPrixCountdown() {
       <div className="page">
         <section className="hero">
           <p className="lead flex items-center gap-2" data-reveal>
-            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             Loading next race…
           </p>
         </section>
@@ -76,51 +73,49 @@ export function GrandPrixCountdown() {
     return (
       <div className="page">
         <section className="hero">
-          <span className="tag rise" data-reveal>RACE</span>
-          <h1 className="race-title mt-4 rise" data-reveal>No upcoming races</h1>
-          <p className="lead mt-2 rise" data-reveal>Check back when the new season is announced</p>
+          <span className="countdown-label" data-reveal>RACE</span>
+          <h1 className="race-title" data-reveal>No upcoming races</h1>
+          <p className="lead" data-reveal>Check back when the new season is announced</p>
         </section>
       </div>
     );
   }
 
   return (
-    <div className="page">
-      <section className="hero">
-        <div className="flex gap-2 mb-4 rise" style={{ "--i": "0" }} data-reveal>
-          <span className="tag">RACE</span>
-          {isRaceWeek && <span className="tag">THIS WEEK</span>}
+    <div style={{ display: "flex", flexDirection: "column", gap: "var(--s3)" }}>
+        <div style={{ display: "flex", gap: "var(--s1)" }}>
+          <span className="countdown-label" data-reveal style={{ "--i": "0" }}>RACE</span>
+          {isRaceWeek && (
+            <span className="countdown-label" data-reveal style={{ "--i": "1" }}>THIS WEEK</span>
+          )}
         </div>
-        <h1 className="race-title rise" style={{ "--i": "1" }} data-reveal>{race.raceName}</h1>
-        <p className="lead rise" style={{ "--i": "2" }} data-reveal>
-          <MapPin className="ic" aria-hidden="true" />
+        <h1 className="race-title" data-reveal style={{ "--i": "2" }}>{race.raceName}</h1>
+        <p className="countdown-location" data-reveal style={{ "--i": "3", marginTop: "var(--s1)" }}>
           {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
         </p>
-        <p className="fine rise" style={{ "--i": "3" }} data-reveal>
+        <p className="countdown-date" data-reveal style={{ "--i": "4", marginTop: "var(--s1)" }}>
           {formatRaceDateTime(race.date, race.time, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         </p>
-      </section>
-
-      <section className="stage" aria-label="Countdown to the next race">
-        <div className="stage__panel" data-reveal>
-          <div
-            className="countdown"
-            role="timer"
-            aria-label={visibleUnits
-              .map((it) => `${it.v} ${it.l === "D" ? "days" : it.l === "H" ? "hours" : it.l === "M" ? "minutes" : "seconds"}`)
-              .join(", ")}
-          >
-            {visibleUnits.map((it) => (
-              <div key={it.l} className="countdown__unit">
-                <AnimateCount minDigits={2} className="countdown__value">
-                  {it.v}
-                </AnimateCount>
-                <span className="countdown__label" aria-hidden="true">{it.l}</span>
-              </div>
-            ))}
-          </div>
+        <div
+          className="countdown"
+          role="timer"
+          aria-label={visibleUnits
+            .map((it) => `${it.v} ${it.l === "D" ? "days" : it.l === "H" ? "hours" : it.l === "M" ? "minutes" : "seconds"}`)
+            .join(", ")}
+          style={{ marginTop: "var(--s4)" }}
+        >
+          {visibleUnits.map((it, index) => (
+            <div
+              key={it.l}
+              className="countdown__unit"
+              data-reveal
+              style={{ "--i": 5 + index, "--d": `${Math.min(index, 8) * 60}ms` }}
+            >
+              <span className="countdown__value">{it.v}</span>
+              <span className="countdown__label" aria-hidden="true">{it.l}</span>
+            </div>
+          ))}
         </div>
-      </section>
-    </div>
-  );
-}
+      </div>
+    );
+  }
