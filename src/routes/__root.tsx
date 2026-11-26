@@ -87,6 +87,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
     links: [
+      { rel: "preconnect", href: "https://api.jolpi.ca", crossOrigin: "anonymous" },
+      { rel: "preconnect", href: "https://api.ppv.st", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
         href: appCss,
