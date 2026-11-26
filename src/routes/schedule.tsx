@@ -216,7 +216,7 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-ink text-lg md:text-xl" data-reveal>{race.raceName}</h3>
                 {isCurrent && (
-                  <span className="tag bg-ink text-player-text text-xs animate-pulse" data-reveal>THIS WEEKEND</span>
+                  <span className="tag bg-ink text-player-text text-xs" data-reveal>THIS WEEKEND</span>
                 )}
                 {isNext && !isCurrent && (
                   <span className="tag bg-pill border-hair text-ink text-xs" data-reveal>NEXT</span>
@@ -247,7 +247,7 @@ function ScheduleSkeleton() {
   return (
     <div className="space-y-4">
       {[...Array(6)].map((_, i) => (
-        <div key={i} className="rounded-xl border border-hair bg-ground p-6 animate-pulse">
+        <div key={i} className="rounded-xl border border-hair bg-ground p-6">
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-xl bg-wash" />
             <div className="flex-1 space-y-2">

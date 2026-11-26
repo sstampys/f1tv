@@ -247,12 +247,12 @@
   --motion-reveal-root-margin: 0px 0px -6% 0px;
 }
 
-/* Initial hidden state for all reveal targets (match officecommun.com .reveal in HTML) */
+/* Initial state for all reveal targets (visible with JS disabled) */
 [data-reveal],
 .reveal,
 .rise {
-  opacity: var(--motion-reveal-opacity-from);
-  transform: translateY(var(--motion-reveal-distance));
+  opacity: 1;
+  transform: translateY(0);
   transition:
     opacity var(--motion-reveal-duration) var(--motion-reveal-ease),
     transform var(--motion-reveal-duration) var(--motion-reveal-ease);
