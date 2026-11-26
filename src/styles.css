@@ -150,6 +150,9 @@
   --nav-ink: var(--ink);
   --nav-mute: var(--mute);
   --nav-ctl: var(--ctl);
+  --nav-line-w: 1px;
+  /* Bottom edge of the floating pill: what the countdown centres below */
+  --nav-pill-bottom: calc(var(--m) + var(--nav-ctl) + 2 * var(--nav-pad-y) + 2 * var(--nav-line-w));
 
   /* .film__btn */
   --player: var(--ink);
@@ -294,7 +297,7 @@
   width: max-content;
   gap: var(--nav-gap);
   padding: var(--nav-pad-y) var(--nav-pad-x);
-  border: 1px solid var(--nav-line);
+  border: var(--nav-line-w) solid var(--nav-line);
   border-radius: var(--r-pill);
   background: var(--nav-paper);
   transform: translate(-50%);
@@ -355,6 +358,14 @@
   min-height: 100vh;
   min-height: 100svh;
   padding: var(--page-top) 0 var(--page-bottom);
+}
+/* Countdown home: centre the block in the space from the pill to the screen bottom */
+.page--center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: var(--nav-pill-bottom);
+  padding-bottom: 0;
 }
 .page-container {
   width: var(--page-w);

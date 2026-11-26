@@ -265,7 +265,7 @@ function Index() {
   return (
     <div className="min-h-screen bg-ground">
       {!hasStream ? (
-        <div className="page">
+        <div className="page page--center">
           <GrandPrixCountdown />
         </div>
       ) : (
