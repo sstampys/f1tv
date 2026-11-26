@@ -72,7 +72,11 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
         {scheduleLoading && !schedule ? null : scheduleError ? (
           <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
         ) : schedule && schedule.length > 0 ? (
-          <RaceCalendar races={schedule} nextRace={nextRace ?? null} />
+          <RaceCalendar
+            races={schedule}
+            nextRace={nextRace ?? null}
+            isCurrentSeason={season === currentSeason}
+          />
         ) : (
           <Notice title="No Races Scheduled" message="No races scheduled for this season." />
         )}
@@ -87,7 +91,15 @@ const byDate = (a: Race, b: Race) => {
   return da.getTime() - db.getTime();
 };
 
-function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | null }) {
+function RaceCalendar({
+  races,
+  nextRace,
+  isCurrentSeason,
+}: {
+  races: Race[];
+  nextRace: Race | null;
+  isCurrentSeason: boolean;
+}) {
   const nextRaceRound = nextRace?.round;
   const [showPast, setShowPast] = useState(false);
 
@@ -100,6 +112,20 @@ function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | nul
     () => [...races].filter((race) => isRaceCompleted(race.date, race.time)).sort((a, b) => byDate(b, a)),
     [races],
   );
+
+  // An older season is entirely in the past, so there is nothing to toggle: the
+  // whole calendar shows at once, in date order, with no control.
+  const wholeSeason = useMemo(() => (isCurrentSeason ? null : [...races].sort(byDate)), [races, isCurrentSeason]);
+
+  if (wholeSeason) {
+    return (
+      <>
+        {wholeSeason.map((race) => (
+          <RaceRow key={race.round} race={race} isNext={race.round === nextRaceRound} isCompleted />
+        ))}
+      </>
+    );
+  }
 
   return (
     <>
