@@ -83,10 +83,6 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
               </Select>
             )}
           </div>
-
-          <p className="text-sm text-ink-3 rise mt-8" style={{ "--i": "3" }}>
-            Data sourced from <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-ink transition-colors">Jolpica-F1 API</a> (Ergast successor)
-          </p>
         </header>
 
         {(driversLoading || constructorsLoading) && !driverStandings && !constructorStandings ? (

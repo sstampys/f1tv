@@ -125,7 +125,14 @@ function RootComponent() {
       <footer className="quiet-footer">
         <p>Built with TanStack Start &amp; Tailwind CSS</p>
         <p>
-          Formula 1 championship data is sourced from the{' '}
+          Formula 1 data is sourced from the{' '}
+          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
+            Jolpica-F1 API
+          </a>{' '}
+          (Ergast successor)
+        </p>
+        <p>
+          Formula 1 race data is sourced from the{' '}
           <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
             Jolpica-F1 API
           </a>{' '}
