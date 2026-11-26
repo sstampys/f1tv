@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { Navigation } from "@/components/Navigation";
-import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/legal")({
@@ -80,29 +78,9 @@ function Legal() {
             </div>
           </section>
 
-          <section>
-            <h2 className="text-xl font-semibold text-ink mb-4">Data Sources</h2>
-            <div className="space-y-4 text-ink-2 leading-relaxed">
-              <p>
-                Formula 1 championship data (standings, schedule, results) is sourced from the 
-                <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" className="underline hover:text-ink transition-colors">
-                  Jolpica-F1 API
-                </a>
-                (community-maintained successor to the Ergast API).
-              </p>
-              <p>
-                Live stream links are aggregated from <a href="https://ppv.st" target="_blank" rel="noopener noreferrer" className="underline hover:text-ink transition-colors">ppv.st</a>.
-              </p>
-            </div>
-          </section>
+          
         </div>
       </main>
-
-      <footer className="quiet-footer">
-        <div className="mx-auto">
-          <p>Built with TanStack Start & Tailwind CSS</p>
-        </div>
-      </footer>
     </div>
   );
 }

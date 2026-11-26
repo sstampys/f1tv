@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Navigation } from "@/components/Navigation";
 
 export const Route = createFileRoute("/demo")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -312,12 +311,6 @@ function DemoRoute() {
           </div>
         ) : null}
       </main>
-
-      <footer className="quiet-footer">
-        <div className="mx-auto">
-          <p>Demo mode - Built with TanStack Start & Tailwind CSS</p>
-        </div>
-      </footer>
     </div>
   );
 }

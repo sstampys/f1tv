@@ -122,6 +122,17 @@ function RootComponent() {
       <main className="flex-1">
         <Outlet />
       </main>
+      <footer className="quiet-footer">
+        <p>Built with TanStack Start &amp; Tailwind CSS</p>
+        <p>
+          Formula 1 championship data is sourced from the{' '}
+          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
+            Jolpica-F1 API
+          </a>{' '}
+          and live stream links are aggregated from{' '}
+          <a href="https://ppv.st" target="_blank" rel="noopener noreferrer">ppv.st</a>. No media is stored on our servers.
+        </p>
+      </footer>
     </QueryClientProvider>
   );
 }

@@ -7,7 +7,7 @@ import {
   type Race
 } from "../lib/jolpica-api";
 import { AnimateCount } from "./ui/animate-count";
-import { Calendar, MapPin, Flag, Loader2 } from "lucide-react";
+import { MapPin, Loader2 } from "lucide-react";
 
 interface CountdownTime {
   days: number;
@@ -61,79 +61,66 @@ export function GrandPrixCountdown() {
 
   if (loading) {
     return (
-      <div className="relative min-h-screen bg-ground">
-        <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
-          <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
-            <Loader2 className="w-10 h-10 animate-spin text-ink-3 mb-4" />
-            <p className="text-ink-2">Loading next race…</p>
-          </div>
-        </div>
+      <div className="page">
+        <section className="hero">
+          <p className="lead flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            Loading next race…
+          </p>
+        </section>
       </div>
     );
   }
 
   if (!race) {
     return (
-      <div className="relative min-h-screen bg-ground">
-        <div className="pointer-events-none absolute inset-0 z-20 grid place-items-center">
-          <div className="flex flex-col items-center justify-center px-8 py-16 text-center">
-            <Flag className="w-12 h-12 text-ink-3 mb-4" />
-            <p className="text-ink text-lg font-medium">No upcoming races</p>
-            <p className="text-ink-2 mt-2">Check back when the new season is announced</p>
-          </div>
-        </div>
+      <div className="page">
+        <section className="hero">
+          <span className="tag rise" style={{ "--i": "0" }}>RACE</span>
+          <h1 className="race-title mt-4 rise" style={{ "--i": "1" }}>No upcoming races</h1>
+          <p className="lead mt-2 rise" style={{ "--i": "2" }}>Check back when the new season is announced</p>
+        </section>
       </div>
     );
   }
 
   return (
-    <div className="relative min-h-screen bg-ground">
-      <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center py-20 md:py-28">
-        <div className="flex w-full max-w-3xl flex-col items-center justify-center px-6 text-center">
+    <div className="page">
+      <section className="hero">
+        <div className="flex items-center gap-2 mb-4 rise" style={{ "--i": "0" }}>
+          <span className="tag">RACE</span>
+          {isRaceWeek && <span className="tag">THIS WEEK</span>}
+        </div>
+        <h1 className="race-title rise" style={{ "--i": "1" }}>{race.raceName}</h1>
+        <p className="lead rise" style={{ "--i": "2" }}>
+          <MapPin className="ic" aria-hidden="true" />
+          {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
+        </p>
+        <p className="fine rise" style={{ "--i": "3" }}>
+          {formatRaceDateTime(race.date, race.time, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+        </p>
+      </section>
 
-          {/* Race Info */}
-          <div className="mb-10 md:mb-12 w-full max-w-xl mx-auto rise" style={{ "--i": "0" }}>
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="tag text-sm">
-                RACE
-              </span>
-              {isRaceWeek && (
-                <span className="tag text-sm">
-                  THIS WEEK
-                </span>
-              )}
-            </div>
-            <h1 className="text-base font-medium text-ink mb-3 ">{race.raceName}</h1>
-            <p className="text-ink-2 text-base mb-6 flex items-center justify-center gap-2">
-              <MapPin className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
-              {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
-            </p>
-            <p className="text-ink-3 text-sm md:text-base">
-              {formatRaceDateTime(race.date, race.time, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-            </p>
-          </div>
-
-          {/* Countdown */}
+      <section className="stage" aria-label="Countdown to the next race">
+        <div className="stage__panel">
           <div
-            className="flex items-start justify-center gap-4 md:gap-8"
+            className="countdown"
             role="timer"
             aria-label={visibleUnits
               .map((it) => `${it.v} ${it.l === "D" ? "days" : it.l === "H" ? "hours" : it.l === "M" ? "minutes" : "seconds"}`)
               .join(", ")}
           >
-            {visibleUnits.map((it, idx) => (
-              <div key={it.l} className="flex flex-col items-center rise" style={{ "--i": String(idx + 1) }}>
-                <div className="relative">
-                  <AnimateCount minDigits={2} className="h-16 md:h-24 lg:h-28 min-w-[4rem] md:min-w-[6rem] lg:min-w-[7rem] font-display text-4xl md:text-6xl lg:text-7xl font-normal text-ink tabular-nums">
-                    {it.v}
-                  </AnimateCount>
-                </div>
-                <span className="font-display text-sm md:text-base lg:text-lg text-ink-2 mt-4 font-medium uppercase " aria-hidden="true">{it.l}</span>
+            {visibleUnits.map((it) => (
+              <div key={it.l} className="countdown__unit">
+                <AnimateCount minDigits={2} className="countdown__value">
+                  {it.v}
+                </AnimateCount>
+                <span className="countdown__label" aria-hidden="true">{it.l}</span>
               </div>
             ))}
           </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
