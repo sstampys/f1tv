@@ -390,7 +390,28 @@
 .editorial-table tbody tr { transition: background var(--t-ui); }
 .editorial-table tbody tr:hover { background: var(--hover); }
 .editorial-table td p:first-child { font-weight: 500; }
-.team-initial { display: none; }
+.team-initial { display: inline-block; }
+
+/* Fluid column widths for standings tables (matching officecommun.com list proportions) */
+.editorial-table--drivers th:nth-child(1),
+.editorial-table--drivers td:nth-child(1) { width: 8%; }
+.editorial-table--drivers th:nth-child(2),
+.editorial-table--drivers td:nth-child(2) { width: 32%; }
+.editorial-table--drivers th:nth-child(3),
+.editorial-table--drivers td:nth-child(3) { width: 22%; }
+.editorial-table--drivers th:nth-child(4),
+.editorial-table--drivers td:nth-child(4) { width: 20%; }
+.editorial-table--drivers th:nth-child(5),
+.editorial-table--drivers td:nth-child(5) { width: 18%; }
+
+.editorial-table--constructors th:nth-child(1),
+.editorial-table--constructors td:nth-child(1) { width: 8%; }
+.editorial-table--constructors th:nth-child(2),
+.editorial-table--constructors td:nth-child(2) { width: 50%; }
+.editorial-table--constructors th:nth-child(3),
+.editorial-table--constructors td:nth-child(3) { width: 25%; }
+.editorial-table--constructors th:nth-child(4),
+.editorial-table--constructors td:nth-child(4) { width: 17%; }
 
 /* Schedule */
 .next-race {

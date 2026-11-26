@@ -119,7 +119,7 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
   if (!standings.length) return <EmptyState message="No driver standings available for this season." />;
 
   return (
-    <div className="editorial-table">
+    <div className="editorial-table editorial-table--drivers">
       <table className="w-full" role="table">
         <thead className="bg-wash border-b border-hair">
           <tr>
@@ -174,7 +174,7 @@ function ConstructorStandingsTable({ standings }: { standings: ConstructorStandi
   if (!standings.length) return <EmptyState message="No constructor standings available for this season." />;
 
   return (
-    <div className="editorial-table">
+    <div className="editorial-table editorial-table--constructors">
       <table className="w-full" role="table">
         <thead className="bg-wash border-b border-hair">
           <tr>
@@ -216,7 +216,14 @@ function ConstructorStandingsTable({ standings }: { standings: ConstructorStandi
 }
 
 function ConstructorBadge({ constructor, size = "md" }: { constructor: Constructor; size?: "sm" | "md" | "lg" }) {
-  return <span className="team-initial" aria-label={constructor?.name}>{constructor?.name.slice(0,1)}</span>;
+  if (!constructor) return null;
+  const baseClass = "team-badge";
+  const sizeClass = size === "lg" ? "font-semibold text-lg" : "font-medium text-sm";
+  return (
+    <span className={baseClass} aria-label={constructor?.name}>
+      {constructor.name}
+    </span>
+  );
 }
 
 function getPositionClass(position: string): string {
