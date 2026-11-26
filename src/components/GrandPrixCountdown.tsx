@@ -94,17 +94,17 @@ export function GrandPrixCountdown() {
           {/* Race Info */}
           <div className="mb-10 md:mb-12 w-full max-w-xl mx-auto rise" style={{ "--i": "0" }}>
             <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="tag bg-ink text-white text-sm">
+              <span className="tag text-sm">
                 RACE
               </span>
               {isRaceWeek && (
-                <span className="tag bg-red-500 border-red-500 text-white text-sm animate-pulse">
+                <span className="tag text-sm">
                   THIS WEEK
                 </span>
               )}
             </div>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-semibold text-ink mb-3 tracking-tight">{race.raceName}</h1>
-            <p className="text-ink-2 text-base md:text-lg mb-6 flex items-center justify-center gap-2">
+            <h1 className="text-base font-medium text-ink mb-3 ">{race.raceName}</h1>
+            <p className="text-ink-2 text-base mb-6 flex items-center justify-center gap-2">
               <MapPin className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
               {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
             </p>
@@ -124,11 +124,11 @@ export function GrandPrixCountdown() {
             {visibleUnits.map((it, idx) => (
               <div key={it.l} className="flex flex-col items-center rise" style={{ "--i": String(idx + 1) }}>
                 <div className="relative">
-                  <AnimateCount minDigits={2} className="h-16 md:h-24 lg:h-28 min-w-[4rem] md:min-w-[6rem] lg:min-w-[7rem] font-display text-4xl md:text-6xl lg:text-7xl font-bold text-ink tabular-nums">
+                  <AnimateCount minDigits={2} className="h-16 md:h-24 lg:h-28 min-w-[4rem] md:min-w-[6rem] lg:min-w-[7rem] font-display text-4xl md:text-6xl lg:text-7xl font-normal text-ink tabular-nums">
                     {it.v}
                   </AnimateCount>
                 </div>
-                <span className="font-display text-sm md:text-base lg:text-lg text-ink-2 mt-4 font-semibold uppercase tracking-wider" aria-hidden="true">{it.l}</span>
+                <span className="font-display text-sm md:text-base lg:text-lg text-ink-2 mt-4 font-medium uppercase " aria-hidden="true">{it.l}</span>
               </div>
             ))}
           </div>

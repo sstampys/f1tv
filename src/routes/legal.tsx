@@ -21,15 +21,15 @@ export const Route = createFileRoute("/legal")({
 function Legal() {
   return (
     <div className="min-h-screen bg-ground">
-      <Navigation />
+
       
-      <main className="pt-16 max-w-[1280px] mx-auto px-[24px] pb-20">
-        <header className="py-12 md:py-16">
+      <main className="editorial-page legal-page">
+        <header className="">
           <Link to="/" className="btn btn-wash gap-2 mb-8 inline-flex">
             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
             Back to Home
           </Link>
-          <h1 className="text-4xl md:text-5xl font-semibold text-ink tracking-tight rise" style={{ "--i": "0" }}>
+          <h1 className="text-ink  rise" style={{ "--i": "0" }}>
             Legal Information
           </h1>
         </header>
@@ -98,8 +98,8 @@ function Legal() {
         </div>
       </main>
 
-      <footer className="border-t border-hair py-6">
-        <div className="max-w-[1280px] mx-auto px-[24px] text-center text-sm text-ink-3">
+      <footer className="quiet-footer">
+        <div className="mx-auto">
           <p>Built with TanStack Start & Tailwind CSS</p>
         </div>
       </footer>

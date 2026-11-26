@@ -74,7 +74,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#171717" },
+      { name: "theme-color", content: "#fcfcfc" },
       { title: "F1Box — Formula 1 Live Timing & Streams" },
       { name: "description", content: "Live Formula 1 countdown, standings, schedule, and race results." },
       { name: "author", content: "F1Box" },

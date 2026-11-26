@@ -233,11 +233,11 @@ function DemoRoute() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <Navigation />
+
       
-      <main className="pt-16 max-w-[1280px] mx-auto px-[24px] pb-20">
-        <header className="py-12 md:py-16">
-          <h1 className="text-4xl md:text-5xl font-semibold text-ink tracking-tight">Demo Stream</h1>
+      <main className="editorial-page">
+        <header className="">
+          <h1 className="text-ink ">Demo Stream</h1>
           <p className="lead-text mt-2">Test the stream player with sample content</p>
         </header>
 
@@ -248,7 +248,7 @@ function DemoRoute() {
         ) : null}
 
         {iframeSrc ? (
-          <div className="relative rounded-xl overflow-hidden bg-black shadow-[var(--shadow-card)]" style={{ aspectRatio: "16 / 9" }}>
+          <div className="stream-player">
             <video
               key={iframeSrc}
               className="absolute inset-0 w-full h-full object-contain"
@@ -268,7 +268,7 @@ function DemoRoute() {
                   onTouchStart={() => setControlsVisible(true)}
                 />
                 <div
-                  className={`fixed right-4 top-4 z-50 transition-all duration-300 sm:right-6 sm:top-6 ${
+                  className={`player-controls absolute right-4 bottom-4 z-40 transition-all duration-300 ${
                     controlsVisible || menuOpen
                       ? "translate-y-0 opacity-100"
                       : "pointer-events-none -translate-y-2 opacity-0"
@@ -284,13 +284,13 @@ function DemoRoute() {
                     <DropdownMenuContent
                       align="end"
                       sideOffset={8}
-                      className="w-80 max-w-[calc(100vw-2rem)] rounded-2xl border-stream-border bg-stream-menu p-1.5 text-stream-text shadow-2xl backdrop-blur-xl backdrop-saturate-150"
+                      className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
                     >
                       {sources.map((source) => (
                         <DropdownMenuItem
                           key={source.src}
                           onSelect={() => setSelected(source.src)}
-                          className="cursor-pointer gap-3 rounded-xl px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
+                          className="source-item cursor-pointer gap-3 px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
                         >
                           <span className="flex-1 truncate">{source.label}</span>
                           {source.language ? (
@@ -313,8 +313,8 @@ function DemoRoute() {
         ) : null}
       </main>
 
-      <footer className="border-t border-hair py-6">
-        <div className="max-w-[1280px] mx-auto px-[24px] text-center text-sm text-ink-3">
+      <footer className="quiet-footer">
+        <div className="mx-auto">
           <p>Demo mode - Built with TanStack Start & Tailwind CSS</p>
         </div>
       </footer>

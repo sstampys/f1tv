@@ -12,3 +12,5 @@
 - Resolve broadcast languages through the shared source-language helper on both player pages, passing each stream/substream locale; explicit locales take priority over URL/name hints to disambiguate duplicate channels without relying on source order.
 - Define typography in the global stylesheet and inherit its font token on every page; keep local font sources with uploaded CDN fallbacks so both external hosting and Lovable resolve fonts.
 - Use the shared AnimateCount UI component for countdown transitions with fixed-size cells and reduced-motion support so ticking never shifts the centered layout.
+
+- Keep the reference restyle tokens in the global stylesheet and apply editorial presentation classes without altering stream/data logic; this separates visual reference changes from functional behavior.

@@ -36,13 +36,7 @@ export const LiquidGlassButton = React.forwardRef<HTMLButtonElement, LiquidGlass
     <Button
       ref={ref}
       type={type}
-      className={cn(
-        "group relative h-11 overflow-hidden rounded-full border border-white/30 bg-white/10 px-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_8px_28px_rgba(0,0,0,0.28)] backdrop-blur-xl backdrop-saturate-150",
-        "transition-[background-color,border-color,transform,box-shadow] duration-200 hover:scale-[1.02] hover:border-white/50 hover:bg-white/15 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-white/70",
-        "before:pointer-events-none before:absolute before:inset-x-3 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-white/80 before:to-transparent",
-        "after:pointer-events-none after:absolute after:inset-0 after:bg-[radial-gradient(circle_at_25%_0%,rgba(255,255,255,0.22),transparent_48%)]",
-        className,
-      )}
+      className={cn("group btn btn-wash", className)}
       {...props}
     >
       <span className="relative z-10 flex items-center gap-2">{children}</span>
