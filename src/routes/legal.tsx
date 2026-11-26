@@ -4,7 +4,7 @@ import { Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/legal")({
   head: () => ({
     meta: [
-      { title: "Legal - F1Box" },
+      { title: "Legal" },
       { name: "description", content: "Legal information and privacy policy" },
       { property: "og:title", content: "Legal - F1Box" },
       { property: "og:description", content: "Legal information and privacy policy" },

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
 import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
+import { setStreamPlaying } from "@/lib/stream-status";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/demo")({
   },
   head: () => ({
     meta: [
-      { title: "Demo — F1 Stream" },
+      { title: "Demo" },
       { name: "description", content: "Demo of F1 stream functionality" },
       { property: "og:title", content: "Demo — F1 Stream" },
       { property: "og:description", content: "Demo of F1 stream functionality" },
@@ -210,7 +211,8 @@ function DemoRoute() {
   const currentSource = sources.find((source) => source.src === iframeSrc);
 
   useEffect(() => {
-    document.title = iframeSrc ? "Stream Demo" : "Demo";
+    setStreamPlaying(!!iframeSrc);
+    return () => setStreamPlaying(false);
   }, [iframeSrc]);
 
   useEffect(() => {

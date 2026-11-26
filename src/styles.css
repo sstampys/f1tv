@@ -114,8 +114,12 @@
   --motion-reveal-stagger: 60ms;
   --motion-reveal-stagger-cap: 8;
   --motion-reveal-threshold: 0;
-  --motion-reveal-root-margin: 0px 0px -6% 0px;
-  --motion-reveal-settle: 1200ms;
+  /* Trigger line, measured up from the bottom edge of the viewport to an
+     element's layout top: ye() uses rootMargin -6% on a box that is still
+     translated 12px (.reveal), so the line the reference actually
+     produces is 6% of the viewport height plus that 12px. */
+  --motion-reveal-trigger: 6%;
+  --motion-reveal-trigger-offset: 12px;
   --motion-reveal-image-wait: 700ms;
 
   /* .first-visit .nav, @keyframes nav-in */
@@ -268,15 +272,14 @@
 
 /* Reveal: hidden state for every leaf until the engine marks it [data-in].
    The fade itself runs in src/lib/reveal.ts (Web Animations), so no component
-   `transition` can override it. */
+   `transition` can override it. The hidden state is opacity only: a transform
+   here would move the box the IntersectionObserver measures. */
 [data-reveal]:not([data-in]) {
   opacity: var(--motion-reveal-opacity-from);
-  translate: 0 var(--motion-reveal-distance);
 }
 @media (prefers-reduced-motion: reduce) {
   [data-reveal]:not([data-in]) {
     opacity: 1;
-    translate: none;
   }
 }
 
@@ -316,7 +319,8 @@
   transition: color var(--t-ui);
 }
 .site-nav__link:hover,
-.site-nav__link[aria-current="page"] {
+.site-nav__link[aria-current="page"],
+.site-nav__link[data-live="true"] {
   color: var(--nav-ink);
 }
 .site-nav__mark {

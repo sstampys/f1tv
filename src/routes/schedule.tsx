@@ -13,7 +13,7 @@ import { useState, useMemo } from "react";
 export const Route = createFileRoute("/schedule")({
   head: () => ({
     meta: [
-      { title: "Race Schedule — F1Box" },
+      { title: "Schedule" },
       { name: "description", content: "Formula 1 race calendar with dates and circuits." },
       { property: "og:title", content: "Race Schedule — F1Box" },
       { property: "og:description", content: "Formula 1 race calendar with dates and circuits." },

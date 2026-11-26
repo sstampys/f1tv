@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Check, ChevronDown, Loader2, X, Maximize2, Minimize2 } from "lucide-react";
 import { GrandPrixCountdown } from "../components/GrandPrixCountdown";
 import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
+import { setStreamPlaying } from "@/lib/stream-status";
 import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
 import {
   DropdownMenu,
@@ -161,7 +162,7 @@ export const Route = createFileRoute("/")({
   },
   head: () => ({
     meta: [
-      { title: "F1Box — Live F1 Countdown & Streams" },
+      { title: "Countdown" },
       { name: "description", content: "Live Formula 1 countdown to next race with stream embed when live." },
       { property: "og:title", content: "F1Box — Live F1 Countdown & Streams" },
       { property: "og:description", content: "Live Formula 1 countdown to next race with stream embed when live." },
@@ -229,6 +230,11 @@ function Index() {
   const iframeSrc = selected && sources.some((s) => s.src === selected) ? selected : (sources[0]?.src ?? null);
   const currentSource = sources.find((source) => source.src === iframeSrc);
   const hasStream = !!iframeSrc;
+
+  useEffect(() => {
+    setStreamPlaying(hasStream);
+    return () => setStreamPlaying(false);
+  }, [hasStream]);
 
   // Auto-hide controls for embedded stream
   useEffect(() => {

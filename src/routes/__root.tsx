@@ -70,7 +70,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#fcfcfc" },
-      { title: "F1Box — Formula 1 Live Timing & Streams" },
+      { title: "F1Box" },
       { name: "description", content: "Live Formula 1 countdown, standings, schedule, and race results." },
       { name: "author", content: "F1Box" },
       { property: "og:title", content: "F1Box — Formula 1 Live Timing & Streams" },
@@ -90,7 +90,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", sizes: "512x512", href: "/favicon.png" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -108,7 +110,6 @@ function RootShell({ children }: { children: ReactNode }) {
           <style>{`
             html [data-reveal]:not([data-in]) {
               opacity: 1;
-              translate: none;
             }
           `}</style>
         </noscript>

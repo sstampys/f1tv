@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import {
   getNextRace,
   getCurrentSeason,
@@ -7,16 +7,48 @@ import {
   type Race
 } from "../lib/jolpica-api";
 
-interface CountdownTime {
-  days: number;
-  hours: number;
-  minutes: number;
-  seconds: number;
-}
+const unitsFor = (race: Race) => {
+  const t = getTimeUntilRace(race.date, race.time);
+  return [
+    { v: t.days, l: "D", name: "days", hidden: t.days === 0 },
+    { v: t.hours, l: "H", name: "hours", hidden: t.days === 0 && t.hours === 0 },
+    { v: t.minutes, l: "M", name: "minutes", hidden: t.days === 0 && t.hours === 0 && t.minutes === 0 },
+    { v: t.seconds, l: "S", name: "seconds", hidden: false },
+  ].filter((it) => !it.hidden);
+};
+
+/*
+ * The only component that ticks. It owns the per-second state, so the label,
+ * title, location and date above it never re-render, and the first render
+ * already holds the real values: every unit mounts in the same commit.
+ */
+const Ticker = memo(function Ticker({ race }: { race: Race }) {
+  const [units, setUnits] = useState(() => unitsFor(race));
+
+  useEffect(() => {
+    setUnits(unitsFor(race));
+    const intervalId = setInterval(() => setUnits(unitsFor(race)), 1000);
+    return () => clearInterval(intervalId);
+  }, [race]);
+
+  return (
+    <div
+      className="page-container countdown"
+      role="timer"
+      aria-label={units.map((it) => `${it.v} ${it.name}`).join(", ")}
+    >
+      {units.map((it) => (
+        <div key={it.l} className="countdown__unit">
+          <span className="countdown__value" data-reveal>{String(it.v).padStart(2, "0")}</span>
+          <span className="countdown__label" aria-hidden="true" data-reveal>{it.l}</span>
+        </div>
+      ))}
+    </div>
+  );
+});
 
 export function GrandPrixCountdown() {
   const [race, setRace] = useState<Race | null>(null);
-  const [countdown, setCountdown] = useState<CountdownTime>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,30 +69,10 @@ export function GrandPrixCountdown() {
     return () => clearInterval(intervalId);
   }, []);
 
-  useEffect(() => {
-    if (!race) return;
-    const updateCountdown = () => {
-      const t = getTimeUntilRace(race.date, race.time);
-      setCountdown({ days: t.days, hours: t.hours, minutes: t.minutes, seconds: t.seconds });
-    };
-    updateCountdown();
-    const intervalId = setInterval(updateCountdown, 1000);
-    return () => clearInterval(intervalId);
-  }, [race]);
-
-  const visibleUnits = [
-    { v: countdown.days, l: "D", name: "days", hidden: countdown.days === 0 },
-    { v: countdown.hours, l: "H", name: "hours", hidden: countdown.days === 0 && countdown.hours === 0 },
-    { v: countdown.minutes, l: "M", name: "minutes", hidden: countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 },
-    { v: countdown.seconds, l: "S", name: "seconds", hidden: false },
-  ].filter((it) => !it.hidden);
-
-  const isRaceWeek = countdown.days <= 7;
-
   if (loading) {
     return (
       <section className="rows">
-        <p className="page-container mute" data-reveal>Loading next race…</p>
+        <p className="page-container mute">Loading next race…</p>
       </section>
     );
   }
@@ -79,6 +91,8 @@ export function GrandPrixCountdown() {
     );
   }
 
+  const isRaceWeek = getTimeUntilRace(race.date, race.time).days <= 7;
+
   return (
     <section className="rows" aria-labelledby="countdown-title">
       <div className="page-container">
@@ -95,18 +109,7 @@ export function GrandPrixCountdown() {
           </p>
         </div>
       </div>
-      <div
-        className="page-container countdown"
-        role="timer"
-        aria-label={visibleUnits.map((it) => `${it.v} ${it.name}`).join(", ")}
-      >
-        {visibleUnits.map((it) => (
-          <div key={it.l} className="countdown__unit">
-            <span className="countdown__value" data-reveal>{String(it.v).padStart(2, "0")}</span>
-            <span className="countdown__label" aria-hidden="true" data-reveal>{it.l}</span>
-          </div>
-        ))}
-      </div>
+      <Ticker race={race} />
     </section>
   );
 }

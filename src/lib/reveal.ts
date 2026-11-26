@@ -5,11 +5,18 @@
  *
  *  - Leaves are elements marked `data-reveal`. An element that contains other
  *    `data-reveal` elements is a wrapper and is never animated itself.
- *  - A leaf is hidden by CSS until it carries `data-in` (an attribute, so a
- *    React re-render that rewrites `class` cannot hide it again).
- *  - ONE IntersectionObserver (root: null) serves every leaf. Entries of one
- *    callback batch are sorted by top, then left; the stagger index is the
- *    position in that sorted batch and is reset per batch.
+ *  - A leaf is hidden by CSS (opacity only) until it carries `data-in`, an
+ *    attribute, so a React re-render that rewrites `class` cannot hide it again.
+ *    Because the hidden state has no transform, the observed box is the layout
+ *    box: the trigger depends on layout position and nothing else.
+ *  - ONE IntersectionObserver (root: null) serves every leaf. Its bottom margin
+ *    is the trigger line from the tokens, in px, rebuilt when the viewport
+ *    height changes.
+ *  - Reveal is one-way: a leaf is unobserved the moment it enters a batch.
+ *  - Entries are collected and applied once per frame. A batch is ordered by
+ *    visual row (rows by top, cells by left), and the stagger index is the
+ *    position in that order, so it is reset per batch and every leaf gets its
+ *    own start time.
  *  - All numbers come from CSS custom properties (see :root in styles.css).
  */
 
@@ -23,8 +30,8 @@ type Tokens = {
   stagger: number;
   cap: number;
   threshold: number;
-  rootMargin: string;
-  settle: number;
+  trigger: number;
+  triggerOffset: number;
   imageWait: number;
   exitDuration: number;
   exitEase: string;
@@ -49,8 +56,8 @@ function readTokens(): Tokens | null {
     stagger: num(get("--motion-reveal-stagger")),
     cap: parseFloat(get("--motion-reveal-stagger-cap")),
     threshold: parseFloat(get("--motion-reveal-threshold")),
-    rootMargin: get("--motion-reveal-root-margin"),
-    settle: num(get("--motion-reveal-settle")),
+    trigger: parseFloat(get("--motion-reveal-trigger")) / 100,
+    triggerOffset: parseFloat(get("--motion-reveal-trigger-offset")),
     imageWait: num(get("--motion-reveal-image-wait")),
     exitDuration: num(get("--motion-exit-duration")),
     exitEase: get("--motion-exit-ease"),
@@ -65,6 +72,28 @@ const isWrapper = (el: Element) => el.querySelector(LEAF) !== null;
 const isRevealed = (el: Element) => el.hasAttribute("data-in");
 
 const INTERACTIVE = 'a[href], button, input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Visual reading order: boxes whose vertical ranges overlap by more than half
+ * of the shorter one share a row; rows run top to bottom and the boxes inside
+ * a row run left to right (right to left on an RTL page).
+ */
+export function visualOrder<T>(items: T[], box: (item: T) => DOMRectReadOnly, rtl = false): T[] {
+  const sorted = [...items].sort((a, b) => box(a).top - box(b).top || box(a).left - box(b).left);
+  const rows: Array<{ top: number; bottom: number; cells: T[] }> = [];
+  for (const item of sorted) {
+    const r = box(item);
+    const row = rows.find((candidate) => {
+      const overlap = Math.min(candidate.bottom, r.bottom) - Math.max(candidate.top, r.top);
+      return overlap > 0.5 * Math.min(candidate.bottom - candidate.top, r.height);
+    });
+    if (row) row.cells.push(item);
+    else rows.push({ top: r.top, bottom: r.bottom, cells: [item] });
+  }
+  rows.sort((a, b) => a.top - b.top);
+  const dir = rtl ? -1 : 1;
+  return rows.flatMap((row) => row.cells.sort((a, b) => dir * (box(a).left - box(b).left)));
+}
 
 type Engine = {
   stop: () => void;
@@ -81,10 +110,12 @@ export function startReveal(): () => void {
 
   const tokens = readTokens();
   const still = !tokens || prefersReducedMotion();
+  const rtl = document.documentElement.dir === "rtl";
+  const root = document.documentElement;
 
   const markIn = (el: HTMLElement) => el.setAttribute("data-in", "");
 
-  const fadeIn = (el: HTMLElement, index: number) => {
+  const fadeIn = (el: HTMLElement, delay: number) => {
     if (isRevealed(el)) return;
     markIn(el);
     if (still || !tokens) return;
@@ -93,12 +124,7 @@ export function startReveal(): () => void {
         { opacity: tokens.opacityFrom, translate: `0 ${tokens.distance}` },
         { opacity: 1, translate: "0 0" },
       ],
-      {
-        duration: tokens.duration,
-        easing: tokens.ease,
-        delay: Math.min(index, tokens.cap) * tokens.stagger,
-        fill: "backwards",
-      },
+      { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
     );
   };
 
@@ -111,53 +137,112 @@ export function startReveal(): () => void {
     ]);
   };
 
-  const byReadingOrder = (a: DOMRectReadOnly, b: DOMRectReadOnly) => a.top - b.top || a.left - b.left;
+  const triggerLine = () => (tokens ? tokens.trigger * root.clientHeight + tokens.triggerOffset : 0);
 
-  const io = new IntersectionObserver(
-    (entries) => {
-      const batch = entries.filter((entry) => entry.isIntersecting);
-      batch.sort((a, b) => byReadingOrder(a.boundingClientRect, b.boundingClientRect));
-      batch.forEach((entry, index) => {
-        const el = entry.target as HTMLElement;
-        io.unobserve(el);
-        const wait = whenImagesReady(el);
-        if (wait) void wait.then(() => fadeIn(el, index));
-        else fadeIn(el, index);
-      });
-    },
-    { root: null, threshold: tokens?.threshold ?? 0, rootMargin: tokens?.rootMargin ?? "0px" },
-  );
+  type Queued = { el: HTMLElement; rect: DOMRectReadOnly };
+  const pending = new Set<HTMLElement>();
+  const armed = new WeakSet<HTMLElement>();
+  let queue: Queued[] = [];
+  let flushFrame = 0;
+
+  // One batch per frame: order by visual row, then stagger by position. The
+  // interval shrinks when the batch is longer than the cap allows, so the
+  // whole batch still ends inside cap * stagger and no two leaves start together.
+  const flush = () => {
+    flushFrame = 0;
+    const batch = queue.filter(({ el }) => el.isConnected && !isRevealed(el));
+    queue = [];
+    if (!batch.length || !tokens) return;
+    const ordered = visualOrder(batch, (q) => q.rect, rtl);
+    const steps = ordered.length - 1;
+    const interval = steps > tokens.cap ? (tokens.cap * tokens.stagger) / steps : tokens.stagger;
+    const waits = ordered.map(({ el }) => whenImagesReady(el)).filter((w): w is Promise<void> => w !== null);
+    const run = () => ordered.forEach(({ el }, index) => fadeIn(el, index * interval));
+    if (waits.length) void Promise.all(waits).then(run);
+    else run();
+  };
+  const scheduleFlush = () => {
+    if (!flushFrame) flushFrame = window.requestAnimationFrame(flush);
+  };
+
+  let io: IntersectionObserver;
+
+  const onIntersect = (entries: IntersectionObserverEntry[]) => {
+    // Layout is clean here (this task follows the rendering update), so the
+    // one scrollHeight read per callback costs nothing. It is only needed
+    // for leaves that are being seen for the first time.
+    let docHeight = -1;
+    for (const entry of entries) {
+      const el = entry.target as HTMLElement;
+      if (!pending.has(el)) continue;
+      let reveal = entry.isIntersecting;
+      if (!reveal && !armed.has(el)) {
+        // A leaf that starts inside the last trigger-line of the page can never
+        // be scrolled above the line, so it reveals as soon as it is laid out.
+        if (docHeight < 0) docHeight = root.scrollHeight;
+        reveal = entry.boundingClientRect.top + window.scrollY > docHeight - triggerLine();
+      }
+      armed.add(el);
+      if (!reveal) continue;
+      pending.delete(el);
+      io.unobserve(el);
+      queue.push({ el, rect: entry.boundingClientRect });
+    }
+    if (queue.length) scheduleFlush();
+  };
+
+  let armedHeight = -1;
+  const buildObserver = () => {
+    armedHeight = root.clientHeight;
+    return new IntersectionObserver(onIntersect, {
+      root: null,
+      threshold: tokens?.threshold ?? 0,
+      rootMargin: `0px 0px -${triggerLine()}px 0px`,
+    });
+  };
+  io = buildObserver();
+
+  // The line is derived from the viewport height, so a changed height (window
+  // resize, a collapsing mobile toolbar) rebuilds the observer from the same
+  // height it will measure against.
+  let resizeFrame = 0;
+  const onResize = () => {
+    if (resizeFrame) return;
+    resizeFrame = window.requestAnimationFrame(() => {
+      resizeFrame = 0;
+      if (root.clientHeight === armedHeight) return;
+      io.disconnect();
+      io = buildObserver();
+      pending.forEach((el) => io.observe(el));
+    });
+  };
+  window.addEventListener("resize", onResize);
 
   const watch = (el: HTMLElement) => {
-    if (isRevealed(el)) return;
-    if (still) return markIn(el);
-    if (isWrapper(el)) return markIn(el);
+    if (isRevealed(el) || pending.has(el)) return;
+    if (still || document.hidden || isWrapper(el)) return markIn(el);
+    armed.delete(el);
+    pending.add(el);
     io.observe(el);
   };
 
-  let settleTimer: number | undefined;
-  const settle = () => {
-    settleTimer = undefined;
-    const waiting = [...document.querySelectorAll<HTMLElement>(LEAF)].filter((el) => {
-      if (isRevealed(el)) return false;
-      const r = el.getBoundingClientRect();
-      return r.top < window.innerHeight && r.bottom > 0;
-    });
-    waiting.sort((a, b) => byReadingOrder(a.getBoundingClientRect(), b.getBoundingClientRect()));
-    waiting.forEach((el, index) => {
-      io.unobserve(el);
-      fadeIn(el, index);
-    });
+  // Added nodes are gathered and armed together once per frame, so everything
+  // one commit mounts is observed (and delivered) as one batch.
+  let added = new Set<Node>();
+  let scanFrame = 0;
+  const scan = (node: ParentNode) => {
+    if (node instanceof HTMLElement && node.matches(LEAF)) watch(node);
+    node.querySelectorAll<HTMLElement>(LEAF).forEach(watch);
   };
-  const scheduleSettle = () => {
-    if (still || !tokens || settleTimer !== undefined) return;
-    settleTimer = window.setTimeout(settle, tokens.settle);
-  };
-
-  const scan = (root: ParentNode) => {
-    if (root instanceof HTMLElement && root.matches(LEAF)) watch(root);
-    root.querySelectorAll<HTMLElement>(LEAF).forEach(watch);
-    scheduleSettle();
+  const scheduleScan = () => {
+    if (!scanFrame) {
+      scanFrame = window.requestAnimationFrame(() => {
+        scanFrame = 0;
+        const nodes = added;
+        added = new Set();
+        nodes.forEach((node) => node.isConnected && scan(node as ParentNode));
+      });
+    }
   };
 
   scan(document);
@@ -165,9 +250,10 @@ export function startReveal(): () => void {
   const mo = new MutationObserver((records) => {
     for (const record of records) {
       record.addedNodes.forEach((node) => {
-        if (node instanceof HTMLElement) scan(node);
+        if (node instanceof HTMLElement) added.add(node);
       });
     }
+    if (added.size) scheduleScan();
   });
   mo.observe(document.body, { childList: true, subtree: true });
 
@@ -177,6 +263,7 @@ export function startReveal(): () => void {
     if (!(target instanceof HTMLElement) || !target.matches(INTERACTIVE)) return;
     const leaf = target.closest<HTMLElement>(LEAF);
     if (leaf && !isRevealed(leaf)) {
+      pending.delete(leaf);
       io.unobserve(leaf);
       markIn(leaf);
     }
@@ -214,7 +301,11 @@ export function startReveal(): () => void {
       mo.disconnect();
       document.removeEventListener("focusin", onFocusIn);
       window.removeEventListener("pageshow", onPageShow);
-      if (settleTimer !== undefined) window.clearTimeout(settleTimer);
+      window.removeEventListener("resize", onResize);
+      if (flushFrame) window.cancelAnimationFrame(flushFrame);
+      if (scanFrame) window.cancelAnimationFrame(scanFrame);
+      if (resizeFrame) window.cancelAnimationFrame(resizeFrame);
+      pending.clear();
       engine = null;
     },
     leave,

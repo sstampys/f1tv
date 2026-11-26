@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 export const Route = createFileRoute("/standings")({
   head: () => ({
     meta: [
-      { title: "Driver & Constructor Standings — F1Box" },
+      { title: "Standings" },
       { name: "description", content: "Current Formula 1 driver and constructor championship standings." },
       { property: "og:title", content: "Driver & Constructor Standings — F1Box" },
       { property: "og:description", content: "Current Formula 1 driver and constructor championship standings." },
