@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -124,6 +125,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -132,13 +134,15 @@ function RootComponent() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="site-footer">
-        <div className="page-container">
-          <Link to="/legal" data-reveal>
-            Privacy &amp; Legal
-          </Link>
-        </div>
-      </footer>
+      {pathname !== "/legal" && (
+        <footer className="site-footer">
+          <div className="page-container">
+            <Link to="/legal" data-reveal>
+              Privacy &amp; Legal
+            </Link>
+          </div>
+        </footer>
+      )}
     </QueryClientProvider>
   );
 }
