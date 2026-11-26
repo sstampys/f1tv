@@ -25,6 +25,10 @@ export const Route = createFileRoute("/standings")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [
+      { rel: "canonical", href: "https://www.f1box.org/standings" },
+      { property: "og:url", content: "https://www.f1box.org/standings" },
+    ],
   }),
   component: StandingsPage,
 });
@@ -54,9 +58,9 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
     <div className="min-h-screen bg-ground">
       <section id="standings" className="editorial-page">
         <header className="">
-          <div className="page-container">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4" style={{ marginBottom: 'var(--s15)' }}>
-              <div>
+          <div className="page-container editorial-stack">
+            <div className="editorial-row" style={{ marginBottom: 'var(--s3)' }}>
+              <div className="editorial-row__body">
                 <h1 className="text-ink rise" style={{ "--i": "0" }} data-reveal>
                   Championship Standings
                 </h1>
@@ -64,25 +68,25 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
                   Formula 1 {season} driver and constructor championship points
                 </p>
               </div>
-
-              {/* Season Selector */}
-              {!seasonsLoading && seasons && (
-                <div data-reveal>
-                  <Select value={season} onValueChange={setSeason}>
-                    <SelectTrigger className="input-field" style={{ height: 'var(--ctl)' }}>
-                      <SelectValue placeholder="Select season" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-ground border-hair rounded-xl">
-                      {seasons.map((s) => (
-                        <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
-                          {s} Season
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
+
+            {/* Season Selector */}
+            {!seasonsLoading && seasons && (
+              <div className="editorial-row__label" style={{ paddingTop: 'var(--s1)', textAlign: 'right' }} data-reveal>
+                <Select value={season} onValueChange={setSeason}>
+                  <SelectTrigger className="input-field" style={{ height: 'var(--ctl)' }}>
+                    <SelectValue placeholder="Select season" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-ground border-hair rounded-xl">
+                    {seasons.map((s) => (
+                      <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
+                        {s} Season
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </header>
 
@@ -91,9 +95,9 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
         ) : driversError || constructorsError ? (
           <ErrorState message="Failed to load standings. Please try again." />
         ) : (
-          <div className="page-container">
+          <div className="page-container editorial-stack">
             <Tabs defaultValue="drivers" className="w-full">
-              <TabsList className="editorial-tabs" style={{ "--i": "0", marginBottom: 'var(--s4)' }} data-reveal>
+              <TabsList className="editorial-tabs" style={{ "--i": "0", marginBottom: 'var(--s3)' }} data-reveal>
                 <TabsTrigger value="drivers" className="px-6 py-2.5 text-sm font-medium">
                   Drivers
                 </TabsTrigger>
@@ -131,9 +135,9 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
             <th className="px-4 py-4 text-right text-xs font-semibold text-ink-3 uppercase ">Wins</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-hair">
+        <tbody>
           {standings.map((standing, index) => (
-            <tr key={standing.Driver.driverId} className="hover:bg-wash/50" data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
+            <tr key={standing.Driver.driverId} data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}
@@ -183,9 +187,9 @@ function ConstructorStandingsTable({ standings }: { standings: ConstructorStandi
             <th className="px-4 py-4 text-right text-xs font-semibold text-ink-3 uppercase ">Wins</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-hair">
+        <tbody>
           {standings.map((standing, index) => (
-            <tr key={standing.Constructor.constructorId} className="hover:bg-wash/50" data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
+            <tr key={standing.Constructor.constructorId} data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}

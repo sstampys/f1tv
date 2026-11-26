@@ -12,6 +12,10 @@ export const Route = createFileRoute("/legal")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
+    links: [
+      { rel: "canonical", href: "https://www.f1box.org/legal" },
+      { property: "og:url", content: "https://www.f1box.org/legal" },
+    ],
   }),
   component: Legal,
 });

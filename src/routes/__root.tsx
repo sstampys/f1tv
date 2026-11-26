@@ -91,6 +91,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "canonical", href: "https://www.f1box.org/" },
+      { property: "og:url", content: "https://www.f1box.org/" },
     ],
   }),
   shellComponent: RootShell,
@@ -134,22 +136,24 @@ function RootComponent() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <p data-reveal>Built with TanStack Start & Tailwind CSS</p>
-        <p data-reveal>
-          Formula 1 data is sourced from the{' '}
-          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
-            Jolpica-F1 API
-          </a>{' '}
-          (Ergast successor)
-        </p>
-        <p data-reveal>
-          Formula 1 race data is sourced from the{' '}
-          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
-            Jolpica-F1 API
-          </a>{' '}
-          and live stream links are aggregated from{' '}
-          <a href="https://ppv.st" target="_blank" rel="noopener noreferrer" data-reveal>ppv.st</a>. No media is stored on our servers.
-        </p>
+        <div className="page-container editorial-stack">
+          <p data-reveal>Built with TanStack Start & Tailwind CSS</p>
+          <p data-reveal>
+            Formula 1 data is sourced from the{' '}
+            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
+              Jolpica-F1 API
+            </a>{' '}
+            (Ergast successor)
+          </p>
+          <p data-reveal>
+            Formula 1 race data is sourced from the{' '}
+            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
+              Jolpica-F1 API
+            </a>{' '}
+            and live stream links are aggregated from{' '}
+            <a href="https://ppv.st" target="_blank" rel="noopener noreferrer" data-reveal>ppv.st</a>. No media is stored on our servers.
+          </p>
+        </div>
       </footer>
     </QueryClientProvider>
   );

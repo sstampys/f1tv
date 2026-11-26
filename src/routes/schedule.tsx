@@ -24,6 +24,10 @@ export const Route = createFileRoute("/schedule")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [
+      { rel: "canonical", href: "https://www.f1box.org/schedule" },
+      { property: "og:url", content: "https://www.f1box.org/schedule" },
+    ],
   }),
   component: SchedulePage,
 });
@@ -53,9 +57,9 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
     <div className="min-h-screen bg-ground">
       <section id="schedule" className="editorial-page">
         <header className="">
-          <div className="page-container">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4" style={{ marginBottom: 'var(--s15)' }}>
-              <div>
+          <div className="page-container editorial-stack">
+            <div className="editorial-row" style={{ marginBottom: 'var(--s3)' }}>
+              <div className="editorial-row__body">
                 <h1 className="text-ink rise" style={{ "--i": "0" }} data-reveal>
                   Race Schedule
                 </h1>
@@ -63,8 +67,10 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
                   Formula 1 {season} calendar
                 </p>
               </div>
+            </div>
 
-              {!seasonsLoading && seasons && (
+            {!seasonsLoading && seasons && (
+              <div className="editorial-row__label" style={{ paddingTop: 'var(--s1)', textAlign: 'right' }} data-reveal>
                 <Select value={season} onValueChange={setSeason}>
                   <SelectTrigger className="input-field" style={{ height: 'var(--ctl)' }}>
                     <SelectValue placeholder="Select season" />
@@ -77,12 +83,12 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
                     ))}
                   </SelectContent>
                 </Select>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </header>
 
-        <div className="page-container">
+        <div className="page-container editorial-stack">
           {(scheduleLoading && !schedule) ? (
             <ScheduleSkeleton />
           ) : scheduleError ? (

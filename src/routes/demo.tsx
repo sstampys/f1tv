@@ -26,6 +26,10 @@ export const Route = createFileRoute("/demo")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
+    links: [
+      { rel: "canonical", href: "https://www.f1box.org/demo" },
+      { property: "og:url", content: "https://www.f1box.org/demo" },
+    ],
   }),
   component: DemoRoute,
 });

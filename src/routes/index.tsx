@@ -168,6 +168,10 @@ export const Route = createFileRoute("/")({
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [
+      { rel: "canonical", href: "https://www.f1box.org/" },
+      { property: "og:url", content: "https://www.f1box.org/" },
+    ],
   }),
   component: Index,
 });
@@ -262,7 +266,7 @@ function Index() {
               display: 'flex', 
               flexDirection: 'column', 
               gap: 'clamp(var(--s6), 9vh, var(--s15))',
-              paddingTop: 'calc(var(--nav-room) + clamp(var(--s6), 7vw, var(--s8)))',
+              paddingTop: 'var(--nav-room)',
               paddingBottom: 'var(--s4)',
               flex: 1
             }}>
