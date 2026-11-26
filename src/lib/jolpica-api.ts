@@ -217,6 +217,22 @@ export async function getNextRace(year?: string): Promise<Race | null> {
   return schedule.find(race => new Date(`${race.date}T${normalizeTime(race.time)}Z`) > now) || null;
 }
 
+/**
+ * Next race for the current season.
+ *
+ * The season lookup and the calendar-year schedule start together, so the
+ * countdown waits on one round trip instead of two whenever the latest
+ * published season is the calendar year (the usual case). The selection is
+ * unchanged: it is the same season and the same "first race in the future".
+ */
+export async function getUpcomingRace(): Promise<Race | null> {
+  const year = new Date().getFullYear().toString();
+  const [season, yearSchedule] = await Promise.all([getCurrentSeason(), getRaceSchedule(year)]);
+  const schedule = season === year ? yearSchedule : await getRaceSchedule(season);
+  const now = new Date();
+  return schedule.find(race => new Date(`${race.date}T${normalizeTime(race.time)}Z`) > now) || null;
+}
+
 /** Get the most recent completed race */
 export async function getLastRace(year?: string): Promise<Race | null> {
   const schedule = await getRaceSchedule(year);

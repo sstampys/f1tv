@@ -1,7 +1,6 @@
 import { memo, useEffect, useState } from "react";
 import {
-  getNextRace,
-  getCurrentSeason,
+  getUpcomingRace,
   getTimeUntilRace,
   formatRaceDateTime,
   type Race
@@ -54,8 +53,7 @@ export function GrandPrixCountdown() {
   useEffect(() => {
     const fetchRace = async () => {
       try {
-        const season = await getCurrentSeason();
-        const nextRace = await getNextRace(season);
+        const nextRace = await getUpcomingRace();
         setRace(nextRace);
         setLoading(false);
       } catch (error) {
