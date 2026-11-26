@@ -166,11 +166,11 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "F1Box — Live F1 Countdown & Streams" },
       { property: "og:description", content: "Live Formula 1 countdown to next race with stream embed when live." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://www.f1box.org/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "canonical", href: "https://www.f1box.org/" },
-      { property: "og:url", content: "https://www.f1box.org/" },
     ],
   }),
   component: Index,
@@ -259,42 +259,28 @@ function Index() {
   return (
     <div className="min-h-screen bg-ground">
       {!hasStream ? (
-        // Countdown Page
-        <div>
-          <section className="editorial-page" aria-labelledby="countdown-title">
-            <div className="page-container" style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: 'clamp(var(--s6), 9vh, var(--s15))',
-              paddingTop: 'var(--nav-room)',
-              paddingBottom: 'var(--s4)',
-              flex: 1
-            }}>
-              <GrandPrixCountdown />
-            </div>
-          </section>
+        <div className="page">
+          <GrandPrixCountdown />
         </div>
       ) : (
         // Stream Page - Embedded player with switcher at bottom
-        <div className="min-h-screen bg-ground">
-          <section className="stream-page">
+        <div className="page">
+          <section className="rows">
             {/* Stream Header */}
-            <div className="page-container" style={{ marginBottom: 'var(--s6)' }}>
-              <div className="flex items-center gap-2" style={{ marginBottom: 'var(--s2)' }}>
-                <span className="tag text-sm" data-reveal>LIVE STREAM</span>
-                {demo && <span className="tag bg-pill border-hair text-ink text-xs" data-reveal>DEMO</span>}
+            <div className="page-container">
+              <p className="label-line" data-reveal>Live stream{demo && " · Demo"}</p>
+              <div className="facts">
+                <h1 className="statement" data-reveal>{currentSource?.label || "F1 Stream"}</h1>
+                {currentSource?.language && (
+                  <p className="mute" data-reveal>
+                    {currentSource.language.flag} {currentSource.language.name}
+                  </p>
+                )}
               </div>
-              <h1 className="text-2xl md:text-3xl font-semibold text-ink" data-reveal>{currentSource?.label || "F1 Stream"}</h1>
-              {currentSource?.language && (
-                <p className="text-ink-2 text-sm flex items-center gap-1" style={{ marginTop: 'var(--s1)' }} data-reveal>
-                  <span className="text-lg">{currentSource.language.flag}</span>
-                  {currentSource.language.name}
-                </p>
-              )}
             </div>
 
             {/* Embedded Video Player */}
-            <div className="stream-player" data-reveal>
+            <div className="page-container stream-player" data-reveal>
               {demo === "sample" ? (
                 <video
                   key={iframeSrc}
@@ -422,13 +408,13 @@ function Index() {
 
             {/* Quick links below stream */}
             <div className="page-container stream-links">
-              <a href="/standings" className="" data-reveal>
+              <a href="/standings" className="link" data-reveal>
                 Driver Standings
               </a>
-              <a href="/schedule" className="" data-reveal>
+              <a href="/schedule" className="link" data-reveal>
                 Race Schedule
               </a>
-              <a href="/results" className="" data-reveal>
+              <a href="/results" className="link" data-reveal>
                 Race Results
               </a>
             </div>

@@ -1,7 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
 import {
   getRaceSchedule,
   getNextRace,
@@ -10,9 +8,7 @@ import {
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Flag, CheckCircle, Loader2, ChevronDown, ChevronUp } from "lucide-react";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -22,11 +18,11 @@ export const Route = createFileRoute("/schedule")({
       { property: "og:title", content: "Race Schedule — F1Box" },
       { property: "og:description", content: "Formula 1 race calendar with dates and circuits." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://www.f1box.org/schedule" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "canonical", href: "https://www.f1box.org/schedule" },
-      { property: "og:url", content: "https://www.f1box.org/schedule" },
     ],
   }),
   component: SchedulePage,
@@ -35,7 +31,7 @@ export const Route = createFileRoute("/schedule")({
 function SchedulePage() {
   const { data: seasons } = useQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 });
   const currentSeason = seasons?.[0];
-  return currentSeason ? <div><ScheduleSection currentSeason={currentSeason} /></div> : null;
+  return currentSeason ? <ScheduleSection currentSeason={currentSeason} /> : <div className="page" />;
 }
 
 export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
@@ -54,244 +50,119 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
   });
 
   return (
-    <div className="min-h-screen bg-ground">
-      <section id="schedule" className="editorial-page">
-        <header className="">
-          <div className="page-container editorial-stack">
-            <div className="editorial-row" style={{ marginBottom: 'var(--s3)' }}>
-              <div className="editorial-row__body">
-                <h1 className="text-ink rise" style={{ "--i": "0" }} data-reveal>
-                  Race Schedule
-                </h1>
-                <p className="lead-text rise" style={{ "--i": "1", marginTop: 'var(--s1)' }} data-reveal>
-                  Formula 1 {season} calendar
-                </p>
-              </div>
-            </div>
-
-            {!seasonsLoading && seasons && (
-              <div className="editorial-row__label" style={{ paddingTop: 'var(--s1)', textAlign: 'right' }} data-reveal>
-                <Select value={season} onValueChange={setSeason}>
-                  <SelectTrigger className="input-field" style={{ height: 'var(--ctl)' }}>
-                    <SelectValue placeholder="Select season" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-ground border-hair rounded-xl">
-                    {seasons.map((s) => (
-                      <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
-                        {s} Season
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </header>
-
-        <div className="page-container editorial-stack">
-          {(scheduleLoading && !schedule) ? (
-            <ScheduleSkeleton />
-          ) : scheduleError ? (
-            <ErrorState message="Failed to load schedule. Please try again." />
-          ) : schedule && schedule.length > 0 ? (
-            <RaceCalendar races={schedule} nextRace={nextRace ?? null} />
-          ) : (
-            <EmptyState message="No races scheduled for this season." />
+    <div className="page">
+      <section id="schedule" className="rows">
+        <div className="page-container head">
+          <h1 data-reveal>Race Schedule</h1>
+          {!seasonsLoading && seasons && (
+            <select
+              className="control"
+              aria-label="Season"
+              value={season}
+              onChange={(event) => setSeason(event.target.value)}
+              data-reveal
+            >
+              {seasons.map((s) => (
+                <option key={s} value={s}>{s} Season</option>
+              ))}
+            </select>
           )}
         </div>
+
+        {scheduleLoading && !schedule ? null : scheduleError ? (
+          <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
+        ) : schedule && schedule.length > 0 ? (
+          <RaceCalendar races={schedule} nextRace={nextRace ?? null} />
+        ) : (
+          <Notice title="No Races Scheduled" message="No races scheduled for this season." />
+        )}
       </section>
     </div>
   );
 }
 
+const byDate = (a: Race, b: Race) => {
+  const da = new Date(`${a.date}T${a.time || "00:00:00"}`);
+  const db = new Date(`${b.date}T${b.time || "00:00:00"}`);
+  return da.getTime() - db.getTime();
+};
+
 function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | null }) {
   const nextRaceRound = nextRace?.round;
   const [showPast, setShowPast] = useState(false);
 
-  // Sort races by date (closest to farthest)
-  const sortByDate = (a: Race, b: Race) => {
-    const da = new Date(`${a.date}T${a.time || '00:00:00'}`);
-    const db = new Date(`${b.date}T${b.time || '00:00:00'}`);
-    return da.getTime() - db.getTime();
-  };
+  const upcomingRaces = useMemo(
+    () => [...races].filter((race) => !isRaceCompleted(race.date, race.time)).sort(byDate),
+    [races],
+  );
 
-  const upcomingRaces = useMemo(() => {
-    return [...races]
-      .filter(race => !isRaceCompleted(race.date, race.time))
-      .sort(sortByDate);
-  }, [races]);
-
-  const pastRaces = useMemo(() => {
-    return [...races]
-      .filter(race => isRaceCompleted(race.date, race.time))
-      .sort((a, b) => {
-        const da = new Date(`${a.date}T${a.time || '00:00:00'}`);
-        const db = new Date(`${b.date}T${b.time || '00:00:00'}`);
-        return db.getTime() - da.getTime();
-      });
-  }, [races]);
+  const pastRaces = useMemo(
+    () => [...races].filter((race) => isRaceCompleted(race.date, race.time)).sort((a, b) => byDate(b, a)),
+    [races],
+  );
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s3)' }}>
-      {/* Upcoming / Current Races (shown by default) */}
-      {upcomingRaces.map((race, index) => {
-        const isNext = race.round === nextRaceRound;
-        const isCompleted = isRaceCompleted(race.date, race.time);
-        const isCurrent = !isCompleted && isNext;
+    <>
+      {upcomingRaces.map((race) => (
+        <RaceRow key={race.round} race={race} isNext={race.round === nextRaceRound} isCompleted={false} />
+      ))}
 
-        return (
-          <RaceCard
-            key={race.round}
-            race={race}
-            index={index}
-            isNext={isNext}
-            isCompleted={isCompleted}
-            isCurrent={isCurrent}
-          />
-        );
-      })}
-
-      {/* Past Races - Collapsible */}
       {pastRaces.length > 0 && (
-        <>
-          <Button
+        <div className="page-container">
+          <button
+            type="button"
+            className="control"
             onClick={() => setShowPast(!showPast)}
-            className="btn btn--secondary gap-2"
             aria-expanded={showPast}
             aria-controls="past-races"
             data-reveal
           >
-            {showPast ? (
-              <>
-                <ChevronUp className="w-5 h-5" aria-hidden="true" />
-                <span>Hide Past Races ({pastRaces.length})</span>
-              </>
-            ) : (
-              <>
-                <ChevronDown className="w-5 h-5" aria-hidden="true" />
-                <span>Show Past Races ({pastRaces.length})</span>
-              </>
-            )}
-          </Button>
-
-          <div
-            id="past-races"
-            className={`${showPast ? "expanded" : "collapsed"}`}
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 'var(--s3)',
-            }}
-          >
-            {pastRaces.map((race, index) => {
-              const isNext = race.round === nextRaceRound;
-              const isCompleted = isRaceCompleted(race.date, race.time);
-              const isCurrent = !isCompleted && isNext;
-
-              return (
-                <RaceCard
-                  key={race.round}
-                  race={race}
-                  index={index}
-                  isNext={isNext}
-                  isCompleted={isCompleted}
-                  isCurrent={isCurrent}
-                />
-              );
-            })}
-          </div>
-        </>
+            {showPast ? "Hide Past Races" : "Show Past Races"}
+          </button>
+        </div>
       )}
-    </div>
+
+      {showPast && (
+        <div id="past-races" className="contents">
+          {pastRaces.map((race) => (
+            <RaceRow key={race.round} race={race} isNext={race.round === nextRaceRound} isCompleted />
+          ))}
+        </div>
+      )}
+    </>
   );
 }
 
-function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
-  race: Race;
-  index: number;
-  isNext: boolean;
-  isCompleted: boolean;
-  isCurrent: boolean;
-}) {
-  return (
-    <div
-      className="race-entry"
-      style={{ "--i": String(index % 10) }}
-      data-reveal
-    >
-      <div style={{ padding: 'var(--s2) var(--s3) var(--s2) var(--s4)' }}>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
-          {/* Round & Status */}
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="race-round"
-              aria-label={`Round ${race.round}`}
-            >
-              {race.round}
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-ink text-lg md:text-xl" data-reveal>{race.raceName}</h3>
-                {isCurrent && (
-                  <span className="tag bg-ink text-player-text text-xs" data-reveal>THIS WEEKEND</span>
-                )}
-                {isNext && !isCurrent && (
-                  <span className="tag bg-pill border-hair text-ink text-xs" data-reveal>NEXT</span>
-                )}
-                {isCompleted && (
-                  <span className="tag text-ink-2 text-xs" data-reveal>COMPLETED</span>
-                )}
-              </div>
-              <p className="text-ink-2 text-sm md:text-base" data-reveal>
-                {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
-              </p>
-            </div>
-          </div>
+function RaceRow({ race, isNext, isCompleted }: { race: Race; isNext: boolean; isCompleted: boolean }) {
+  const status = isCompleted ? "Completed" : isNext ? "This weekend" : null;
+  const when = formatRaceDateTime(race.date, race.time, { weekday: "short", month: "short", day: "numeric" });
 
-          {/* Race Date */}
-          <div className="text-right md:text-left flex-shrink-0">
-            <p className="race-date" data-reveal>
-              {formatRaceDateTime(race.date, race.time, { weekday: "short", month: "short", day: "numeric" })}
-            </p>
-          </div>
-        </div>
+  return (
+    <div className="row">
+      <p className="row__label" aria-label={`Round ${race.round}`} data-reveal>{race.round}</p>
+      <div className="row__body">
+        <p data-reveal>
+          {race.raceName}
+          {status && <span className="mute"> · {status}</span>}
+        </p>
+        <p className="mute" data-reveal>
+          {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country} · {when}
+        </p>
       </div>
     </div>
   );
 }
 
-function ScheduleSkeleton() {
+function Notice({ title, message, retry }: { title: string; message: string; retry?: boolean }) {
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--s3)' }}>
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="rounded-xl border border-hair bg-ground" style={{ padding: 'var(--s4)' }}>
-          <div className="flex gap-4">
-            <div className="w-12 h-12 rounded-xl bg-wash" />
-            <div className="flex-1 space-y-2">
-              <div className="h-6 w-48 bg-wash rounded" />
-              <div className="h-4 w-64 bg-wash rounded" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ErrorState({ message }: { message: string }) {
-  return (
-    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
-      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>Unable to load schedule</h3>
-      <p className="text-ink-2" style={{ marginBottom: 'var(--s4)' }}>{message}</p>
-      <Button onClick={() => window.location.reload()} className="btn btn--primary">Try Again</Button>
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
-      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>No Races Scheduled</h3>
-      <p className="text-ink-2">{message}</p>
+    <div className="page-container stack-tight">
+      <p data-reveal>{title}</p>
+      <p className="mute" data-reveal>{message}</p>
+      {retry && (
+        <p data-reveal>
+          <button type="button" className="control" onClick={() => window.location.reload()}>Try Again</button>
+        </p>
+      )}
     </div>
   );
 }

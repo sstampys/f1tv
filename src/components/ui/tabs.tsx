@@ -11,10 +11,7 @@ const TabsList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.List
     ref={ref}
-    className={cn(
-      "editorial-tabs",
-      className,
-    )}
+    className={cn(className)}
     {...props}
   />
 ));
@@ -26,10 +23,7 @@ const TabsTrigger = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Trigger
     ref={ref}
-    className={cn(
-      "px-6 py-2.5 text-sm font-medium",
-      className,
-    )}
+    className={cn(className)}
     {...props}
   />
 ));
@@ -41,10 +35,7 @@ const TabsContent = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <TabsPrimitive.Content
     ref={ref}
-    className={cn(
-      "rise",
-      className,
-    )}
+    className={cn(className)}
     {...props}
   />
 ));

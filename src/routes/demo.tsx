@@ -24,11 +24,11 @@ export const Route = createFileRoute("/demo")({
       { property: "og:title", content: "Demo — F1 Stream" },
       { property: "og:description", content: "Demo of F1 stream functionality" },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://www.f1box.org/demo" },
       { name: "twitter:card", content: "summary" },
     ],
     links: [
       { rel: "canonical", href: "https://www.f1box.org/demo" },
-      { property: "og:url", content: "https://www.f1box.org/demo" },
     ],
   }),
   component: DemoRoute,
@@ -236,18 +236,16 @@ function DemoRoute() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <section className="editorial-page demo-page">
-        <header className="">
-          <div className="page-container">
-            <h1 className="text-ink" data-reveal>Demo Stream</h1>
-            <p className="lead-text" style={{ marginTop: 'var(--s1)' }} data-reveal>Test the stream player with sample content</p>
-          </div>
-        </header>
+      <section className="page rows">
+        <div className="page-container facts">
+          <h1 className="statement" data-reveal>Demo Stream</h1>
+          <p className="mute" data-reveal>Test the stream player with sample content</p>
+        </div>
 
         <div className="page-container">
           {!loading && !iframeSrc ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', background: 'var(--ground)' }}>
-              <div className="text-ink-2 text-sm text-center">Demo Stream Loading...</div>
+              <div className="mute">Demo Stream Loading...</div>
             </div>
           ) : null}
 

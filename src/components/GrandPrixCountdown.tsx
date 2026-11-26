@@ -49,73 +49,64 @@ export function GrandPrixCountdown() {
   }, [race]);
 
   const visibleUnits = [
-    { v: countdown.days, l: "D", hidden: countdown.days === 0 },
-    { v: countdown.hours, l: "H", hidden: countdown.days === 0 && countdown.hours === 0 },
-    { v: countdown.minutes, l: "M", hidden: countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 },
-    { v: countdown.seconds, l: "S", hidden: false },
+    { v: countdown.days, l: "D", name: "days", hidden: countdown.days === 0 },
+    { v: countdown.hours, l: "H", name: "hours", hidden: countdown.days === 0 && countdown.hours === 0 },
+    { v: countdown.minutes, l: "M", name: "minutes", hidden: countdown.days === 0 && countdown.hours === 0 && countdown.minutes === 0 },
+    { v: countdown.seconds, l: "S", name: "seconds", hidden: false },
   ].filter((it) => !it.hidden);
 
   const isRaceWeek = countdown.days <= 7;
 
   if (loading) {
     return (
-      <div className="page">
-        <section className="hero">
-          <p className="lead flex items-center gap-2" data-reveal>
-            Loading next race…
-          </p>
-        </section>
-      </div>
+      <section className="rows">
+        <p className="page-container mute" data-reveal>Loading next race…</p>
+      </section>
     );
   }
 
   if (!race) {
     return (
-      <div className="page">
-        <section className="hero">
-          <span className="countdown-label" data-reveal>RACE</span>
-          <h1 className="race-title" data-reveal>No upcoming races</h1>
-          <p className="lead" data-reveal>Check back when the new season is announced</p>
-        </section>
-      </div>
+      <section className="rows">
+        <div className="page-container">
+          <p className="label-line" data-reveal>Race</p>
+          <div className="facts">
+            <h1 className="statement" data-reveal>No upcoming races</h1>
+            <p className="mute" data-reveal>Check back when the new season is announced</p>
+          </div>
+        </div>
+      </section>
     );
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "var(--s3)" }}>
-        <div style={{ display: "flex", gap: "var(--s1)" }}>
-          <span className="countdown-label" data-reveal style={{ "--i": "0" }}>RACE</span>
-          {isRaceWeek && (
-            <span className="countdown-label" data-reveal style={{ "--i": "1" }}>THIS WEEK</span>
-          )}
-        </div>
-        <h1 className="race-title" data-reveal style={{ "--i": "2" }}>{race.raceName}</h1>
-        <p className="countdown-location" data-reveal style={{ "--i": "3", marginTop: "var(--s1)" }}>
-          {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
+    <section className="rows" aria-labelledby="countdown-title">
+      <div className="page-container">
+        <p className="label-line" data-reveal>
+          Race{isRaceWeek && " · This week"}
         </p>
-        <p className="countdown-date" data-reveal style={{ "--i": "4", marginTop: "var(--s1)" }}>
-          {formatRaceDateTime(race.date, race.time, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-        </p>
-        <div
-          className="countdown"
-          role="timer"
-          aria-label={visibleUnits
-            .map((it) => `${it.v} ${it.l === "D" ? "days" : it.l === "H" ? "hours" : it.l === "M" ? "minutes" : "seconds"}`)
-            .join(", ")}
-          style={{ marginTop: "var(--s4)" }}
-        >
-          {visibleUnits.map((it, index) => (
-            <div
-              key={it.l}
-              className="countdown__unit"
-              data-reveal
-              style={{ "--i": 5 + index, "--d": `${Math.min(index, 8) * 60}ms` }}
-            >
-              <span className="countdown__value">{it.v}</span>
-              <span className="countdown__label" aria-hidden="true">{it.l}</span>
-            </div>
-          ))}
+        <div className="facts">
+          <h1 id="countdown-title" className="statement" data-reveal>{race.raceName}</h1>
+          <p className="mute" data-reveal>
+            {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
+          </p>
+          <p className="mute" data-reveal>
+            {formatRaceDateTime(race.date, race.time, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
+          </p>
         </div>
       </div>
-    );
-  }
+      <div
+        className="page-container countdown"
+        role="timer"
+        aria-label={visibleUnits.map((it) => `${it.v} ${it.name}`).join(", ")}
+      >
+        {visibleUnits.map((it) => (
+          <div key={it.l} className="countdown__unit">
+            <span className="countdown__value" data-reveal>{String(it.v).padStart(2, "0")}</span>
+            <span className="countdown__label" aria-hidden="true" data-reveal>{it.l}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}

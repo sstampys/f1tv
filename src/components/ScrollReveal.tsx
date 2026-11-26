@@ -1,121 +1,101 @@
 import { useEffect } from "react";
-import { useLocation } from "@tanstack/react-router";
+import { useRouter } from "@tanstack/react-router";
+import { exitSafetyMs, leaveAll, rearmReveal, startReveal } from "@/lib/reveal";
 
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/**
+ * Mounts the shared reveal engine once and turns every page change into
+ * "fade the current leaves out, then navigate, then reveal the next page".
+ *
+ * The exit hooks the router's history blocker, which @tanstack/history awaits
+ * for PUSH, REPLACE, BACK, FORWARD and GO alike, so links, the router API and
+ * the browser's back/forward buttons all take the same path. A second
+ * navigation that starts while an exit is running is ignored.
+ */
 export function ScrollReveal() {
-  const location = useLocation();
+  const router = useRouter();
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    const stopReveal = startReveal();
 
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const hidden = document.hidden;
+    let leaving = false;
+    let exited = false;
+    let renderedPath = router.state.location.pathname;
 
-    if (reduced || hidden) {
-      // Instant visibility for reduced motion / hidden tabs — no animation.
-      document.documentElement.classList.add("is-still");
-      document.querySelectorAll<HTMLElement>("[data-reveal], .reveal, .rise").forEach((el) => {
-        el.classList.add("is-in");
+    // The next page's heading may only exist once its data has loaded, so
+    // focus moves to it as soon as it appears, unless the user has moved on.
+    let stopFocusWatch = () => {};
+    const focusHeading = () => {
+      stopFocusWatch();
+      const active = document.activeElement;
+      const idle = !active || active === document.body || !!active.closest("nav");
+      const place = () => {
+        const heading = document.querySelector<HTMLElement>("main h1");
+        if (!heading) return false;
+        heading.setAttribute("tabindex", "-1");
+        heading.focus({ preventScroll: true });
+        return true;
+      };
+      if (!idle || place()) return;
+      const watcher = new MutationObserver(() => {
+        if (place()) stopFocusWatch();
       });
-      return;
-    }
-
-    // Measured motion values from officecommun.com.
-    const rootStyle = getComputedStyle(document.documentElement);
-    const parseMs = (value: string, fallback: number) => {
-      const n = parseFloat(value);
-      return Number.isFinite(n) ? n : fallback;
+      watcher.observe(document.body, { childList: true, subtree: true });
+      const stopOnInput = () => stopFocusWatch();
+      document.addEventListener("keydown", stopOnInput, { once: true });
+      document.addEventListener("pointerdown", stopOnInput, { once: true });
+      stopFocusWatch = () => {
+        watcher.disconnect();
+        document.removeEventListener("keydown", stopOnInput);
+        document.removeEventListener("pointerdown", stopOnInput);
+        stopFocusWatch = () => {};
+      };
     };
-    const staggerMs = parseMs(rootStyle.getPropertyValue("--motion-reveal-stagger"), 60);
-    const threshold = parseMs(rootStyle.getPropertyValue("--motion-reveal-threshold"), 0);
-    const rootMargin =
-      rootStyle.getPropertyValue("--motion-reveal-root-margin").trim() || "0px 0px -6% 0px";
 
-    const seen = new WeakSet<Element>();
+    const arrive = () => {
+      const path = router.state.location.pathname;
+      if (!exited && path === renderedPath) return;
+      renderedPath = path;
+      if (exited) rearmReveal();
+      exited = false;
+      focusHeading();
+    };
 
-    // Wait for images inside an element before revealing it (700ms fallback).
-    const waitForImages = (el: HTMLElement): Promise<void> => {
-      return new Promise((resolve) => {
-        const imgs = el.querySelectorAll("img");
-        if (imgs.length === 0) {
-          resolve();
-          return;
+    const unblock = router.history.block({
+      enableBeforeUnload: false,
+      blockerFn: async ({ currentLocation, nextLocation, action }) => {
+        if (reducedMotion() || currentLocation.pathname === nextLocation.pathname) return false;
+        if (leaving) return true;
+        stopFocusWatch();
+        leaving = true;
+        try {
+          await Promise.race([
+            leaveAll(),
+            new Promise<void>((resolve) => window.setTimeout(resolve, exitSafetyMs())),
+          ]);
+          exited = true;
+          if (action === "PUSH" || action === "REPLACE") window.scrollTo(0, 0);
+        } finally {
+          leaving = false;
         }
-        let loaded = 0;
-        const total = imgs.length;
-        const done = () => {
-          loaded += 1;
-          if (loaded === total) resolve();
-        };
-        imgs.forEach((img) => {
-          if (img.complete) {
-            done();
-          } else {
-            img.addEventListener("load", done, { once: true });
-            setTimeout(done, 700);
-          }
-        });
-      });
-    };
-
-    const io = new IntersectionObserver(
-      (entries) => {
-        // Sort intersecting entries by top/left -> reading order
-        // (user requirement: top-left to bottom-right).
-        const visible = entries.filter((e) => e.isIntersecting);
-        visible.sort((a, b) => {
-          const ra = a.boundingClientRect;
-          const rb = b.boundingClientRect;
-          return ra.top - rb.top || ra.left - rb.left;
-        });
-
-        visible.forEach(async (entry, i) => {
-          const el = entry.target as HTMLElement;
-          if (el.classList.contains("is-in")) return;
-          io.unobserve(el);
-
-          await waitForImages(el);
-
-          // Stagger: index * staggerMs, capped at 8 elements (max 480 ms).
-          // Resets per callback batch, never accumulates across scrolls.
-          el.style.setProperty("--d", `${Math.min(i, 8) * staggerMs}ms`);
-          el.classList.add("is-in");
-        });
+        return false;
       },
-      { threshold, rootMargin },
-    );
+    });
 
-    const scan = () => {
-      document.querySelectorAll<HTMLElement>("[data-reveal], .reveal, .rise").forEach((el) => {
-        if (seen.has(el)) return;
-        seen.add(el);
-        io.observe(el);
-      });
-    };
-    scan();
-
-    // Observe dynamically-added reveal targets (async data: standings rows, races, etc.).
-    const mo = new MutationObserver(() => scan());
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    // Fallback: force-reveal elements already in the viewport after layout settles.
-    const fallback = () => {
-      document.querySelectorAll<HTMLElement>("[data-reveal], .reveal, .rise").forEach((el) => {
-        if (el.classList.contains("is-in")) return;
-        const rect = el.getBoundingClientRect();
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-          el.classList.add("is-in");
-          io.unobserve(el);
-        }
-      });
-    };
-    const t = setTimeout(fallback, 1200);
+    const offRendered = router.subscribe("onRendered", arrive);
+    const offResolved = router.subscribe("onResolved", () => {
+      window.requestAnimationFrame(() => window.requestAnimationFrame(arrive));
+    });
 
     return () => {
-      io.disconnect();
-      mo.disconnect();
-      window.clearTimeout(t);
+      stopFocusWatch();
+      offRendered();
+      offResolved();
+      unblock();
+      stopReveal();
     };
-  }, [location.pathname]);
+  }, [router]);
 
   return null;
 }

@@ -1,8 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import {
   getDriverStandings,
   getConstructorStandings,
@@ -11,9 +9,7 @@ import {
   type ConstructorStanding,
   type Constructor
 } from "@/lib/jolpica-api";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Loader2, Trophy, Flag } from "lucide-react";
 
 export const Route = createFileRoute("/standings")({
   head: () => ({
@@ -23,11 +19,11 @@ export const Route = createFileRoute("/standings")({
       { property: "og:title", content: "Driver & Constructor Standings — F1Box" },
       { property: "og:description", content: "Current Formula 1 driver and constructor championship standings." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://www.f1box.org/standings" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "canonical", href: "https://www.f1box.org/standings" },
-      { property: "og:url", content: "https://www.f1box.org/standings" },
     ],
   }),
   component: StandingsPage,
@@ -36,7 +32,7 @@ export const Route = createFileRoute("/standings")({
 function StandingsPage() {
   const { data: seasons } = useQuery({ queryKey: ["seasons"], queryFn: getSeasons, staleTime: 60 * 60 * 1000 });
   const currentSeason = seasons?.[0];
-  return currentSeason ? <div><StandingsSection currentSeason={currentSeason} /></div> : null;
+  return currentSeason ? <StandingsSection currentSeason={currentSeason} /> : <div className="page" />;
 }
 
 export function StandingsSection({ currentSeason }: { currentSeason: string }) {
@@ -54,62 +50,42 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
     queryKey: ["constructorStandings", season], queryFn: () => getConstructorStandings(season), enabled: !!season, staleTime: 30 * 60 * 1000,
   });
 
+  const loading = (driversLoading || constructorsLoading) && !driverStandings && !constructorStandings;
+
   return (
-    <div className="min-h-screen bg-ground">
-      <section id="standings" className="editorial-page">
-        <header className="">
-          <div className="page-container editorial-stack">
-            <div className="editorial-row" style={{ marginBottom: 'var(--s3)' }}>
-              <div className="editorial-row__body">
-                <h1 className="text-ink rise" style={{ "--i": "0" }} data-reveal>
-                  Championship Standings
-                </h1>
-                <p className="lead-text rise" style={{ "--i": "1", marginTop: 'var(--s1)' }} data-reveal>
-                  Formula 1 {season} driver and constructor championship points
-                </p>
-              </div>
-            </div>
+    <div className="page">
+      <section id="standings" className="rows">
+        <div className="page-container head">
+          <h1 data-reveal>Championship Standings</h1>
+          {!seasonsLoading && seasons && (
+            <select
+              className="control"
+              aria-label="Season"
+              value={season}
+              onChange={(event) => setSeason(event.target.value)}
+              data-reveal
+            >
+              {seasons.map((s) => (
+                <option key={s} value={s}>{s} Season</option>
+              ))}
+            </select>
+          )}
+        </div>
 
-            {/* Season Selector */}
-            {!seasonsLoading && seasons && (
-              <div className="editorial-row__label" style={{ paddingTop: 'var(--s1)', textAlign: 'right' }} data-reveal>
-                <Select value={season} onValueChange={setSeason}>
-                  <SelectTrigger className="input-field" style={{ height: 'var(--ctl)' }}>
-                    <SelectValue placeholder="Select season" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-ground border-hair rounded-xl">
-                    {seasons.map((s) => (
-                      <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
-                        {s} Season
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-        </header>
-
-        {(driversLoading || constructorsLoading) && !driverStandings && !constructorStandings ? (
-          <StandingsSkeleton />
-        ) : driversError || constructorsError ? (
-          <ErrorState message="Failed to load standings. Please try again." />
+        {loading ? null : driversError || constructorsError ? (
+          <Notice title="Unable to load standings" message="Failed to load standings. Please try again." retry />
         ) : (
-          <div className="page-container editorial-stack">
-            <Tabs defaultValue="drivers" className="w-full">
-              <TabsList className="editorial-tabs" style={{ "--i": "0", marginBottom: 'var(--s3)' }} data-reveal>
-                <TabsTrigger value="drivers" className="px-6 py-2.5 text-sm font-medium">
-                  Drivers
-                </TabsTrigger>
-                <TabsTrigger value="constructors" className="px-6 py-2.5 text-sm font-medium">
-                  Constructors
-                </TabsTrigger>
+          <div className="page-container">
+            <Tabs defaultValue="drivers">
+              <TabsList className="tabs-list" data-reveal>
+                <TabsTrigger value="drivers">Drivers</TabsTrigger>
+                <TabsTrigger value="constructors">Constructors</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="drivers" className="rise" style={{ "--i": "1" }}>
+              <TabsContent value="drivers">
                 <DriverStandingsTable standings={driverStandings || []} />
               </TabsContent>
-              <TabsContent value="constructors" className="rise" style={{ "--i": "2" }}>
+              <TabsContent value="constructors">
                 <ConstructorStandingsTable standings={constructorStandings || []} />
               </TabsContent>
             </Tabs>
@@ -121,150 +97,79 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 }
 
 function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
-  if (!standings.length) return <EmptyState message="No driver standings available for this season." />;
+  if (!standings.length) return <Notice title="No Data Available" message="No driver standings available for this season." />;
 
   return (
-    <div className="editorial-table editorial-table--drivers">
-      <table className="w-full" role="table">
-        <thead className="bg-wash border-b border-hair">
-          <tr>
-            <th className="px-4 py-4 text-left text-xs font-semibold text-ink-3 uppercase ">Pos</th>
-            <th className="px-4 py-4 text-left text-xs font-semibold text-ink-3 uppercase ">Driver</th>
-            <th className="px-4 py-4 text-left text-xs font-semibold text-ink-3 uppercase ">Team</th>
-            <th className="px-4 py-4 text-right text-xs font-semibold text-ink-3 uppercase ">Points</th>
-            <th className="px-4 py-4 text-right text-xs font-semibold text-ink-3 uppercase ">Wins</th>
-          </tr>
-        </thead>
-        <tbody>
-          {standings.map((standing, index) => (
-            <tr key={standing.Driver.driverId} data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
-              <td className="px-4 py-4 text-sm font-medium text-ink">
-                <span className={getPositionClass(standing.position)}>
-                  {standing.position}
-                </span>
-              </td>
-              <td className="px-4 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="driver-code" aria-hidden="true">
-                    {standing.Driver.code}
-                  </span>
-                  <div>
-                    <p className="font-medium text-ink">
-                      {standing.Driver.givenName} {standing.Driver.familyName}
-                    </p>
-                    <p className="text-xs text-ink-3">{standing.Driver.nationality}</p>
-                  </div>
+    <table className="table">
+      <thead>
+        <tr data-reveal>
+          <th className="col-pos">Pos</th>
+          <th>Driver</th>
+          <th>Team</th>
+          <th className="col-num num">Points</th>
+          <th className="col-num num">Wins</th>
+        </tr>
+      </thead>
+      <tbody>
+        {standings.map((standing) => (
+          <tr key={standing.Driver.driverId} data-reveal>
+            <td>{standing.position}</td>
+            <td>
+              <div className="driver">
+                <span className="driver__code" aria-hidden="true">{standing.Driver.code}</span>
+                <div className="driver__name">
+                  <p>{standing.Driver.givenName} {standing.Driver.familyName}</p>
+                  <p className="mute">{standing.Driver.nationality}</p>
                 </div>
-              </td>
-              <td className="px-4 py-4">
-                <ConstructorBadge constructor={standing.Constructors[0]} />
-              </td>
-              <td className="px-4 py-4 text-right font-sans text-lg font-semibold text-ink">
-                {standing.points}
-              </td>
-              <td className="px-4 py-4 text-right font-sans text-sm text-ink-2">
-                {standing.wins}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </div>
+            </td>
+            <td>{standing.Constructors[0]?.name}</td>
+            <td className="num">{standing.points}</td>
+            <td className="num">{standing.wins}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
 function ConstructorStandingsTable({ standings }: { standings: ConstructorStanding[] }) {
-  if (!standings.length) return <EmptyState message="No constructor standings available for this season." />;
+  if (!standings.length) return <Notice title="No Data Available" message="No constructor standings available for this season." />;
 
   return (
-    <div className="editorial-table editorial-table--constructors">
-      <table className="w-full" role="table">
-        <thead className="bg-wash border-b border-hair">
-          <tr>
-            <th className="px-4 py-4 text-left text-xs font-semibold text-ink-3 uppercase ">Pos</th>
-            <th className="px-4 py-4 text-left text-xs font-semibold text-ink-3 uppercase ">Constructor</th>
-            <th className="px-4 py-4 text-right text-xs font-semibold text-ink-3 uppercase ">Points</th>
-            <th className="px-4 py-4 text-right text-xs font-semibold text-ink-3 uppercase ">Wins</th>
+    <table className="table">
+      <thead>
+        <tr data-reveal>
+          <th className="col-pos">Pos</th>
+          <th>Constructor</th>
+          <th className="col-num num">Points</th>
+          <th className="col-num num">Wins</th>
+        </tr>
+      </thead>
+      <tbody>
+        {standings.map((standing) => (
+          <tr key={standing.Constructor.constructorId} data-reveal>
+            <td>{standing.position}</td>
+            <td>{standing.Constructor.name}</td>
+            <td className="num">{standing.points}</td>
+            <td className="num">{standing.wins}</td>
           </tr>
-        </thead>
-        <tbody>
-          {standings.map((standing, index) => (
-            <tr key={standing.Constructor.constructorId} data-reveal style={{ "--d": `${Math.min(index, 8) * 60}ms` }}>
-              <td className="px-4 py-4 text-sm font-medium text-ink">
-                <span className={getPositionClass(standing.position)}>
-                  {standing.position}
-                </span>
-              </td>
-              <td className="px-4 py-4">
-                <ConstructorBadge constructor={standing.Constructor} size="lg" />
-              </td>
-              <td className="px-4 py-4 text-right font-sans text-lg font-semibold text-ink">
-                {standing.points}
-              </td>
-              <td className="px-4 py-4 text-right font-sans text-sm text-ink-2">
-                {standing.wins}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function ConstructorBadge({ constructor, size = "md" }: { constructor: Constructor; size?: "sm" | "md" | "lg" }) {
-  if (!constructor) return null;
-  const baseClass = "team-badge";
-  return (
-    <span className={baseClass} aria-label={constructor?.name}>
-      {constructor.name}
-    </span>
-  );
-}
-
-function getPositionClass(position: string): string {
-  return Number(position) <= 3 ? "font-medium" : "";
-}
-
-function StandingsSkeleton() {
-  return (
-    <div className="page-container space-y-4">
-      <div className="h-12 bg-wash rounded-xl" />
-      <div className="rounded-xl border border-hair bg-ground overflow-hidden">
-        <div className="bg-wash border-b border-hair px-4 py-3" />
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="border-b border-hair last:border-0 px-4 py-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-wash rounded-lg" />
-              <div className="flex-1 space-y-1">
-                <div className="h-4 w-48 bg-wash rounded" />
-                <div className="h-3 w-32 bg-wash rounded" />
-              </div>
-            </div>
-          </div>
         ))}
-      </div>
-    </div>
+      </tbody>
+    </table>
   );
 }
 
-function ErrorState({ message }: { message: string }) {
+function Notice({ title, message, retry }: { title: string; message: string; retry?: boolean }) {
   return (
-    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
-      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>Unable to load standings</h3>
-      <p className="text-ink-2" style={{ marginBottom: 'var(--s4)' }}>{message}</p>
-      <Button onClick={() => window.location.reload()} className="btn btn--primary">
-        Try Again
-      </Button>
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="page-container text-center" style={{ paddingTop: 'var(--s15)', paddingBottom: 'var(--s15)' }}>
-      <h3 className="text-lg font-medium text-ink" style={{ marginBottom: 'var(--s2)' }}>No Data Available</h3>
-      <p className="text-ink-2">{message}</p>
+    <div className="page-container stack-tight">
+      <p data-reveal>{title}</p>
+      <p className="mute" data-reveal>{message}</p>
+      {retry && (
+        <p data-reveal>
+          <button type="button" className="control" onClick={() => window.location.reload()}>Try Again</button>
+        </p>
+      )}
     </div>
   );
 }

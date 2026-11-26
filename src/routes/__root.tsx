@@ -15,22 +15,17 @@ import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ground" style={{ padding: '0 var(--edge)' }}>
-      <div className="max-w-md text-center" style={{ width: 'var(--page-w)', margin: '0 auto' }}>
-        <h1 className="text-7xl font-bold text-ink">404</h1>
-        <h2 className="text-xl font-semibold text-ink" style={{ marginTop: 'var(--s4)' }}>Page not found</h2>
-        <p className="text-sm text-ink-3" style={{ marginTop: 'var(--s2)' }}>
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div style={{ marginTop: 'var(--s6)' }}>
-          <Link
-            to="/"
-            className="btn btn--primary"
-          >
-            Go home
-          </Link>
+    <div className="page">
+      <section className="rows">
+        <div className="page-container stack-tight">
+          <h1 data-reveal>404</h1>
+          <p className="mute" data-reveal>Page not found</p>
+          <p className="mute" data-reveal>The page you're looking for doesn't exist or has been moved.</p>
         </div>
-      </div>
+        <div className="page-container">
+          <Link to="/" className="link" data-reveal>Go home</Link>
+        </div>
+      </section>
     </div>
   );
 }
@@ -42,29 +37,29 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-ground" style={{ padding: '0 var(--edge)' }}>
-      <div className="max-w-md text-center" style={{ width: 'var(--page-w)', margin: '0 auto' }}>
-        <h1 className="text-xl font-semibold tracking-tight text-ink">
-          This page didn't load
-        </h1>
-        <p className="text-sm text-ink-3" style={{ marginTop: 'var(--s2)' }}>
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
-        <div style={{ marginTop: 'var(--s6)', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 'var(--s2)' }}>
+    <div className="page">
+      <section className="rows">
+        <div className="page-container stack-tight">
+          <h1 data-reveal>This page didn't load</h1>
+          <p className="mute" data-reveal>
+            Something went wrong on our end. You can try refreshing or head back home.
+          </p>
+        </div>
+        <div className="page-container head" style={{ justifyContent: "flex-start", columnGap: "var(--s3)" }}>
           <button
+            type="button"
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="btn btn--primary"
+            className="control"
+            data-reveal
           >
             Try again
           </button>
-          <Link to="/" className="btn btn--secondary">
-            Go home
-          </Link>
+          <Link to="/" className="link" data-reveal>Go home</Link>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
@@ -85,14 +80,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:title", content: "F1Box — Formula 1 Live Timing & Streams" },
       { name: "twitter:description", content: "Live Formula 1 countdown, standings, schedule, and race results." },
     ],
+    scripts: [
+      {
+        children: `(function(){try{var h=document.documentElement;if(!sessionStorage.getItem('f1box-nav-seen')){h.classList.add('first-visit');sessionStorage.setItem('f1box-nav-seen','1')}}catch(e){}})();`,
+      },
+    ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
-      { rel: "canonical", href: "https://www.f1box.org/", suppressHydrationWarning: true },
-      { property: "og:url", content: "https://www.f1box.org/", suppressHydrationWarning: true },
     ],
   }),
   shellComponent: RootShell,
@@ -103,16 +101,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full" suppressHydrationWarning>
       <head>
         <HeadContent />
         <noscript>
           <style>{`
-            [data-reveal],
-            .reveal,
-            .rise {
-              opacity: 1 !important;
-              transform: none !important;
+            html [data-reveal]:not([data-in]) {
+              opacity: 1;
+              translate: none;
             }
           `}</style>
         </noscript>
@@ -136,22 +132,22 @@ function RootComponent() {
         <Outlet />
       </main>
       <footer className="site-footer">
-        <div className="page-container editorial-stack">
+        <div className="page-container stack-tight">
           <p data-reveal>Built with TanStack Start & Tailwind CSS</p>
           <p data-reveal>
             Formula 1 data is sourced from the{' '}
-            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
+            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
               Jolpica-F1 API
             </a>{' '}
             (Ergast successor)
           </p>
           <p data-reveal>
             Formula 1 race data is sourced from the{' '}
-            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
+            <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
               Jolpica-F1 API
             </a>{' '}
             and live stream links are aggregated from{' '}
-            <a href="https://ppv.st" target="_blank" rel="noopener noreferrer" data-reveal>ppv.st</a>. No media is stored on our servers.
+            <a href="https://ppv.st" target="_blank" rel="noopener noreferrer">ppv.st</a>. No media is stored on our servers.
           </p>
         </div>
       </footer>
