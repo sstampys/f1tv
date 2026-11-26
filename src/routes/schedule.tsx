@@ -7,7 +7,6 @@ import {
   getNextRace,
   getSeasons,
   formatRaceDateTime,
-  getTimeUntilRace,
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
@@ -50,16 +49,6 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
     queryKey: ["nextRace", season], queryFn: () => getNextRace(season), enabled: !!season, staleTime: 60 * 60 * 1000,
   });
 
-  const [countdown, setCountdown] = useState<ReturnType<typeof getTimeUntilRace> | null>(null);
-
-  useEffect(() => {
-    if (!nextRace) return;
-    const update = () => setCountdown(getTimeUntilRace(nextRace.date, nextRace.time));
-    update();
-    const interval = setInterval(update, 1000);
-    return () => clearInterval(interval);
-  }, [nextRace]);
-
   return (
     <div className="min-h-screen bg-ground">
 
@@ -67,10 +56,10 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
         <header className="">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
             <div>
-              <h1 className="text-ink  rise" style={{ "--i": "0" }}>
+              <h1 className="text-ink  rise" style={{ "--i": "0" }} data-reveal>
                 Race Schedule
               </h1>
-              <p className="lead-text mt-2 rise" style={{ "--i": "1" }}>
+              <p className="lead-text mt-2 rise" style={{ "--i": "1" }} data-reveal>
                 Formula 1 {season} calendar
               </p>
             </div>
@@ -91,11 +80,6 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
             )}
           </div>
 
-          {/* Next Race Highlight */}
-          {nextRace && countdown && !countdown.isPast && (
-            <NextRaceCard race={nextRace} countdown={countdown} />
-          )}
-
         </header>
 
         {(scheduleLoading && !schedule) ? (
@@ -112,77 +96,35 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
   );
 }
 
-function NextRaceCard({ race, countdown }: { race: Race; countdown: ReturnType<typeof getTimeUntilRace> }) {
-  const daysLeft = countdown.days;
-  const isThisWeek = daysLeft <= 7;
-
-  return (
-    <div className="next-race" style={{ "--i": "3" }}>
-      <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-10">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="tag bg-soft border-hair text-player-text text-xs">NEXT RACE</span>
-            {isThisWeek && (
-              <span className="tag text-ink-2 text-xs">THIS WEEK</span>
-            )}
-          </div>
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-2">{race.raceName}</h2>
-          <p className="text-ink-2 text-sm md:text-base mb-4">
-            {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
-          </p>
-          <p className="text-ink-2 text-sm md:text-base flex items-center gap-1">
-            {formatRaceDateTime(race.date, race.time, { weekday: "long", month: "long", day: "numeric" })}
-          </p>
-        </div>
-
-        <div className="flex flex-col items-center md:items-end gap-4 md:gap-6">
-          <div className="text-center">
-            <p className="text-ink-2 text-xs uppercase  mb-1">COUNTDOWN</p>
-            <div className="flex items-center justify-center gap-2 md:gap-3 font-sans">
-              <CountdownUnit value={countdown.days} label="D" />
-              <CountdownUnit value={countdown.hours} label="H" />
-              <CountdownUnit value={countdown.minutes} label="M" />
-              <CountdownUnit value={countdown.seconds} label="S" />
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function CountdownUnit({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="flex flex-col items-center min-w-[2.5rem] md:min-w-[3rem]">
-      <span className="text-2xl md:text-3xl lg:text-4xl font-bold tabular-nums">
-        {String(value).padStart(2, "0")}
-      </span>
-      <span className="text-xs text-ink-2 uppercase ">{label}</span>
-    </div>
-  );
-}
-
 function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | null }) {
   const nextRaceRound = nextRace?.round;
   const [showPast, setShowPast] = useState(false);
 
-  // Sort races from newest to oldest (highest round first)
-  const sortedRaces = useMemo(() => {
-    return [...races].sort((a, b) => parseInt(b.round, 10) - parseInt(a.round, 10));
+  // Sort races by date (closest to farthest)
+  const sortByDate = (a: Race, b: Race) => {
+    const da = new Date(`${a.date}T${a.time || '00:00:00'}`);
+    const db = new Date(`${b.date}T${b.time || '00:00:00'}`);
+    return da.getTime() - db.getTime();
+  };
+
+  const upcomingRaces = useMemo(() => {
+    return [...races]
+      .filter(race => !isRaceCompleted(race.date, race.time))
+      .sort(sortByDate);
   }, [races]);
 
-  // Split into upcoming/current and past
-  const upcomingRaces = useMemo(() => {
-    return sortedRaces.filter(race => !isRaceCompleted(race.date, race.time));
-  }, [sortedRaces]);
-
   const pastRaces = useMemo(() => {
-    return sortedRaces.filter(race => isRaceCompleted(race.date, race.time));
-  }, [sortedRaces]);
+    return [...races]
+      .filter(race => isRaceCompleted(race.date, race.time))
+      .sort((a, b) => {
+        const da = new Date(`${a.date}T${a.time || '00:00:00'}`);
+        const db = new Date(`${b.date}T${b.time || '00:00:00'}`);
+        return db.getTime() - da.getTime();
+      });
+  }, [races]);
 
   return (
-    <div className="space-y-3 md:space-y-4 rise" style={{ "--i": "4" }}>
+    <div className="space-y-3 md:space-y-4">
       {/* Upcoming / Current Races (shown by default) */}
       {upcomingRaces.map((race, index) => {
         const isNext = race.round === nextRaceRound;
@@ -209,6 +151,7 @@ function RaceCalendar({ races, nextRace }: { races: Race[]; nextRace: Race | nul
             className="btn btn-text gap-2"
             aria-expanded={showPast}
             aria-controls="past-races"
+            data-reveal
           >
             {showPast ? (
               <>
@@ -258,6 +201,7 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
     <div
       className="race-entry"
       style={{ "--i": String(index % 10) }}
+      data-reveal
     >
       <div className="p-4 md:p-6 lg:p-7">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
@@ -270,18 +214,18 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-ink text-lg md:text-xl">{race.raceName}</h3>
+                <h3 className="font-semibold text-ink text-lg md:text-xl" data-reveal>{race.raceName}</h3>
                 {isCurrent && (
-                  <span className="tag bg-ink text-player-text text-xs animate-pulse">LIVE WEEKEND</span>
+                  <span className="tag bg-ink text-player-text text-xs animate-pulse" data-reveal>THIS WEEKEND</span>
                 )}
                 {isNext && !isCurrent && (
-                  <span className="tag bg-pill border-hair text-ink text-xs">NEXT</span>
+                  <span className="tag bg-pill border-hair text-ink text-xs" data-reveal>NEXT</span>
                 )}
                 {isCompleted && (
-                  <span className="tag text-ink-2 text-xs">COMPLETED</span>
+                  <span className="tag text-ink-2 text-xs" data-reveal>COMPLETED</span>
                 )}
               </div>
-              <p className="text-ink-2 text-sm md:text-base">
+              <p className="text-ink-2 text-sm md:text-base" data-reveal>
                 {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
               </p>
             </div>
@@ -289,7 +233,7 @@ function RaceCard({ race, index, isNext, isCompleted, isCurrent }: {
 
           {/* Race Date */}
           <div className="text-right md:text-left flex-shrink-0">
-            <p className="race-date">
+            <p className="race-date" data-reveal>
               {formatRaceDateTime(race.date, race.time, { weekday: "short", month: "short", day: "numeric" })}
             </p>
           </div>

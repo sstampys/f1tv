@@ -236,8 +236,8 @@ function DemoRoute() {
       
       <main className="editorial-page">
         <header className="">
-          <h1 className="text-ink ">Demo Stream</h1>
-          <p className="lead-text mt-2">Test the stream player with sample content</p>
+          <h1 className="text-ink " data-reveal>Demo Stream</h1>
+          <p className="lead-text mt-2" data-reveal>Test the stream player with sample content</p>
         </header>
 
         {!loading && !iframeSrc ? (
@@ -247,7 +247,7 @@ function DemoRoute() {
         ) : null}
 
         {iframeSrc ? (
-          <div className="stream-player">
+          <div className="stream-player" data-reveal>
             <video
               key={iframeSrc}
               className="absolute inset-0 w-full h-full object-contain"

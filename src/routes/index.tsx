@@ -268,12 +268,12 @@ function Index() {
             {/* Stream Header */}
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-2">
-                <span className="tag text-sm">LIVE STREAM</span>
-                {demo && <span className="tag bg-pill border-hair text-ink text-xs">DEMO</span>}
+                <span className="tag text-sm" data-reveal>LIVE STREAM</span>
+                {demo && <span className="tag bg-pill border-hair text-ink text-xs" data-reveal>DEMO</span>}
               </div>
-              <h1 className="text-2xl md:text-3xl font-semibold text-ink">{currentSource?.label || "F1 Stream"}</h1>
+              <h1 className="text-2xl md:text-3xl font-semibold text-ink" data-reveal>{currentSource?.label || "F1 Stream"}</h1>
               {currentSource?.language && (
-                <p className="text-ink-2 text-sm mt-1 flex items-center gap-1">
+                <p className="text-ink-2 text-sm mt-1 flex items-center gap-1" data-reveal>
                   <span className="text-lg">{currentSource.language.flag}</span>
                   {currentSource.language.name}
                 </p>
@@ -281,7 +281,7 @@ function Index() {
             </div>
 
             {/* Embedded Video Player */}
-            <div className="stream-player">
+            <div className="stream-player" data-reveal>
               {demo === "sample" ? (
                 <video
                   key={iframeSrc}
@@ -409,13 +409,13 @@ function Index() {
 
             {/* Quick links below stream */}
             <div className="stream-links">
-              <a href="/standings" className="">
+              <a href="/standings" className="" data-reveal>
                 Driver Standings
               </a>
-              <a href="/schedule" className="">
+              <a href="/schedule" className="" data-reveal>
                 Race Schedule
               </a>
-              <a href="/results" className="">
+              <a href="/results" className="" data-reveal>
                 Race Results
               </a>
             </div>

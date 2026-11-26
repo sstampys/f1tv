@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navigation } from "@/components/Navigation";
+import { ScrollReveal } from "@/components/ScrollReveal";
 
 function NotFoundComponent() {
   return (
@@ -119,25 +120,26 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Navigation />
+      <ScrollReveal />
       <main className="flex-1">
         <Outlet />
       </main>
       <footer className="quiet-footer">
-        <p>Built with TanStack Start &amp; Tailwind CSS</p>
-        <p>
+        <p data-reveal>Built with TanStack Start &amp; Tailwind CSS</p>
+        <p data-reveal>
           Formula 1 data is sourced from the{' '}
-          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
+          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
             Jolpica-F1 API
           </a>{' '}
           (Ergast successor)
         </p>
-        <p>
+        <p data-reveal>
           Formula 1 race data is sourced from the{' '}
-          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer">
+          <a href="https://api.jolpi.ca/ergast/f1/" target="_blank" rel="noopener noreferrer" data-reveal>
             Jolpica-F1 API
           </a>{' '}
           and live stream links are aggregated from{' '}
-          <a href="https://ppv.st" target="_blank" rel="noopener noreferrer">ppv.st</a>. No media is stored on our servers.
+          <a href="https://ppv.st" target="_blank" rel="noopener noreferrer" data-reveal>ppv.st</a>. No media is stored on our servers.
         </p>
       </footer>
     </QueryClientProvider>

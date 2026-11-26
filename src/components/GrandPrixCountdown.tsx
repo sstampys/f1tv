@@ -63,7 +63,7 @@ export function GrandPrixCountdown() {
     return (
       <div className="page">
         <section className="hero">
-          <p className="lead flex items-center gap-2">
+          <p className="lead flex items-center gap-2" data-reveal>
             <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             Loading next race…
           </p>
@@ -76,9 +76,9 @@ export function GrandPrixCountdown() {
     return (
       <div className="page">
         <section className="hero">
-          <span className="tag rise" style={{ "--i": "0" }}>RACE</span>
-          <h1 className="race-title mt-4 rise" style={{ "--i": "1" }}>No upcoming races</h1>
-          <p className="lead mt-2 rise" style={{ "--i": "2" }}>Check back when the new season is announced</p>
+          <span className="tag rise" data-reveal>RACE</span>
+          <h1 className="race-title mt-4 rise" data-reveal>No upcoming races</h1>
+          <p className="lead mt-2 rise" data-reveal>Check back when the new season is announced</p>
         </section>
       </div>
     );
@@ -87,22 +87,22 @@ export function GrandPrixCountdown() {
   return (
     <div className="page">
       <section className="hero">
-        <div className="flex items-center gap-2 mb-4 rise" style={{ "--i": "0" }}>
+        <div className="flex items-center gap-2 mb-4 rise" style={{ "--i": "0" }} data-reveal>
           <span className="tag">RACE</span>
           {isRaceWeek && <span className="tag">THIS WEEK</span>}
         </div>
-        <h1 className="race-title rise" style={{ "--i": "1" }}>{race.raceName}</h1>
-        <p className="lead rise" style={{ "--i": "2" }}>
+        <h1 className="race-title rise" style={{ "--i": "1" }} data-reveal>{race.raceName}</h1>
+        <p className="lead rise" style={{ "--i": "2" }} data-reveal>
           <MapPin className="ic" aria-hidden="true" />
           {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
         </p>
-        <p className="fine rise" style={{ "--i": "3" }}>
+        <p className="fine rise" style={{ "--i": "3" }} data-reveal>
           {formatRaceDateTime(race.date, race.time, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         </p>
       </section>
 
       <section className="stage" aria-label="Countdown to the next race">
-        <div className="stage__panel">
+        <div className="stage__panel" data-reveal>
           <div
             className="countdown"
             role="timer"

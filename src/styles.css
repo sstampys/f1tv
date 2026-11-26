@@ -236,8 +236,57 @@
   text-transform: none;
 }
 
-.rise { opacity: 0; transform: translateY(14px); animation: rise .9s var(--settle) forwards; animation-delay: calc(var(--i, 0) * 80ms + 60ms); }
-@keyframes rise { to { opacity: 1; transform: none; } }
+/* Scroll reveal — officecommun.com motion tokens */
+:root {
+  --motion-reveal-duration: .7s;
+  --motion-reveal-ease: cubic-bezier(.22, 1, .36, 1);
+  --motion-reveal-distance: 12px;
+  --motion-reveal-opacity-from: 0;
+  --motion-reveal-delay: 50ms;
+  --motion-reveal-stagger: 150ms;
+  --motion-reveal-threshold: 0.08;
+  --motion-reveal-root-margin: 0px 0px -6% 0px;
+}
+
+.reveal,
+.rise {
+  opacity: var(--motion-reveal-opacity-from);
+  transform: translateY(var(--motion-reveal-distance));
+  transition:
+    opacity var(--motion-reveal-duration) var(--motion-reveal-ease),
+    transform var(--motion-reveal-duration) var(--motion-reveal-ease);
+  transition-delay: var(--d, 0ms);
+  will-change: opacity, transform;
+}
+.reveal.is-in,
+.rise.is-in {
+  opacity: 1;
+  transform: none;
+  will-change: auto;
+}
+
+/* Focusable elements must never be invisible */
+.reveal[href]:focus,
+.reveal[href]:focus-visible,
+.rise[href]:focus,
+.rise[href]:focus-visible,
+.reveal button:focus,
+.reveal button:focus-visible,
+.rise button:focus,
+.rise button:focus-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Reduced motion — match officecommun.com */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .rise {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
 
 .stage { padding: 0 var(--edge); }
 .stage__panel {
@@ -245,11 +294,6 @@
   border-radius: var(--radius);
   padding: clamp(16px, 3vw, 32px) clamp(12px, 3vw, 40px);
   overflow: hidden;
-  animation: settle 1.1s var(--settle) .35s both;
-}
-@keyframes settle {
-  0% { opacity: 0; transform: translateY(24px) scale(.985); }
-  to { opacity: 1; transform: none; }
 }
 
 /* Countdown */
@@ -449,7 +493,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .rise, .stage__panel { animation: none; opacity: 1; transform: none; }
+  .stage__panel { animation: none; }
   *, *::before, *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
 }
 

@@ -59,28 +59,30 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
         <header className="">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-10">
             <div>
-              <h1 className="text-ink  rise" style={{ "--i": "0" }}>
+              <h1 className="text-ink  rise" style={{ "--i": "0" }} data-reveal>
                 Championship Standings
               </h1>
-              <p className="lead-text mt-2 rise" style={{ "--i": "1" }}>
+              <p className="lead-text mt-2 rise" style={{ "--i": "1" }} data-reveal>
                 Formula 1 {season} driver and constructor championship points
               </p>
             </div>
 
             {/* Season Selector */}
             {!seasonsLoading && seasons && (
-              <Select value={season} onValueChange={setSeason}>
-                <SelectTrigger className="input-field h-11">
-                  <SelectValue placeholder="Select season" />
-                </SelectTrigger>
-                <SelectContent className="bg-ground border-hair rounded-xl">
-                  {seasons.map((s) => (
-                    <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
-                      {s} Season
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div data-reveal>
+                <Select value={season} onValueChange={setSeason}>
+                  <SelectTrigger className="input-field h-11">
+                    <SelectValue placeholder="Select season" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-ground border-hair rounded-xl">
+                    {seasons.map((s) => (
+                      <SelectItem key={s} value={s} className="px-4 py-2 text-sm hover:bg-wash focus:bg-wash">
+                        {s} Season
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
         </header>
@@ -91,7 +93,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
           <ErrorState message="Failed to load standings. Please try again." />
         ) : (
           <Tabs defaultValue="drivers" className="w-full">
-            <TabsList className="editorial-tabs mb-8" style={{ "--i": "0" }}>
+            <TabsList className="editorial-tabs mb-8" style={{ "--i": "0" }} data-reveal>
               <TabsTrigger value="drivers" className="px-6 py-2.5 text-sm font-medium">
                 Drivers
               </TabsTrigger>
@@ -130,7 +132,7 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
         </thead>
         <tbody className="divide-y divide-hair">
           {standings.map((standing, index) => (
-            <tr key={standing.Driver.driverId} className="hover:bg-wash/50 transition-colors">
+            <tr key={standing.Driver.driverId} className="hover:bg-wash/50 transition-colors" data-reveal>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}
@@ -184,7 +186,7 @@ function ConstructorStandingsTable({ standings }: { standings: ConstructorStandi
         </thead>
         <tbody className="divide-y divide-hair">
           {standings.map((standing) => (
-            <tr key={standing.Constructor.constructorId} className="hover:bg-wash/50 transition-colors">
+            <tr key={standing.Constructor.constructorId} className="hover:bg-wash/50 transition-colors" data-reveal>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}
