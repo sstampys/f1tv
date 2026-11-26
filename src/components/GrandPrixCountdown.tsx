@@ -70,11 +70,8 @@ export function GrandPrixCountdown() {
   }, []);
 
   if (loading) {
-    return (
-      <section className="rows">
-        <p className="page-container mute">Loading next race…</p>
-      </section>
-    );
+    // Keep the page frame while the next race is fetched, but show nothing.
+    return <section className="rows" />;
   }
 
   if (!race) {
