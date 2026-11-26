@@ -132,7 +132,7 @@ function DriverStandingsTable({ standings }: { standings: DriverStanding[] }) {
         </thead>
         <tbody className="divide-y divide-hair">
           {standings.map((standing, index) => (
-            <tr key={standing.Driver.driverId} className="hover:bg-wash/50 transition-colors" data-reveal>
+            <tr key={standing.Driver.driverId} className="hover:bg-wash/50" data-reveal>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}
@@ -186,7 +186,7 @@ function ConstructorStandingsTable({ standings }: { standings: ConstructorStandi
         </thead>
         <tbody className="divide-y divide-hair">
           {standings.map((standing) => (
-            <tr key={standing.Constructor.constructorId} className="hover:bg-wash/50 transition-colors" data-reveal>
+            <tr key={standing.Constructor.constructorId} className="hover:bg-wash/50" data-reveal>
               <td className="px-4 py-4 text-sm font-medium text-ink">
                 <span className={getPositionClass(standing.position)}>
                   {standing.position}
@@ -226,16 +226,16 @@ function getPositionClass(position: string): string {
 function StandingsSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="h-12 bg-wash rounded-xl animate-pulse" />
+      <div className="h-12 bg-wash rounded-xl" />
       <div className="rounded-xl border border-hair bg-ground overflow-hidden">
         <div className="bg-wash border-b border-hair px-4 py-3" />
         {[...Array(8)].map((_, i) => (
           <div key={i} className="border-b border-hair last:border-0 px-4 py-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-wash rounded-lg animate-pulse" />
+              <div className="w-8 h-8 bg-wash rounded-lg" />
               <div className="flex-1 space-y-1">
-                <div className="h-4 w-48 bg-wash rounded animate-pulse" />
-                <div className="h-3 w-32 bg-wash rounded animate-pulse" />
+                <div className="h-4 w-48 bg-wash rounded" />
+                <div className="h-3 w-32 bg-wash rounded" />
               </div>
             </div>
           </div>

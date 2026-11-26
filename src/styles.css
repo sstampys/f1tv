@@ -1,5 +1,4 @@
 @import "tailwindcss" source(none);
-@import "tw-animate-css";
 @import "@fontsource-variable/inter";
 @source "../src";
 @custom-variant dark (&:is(.dark *));
@@ -238,16 +237,18 @@
 
 /* Scroll reveal — officecommun.com motion tokens */
 :root {
+  /* Motion tokens — measured from officecommun.com (DevTools Animations panel) */
   --motion-reveal-duration: .7s;
   --motion-reveal-ease: cubic-bezier(.22, 1, .36, 1);
   --motion-reveal-distance: 12px;
   --motion-reveal-opacity-from: 0;
-  --motion-reveal-delay: 50ms;
-  --motion-reveal-stagger: 150ms;
-  --motion-reveal-threshold: 0.08;
+  --motion-reveal-stagger: 60ms;      /* step per element, capped at 8 elements (max 480ms) */
+  --motion-reveal-threshold: 0;       /* default threshold (no explicit threshold in reference) */
   --motion-reveal-root-margin: 0px 0px -6% 0px;
 }
 
+/* Initial hidden state for all reveal targets (match officecommun.com .reveal in HTML) */
+[data-reveal],
 .reveal,
 .rise {
   opacity: var(--motion-reveal-opacity-from);
@@ -258,6 +259,7 @@
   transition-delay: var(--d, 0ms);
   will-change: opacity, transform;
 }
+[data-reveal].is-in,
 .reveal.is-in,
 .rise.is-in {
   opacity: 1;
@@ -278,8 +280,26 @@
   transform: none;
 }
 
-/* Reduced motion — match officecommun.com */
+/* Prevent conflicting transitions on reveal targets (site-nav links, table rows, race entries) */
+.site-nav a[data-reveal],
+.editorial-table tbody tr[data-reveal],
+.race-entry[data-reveal] {
+  transition: 
+    opacity var(--motion-reveal-duration) var(--motion-reveal-ease),
+    transform var(--motion-reveal-duration) var(--motion-reveal-ease);
+  transition-delay: var(--d, 0ms);
+}
+.site-nav a[data-reveal].is-in,
+.editorial-table tbody tr[data-reveal].is-in,
+.race-entry[data-reveal].is-in {
+  transition: 
+    opacity var(--motion-reveal-duration) var(--motion-reveal-ease),
+    transform var(--motion-reveal-duration) var(--motion-reveal-ease);
+}
+
+/* Reduced motion — match officecommun.com (instant visibility, no animation) */
 @media (prefers-reduced-motion: reduce) {
+  [data-reveal],
   .reveal,
   .rise {
     opacity: 1;
@@ -414,6 +434,13 @@
   white-space: nowrap;
   cursor: pointer;
   transition: transform .25s var(--glide), background .15s, box-shadow .25s var(--glide);
+}
+
+.btn[data-reveal] {
+  transition: 
+    opacity var(--motion-reveal-duration) var(--motion-reveal-ease),
+    transform var(--motion-reveal-duration) var(--motion-reveal-ease);
+  transition-delay: var(--d, 0ms);
 }
 .btn:active { transform: scale(.98); }
 .btn-ink { background: var(--ink); color: var(--player-text); }

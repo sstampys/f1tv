@@ -3,53 +3,95 @@ import { useEffect } from "react";
 export function ScrollReveal() {
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const hidden = document.hidden;
+
+    if (reduced || hidden) {
+      // Immediately show every reveal target (match officecommun for
+      // reduced motion and hidden tabs).
+      document.documentElement.classList.add("is-still");
+      document.querySelectorAll("[data-reveal]").forEach((el) => {
+        el.classList.add("is-in");
+      });
+      return;
+    }
+
+    // Measured motion values from officecommun.com (DevTools / computed styles).
     const rootStyle = getComputedStyle(document.documentElement);
     const parseMs = (value: string, fallback: number) => {
       const n = parseFloat(value);
       return Number.isFinite(n) ? n : fallback;
     };
-
-    const staggerMs = parseMs(rootStyle.getPropertyValue("--motion-reveal-stagger"), 150);
-    const delayMs = parseMs(rootStyle.getPropertyValue("--motion-reveal-delay"), 50);
-    const threshold = (() => {
-      const n = parseFloat(rootStyle.getPropertyValue("--motion-reveal-threshold"));
-      return Number.isFinite(n) ? n : 0.08;
-    })();
+    const staggerMs = parseMs(
+      rootStyle.getPropertyValue("--motion-reveal-stagger"),
+      60,
+    );
+    const threshold = parseMs(
+      rootStyle.getPropertyValue("--motion-reveal-threshold"),
+      0,
+    );
     const rootMargin =
-      rootStyle.getPropertyValue("--motion-reveal-root-margin").trim() || "0px 0px -6% 0px";
+      rootStyle.getPropertyValue("--motion-reveal-root-margin").trim() ||
+      "0px 0px -6% 0px";
 
     const seen = new WeakSet<Element>();
+
+    // Wait for images inside an element to settle before revealing it,
+    // matching the reference (700 ms timeout fallback).
+    const waitForImages = (el: HTMLElement): Promise<void> => {
+      return new Promise((resolve) => {
+        const imgs = el.querySelectorAll("img");
+        if (imgs.length === 0) {
+          resolve();
+          return;
+        }
+        let loaded = 0;
+        const total = imgs.length;
+        const done = () => {
+          loaded += 1;
+          if (loaded === total) resolve();
+        };
+        imgs.forEach((img) => {
+          if (img.complete) {
+            done();
+          } else {
+            img.addEventListener("load", done, { once: true });
+            setTimeout(done, 700);
+          }
+        });
+      });
+    };
+
     const io = new IntersectionObserver(
       (entries) => {
+        // Sort intersecting entries by top/left -> reading order
+        // (user requirement: top-left to bottom-right).
         const visible = entries.filter((e) => e.isIntersecting);
         visible.sort((a, b) => {
           const ra = a.boundingClientRect;
           const rb = b.boundingClientRect;
           return ra.top - rb.top || ra.left - rb.left;
         });
-        visible.forEach((entry, i) => {
+
+        visible.forEach(async (entry, i) => {
           const el = entry.target as HTMLElement;
-          el.style.setProperty("--d", `${delayMs + i * staggerMs}ms`);
-          el.classList.add("is-in");
+          if (el.classList.contains("is-in")) return;
           io.unobserve(el);
+
+          await waitForImages(el);
+
+          // Stagger: index * staggerMs, capped at 8 elements (max 480 ms).
+          // Resets per callback batch, never accumulates across scrolls.
+          el.style.setProperty("--d", `${Math.min(i, 8) * staggerMs}ms`);
+          el.classList.add("is-in");
         });
       },
-      { threshold, rootMargin }
+      { threshold, rootMargin },
     );
 
     const scan = () => {
       document.querySelectorAll("[data-reveal]").forEach((el) => {
-        if (seen.has(el)) return;
-        seen.add(el);
-        if (!el.classList.contains("rise") && !el.classList.contains("reveal")) {
-          el.classList.add("reveal");
-        }
-        io.observe(el);
-      });
-      // Also observe existing .rise elements that don't have data-reveal
-      document.querySelectorAll(".rise:not([data-reveal])").forEach((el) => {
         if (seen.has(el)) return;
         seen.add(el);
         io.observe(el);
@@ -57,14 +99,32 @@ export function ScrollReveal() {
     };
 
     scan();
-    const mo = new MutationObserver(() => scan());
+
+    // Observe dynamically-added reveal targets (async data: standings rows,
+    // schedule races, countdown panel after fetch). Matches reference behavior
+    // where elements are revealed once on mount and never re-animated.
+    const mo = new MutationObserver(() => {
+      scan();
+    });
     mo.observe(document.body, { childList: true, subtree: true });
+
+    // Fallback: force-reveal elements already in the viewport after layout settles
+    const fallback = () => {
+      document.querySelectorAll("[data-reveal]").forEach((el) => {
+        if (el.classList.contains("is-in")) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          el.classList.add("is-in");
+          io.unobserve(el);
+        }
+      });
+    };
+    setTimeout(fallback, 1200);
 
     return () => {
       io.disconnect();
       mo.disconnect();
     };
   }, []);
-
   return null;
 }
