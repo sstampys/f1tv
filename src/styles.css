@@ -802,7 +802,7 @@
   width: auto;
 }
 .results-table .col-num {
-  width: 3rem;
+  width: 4rem; /* increased from 3rem to give more breathing room before Time */
 }
 .results-table .col-time {
   width: 5.75rem;
@@ -812,7 +812,7 @@
     width: 2rem;
   }
   .results-table .col-num {
-    width: 3rem;
+    width: 4rem;
   }
   .results-table .col-time {
     width: 5.75rem;
