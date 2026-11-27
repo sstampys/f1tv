@@ -7,14 +7,14 @@ import {
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
-import { useState, useMemo, useRef, useLayoutEffect, Component, type ReactNode } from "react";
+import { useState, useMemo, useRef, Component, type ReactNode } from "react";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { SystemSelect } from "@/components/ui/system-select";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import { fadeOutList, revealNow } from "@/lib/reveal";
+import { fadeOutList } from "@/lib/reveal";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -145,10 +145,15 @@ function RaceCalendar({
   const [showPast, setShowPast] = useState(false);
   const pastRef = useRef<HTMLDivElement>(null);
 
-  // The list appears the instant the control is pressed: no fade, no stagger.
-  useLayoutEffect(() => {
-    if (showPast) revealNow(pastRef.current);
-  }, [showPast]);
+  // Expanding reveals the rows with the normal fade; collapsing fades them out
+  // first, so the list leaves the way a page does.
+  const togglePast = () => {
+    if (!showPast) {
+      setShowPast(true);
+      return;
+    }
+    void fadeOutList(pastRef.current).then(() => setShowPast(false));
+  };
 
   const upcomingRaces = useMemo(
     () => [...races].filter((race) => !isRaceCompleted(race.date, race.time)).sort(byDate),
@@ -185,7 +190,7 @@ function RaceCalendar({
           <button
             type="button"
             className="control"
-            onClick={() => setShowPast(!showPast)}
+            onClick={togglePast}
             aria-expanded={showPast}
             aria-controls="past-races"
             data-reveal

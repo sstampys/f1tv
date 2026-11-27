@@ -377,12 +377,6 @@ export function startReveal(): () => void {
   return engine.stop;
 }
 
-/** Show the leaves inside `root` immediately, with no fade (used for lists that
- *  must appear the instant the user asks for them). */
-export function revealNow(root: HTMLElement | null): void {
-  root?.querySelectorAll<HTMLElement>(LEAF).forEach((el) => el.setAttribute("data-in", ""));
-}
-
 /** Broadcast just before the page's exit fade begins. */
 export const PAGE_EXIT_EVENT = "f1box:exit";
 
