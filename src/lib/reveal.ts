@@ -377,9 +377,47 @@ export function startReveal(): () => void {
   return engine.stop;
 }
 
+/** Show the leaves inside `root` immediately, with no fade (used for lists that
+ *  must appear the instant the user asks for them). */
+export function revealNow(root: HTMLElement | null): void {
+  root?.querySelectorAll<HTMLElement>(LEAF).forEach((el) => el.setAttribute("data-in", ""));
+}
+
 /** Broadcast just before the page's exit fade begins. */
 export const PAGE_EXIT_EVENT = "f1box:exit";
 
+/**
+ * Fade the revealed leaves inside `root` out (opacity only, same exit tokens the
+ * page transition uses) and resolve when they are gone.
+ *
+ * Used when one list replaces another — switching season, switching tab, or
+ * collapsing a list — so the swap reads like a page change instead of jumping.
+ * The caller swaps state in `.then()`; the incoming list mounts fresh, so the
+ * reveal engine fades it in with the normal stagger.
+ */
+export function fadeOutList(root: HTMLElement | null, scope = LEAF): Promise<void> {
+  if (!root) return Promise.resolve();
+  const tokens = readTokens();
+  if (!tokens || prefersReducedMotion()) return Promise.resolve();
+
+  const els = [...root.querySelectorAll<HTMLElement>(scope)].filter(isRevealed);
+  if (!els.length) return Promise.resolve();
+
+  const animations = els.map((el) =>
+    el.animate(
+      [{ opacity: getComputedStyle(el).opacity }, { opacity: 0 }],
+      { duration: tokens.exitDuration, easing: tokens.exitEase, fill: "forwards" },
+    ),
+  );
+
+  return Promise.all(animations.map((a) => a.finished.catch(() => {}))).then(() => {
+    // Any leaf that survived the swap (React reused the node) must not stay
+    // invisible: drop our fade once the new list has painted.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => animations.forEach((a) => a.cancel()));
+    });
+  });
+}
 /** Fade every revealed leaf out (opacity only) and resolve when all have finished. */
 export function leaveAll(): Promise<void> {
   // Menus listen for this and close without animating, so nothing is left

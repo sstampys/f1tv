@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   seasonsRes,
   driverStandingsRes,
@@ -13,6 +13,7 @@ import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/conf
 import { earlyFetchScript } from "@/lib/data/early";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
+import { fadeOutList } from "@/lib/reveal";
 
 export const Route = createFileRoute("/standings")({
   head: () => ({
@@ -67,6 +68,21 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
     if (hasData) setTabsReady(true);
   }, [hasData]);
 
+  // Lists fade out before they are replaced (season or tab), like a page change.
+  const listRef = useRef<HTMLDivElement>(null);
+  const swapList = (apply: () => void) => {
+    void fadeOutList(listRef.current, ".table [data-reveal]").then(apply);
+  };
+
+  const handleSeason = (next: string) => {
+    swapList(() => setSeason(next));
+  };
+
+  const handleTab = (next: string) => {
+    if (next === tab) return;
+    swapList(() => setTab(next));
+  };
+
   return (
     <div className="page">
       <section id="standings" className="rows">
@@ -76,7 +92,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
             <SystemSelect
               value={season}
               options={seasons.data.map((s) => ({ value: s, label: `${s} Season` }))}
-              onChange={setSeason}
+              onChange={handleSeason}
               ariaLabel="Season"
             />
           )}
@@ -87,8 +103,8 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
             <Notice title="Unable to load standings" message="Failed to load standings. Please try again." retry />
           ) : null
         ) : (
-          <div className="page-container">
-            <Tabs defaultValue="drivers" onValueChange={setTab}>
+          <div className="page-container" ref={listRef}>
+            <Tabs value={tab} onValueChange={handleTab}>
               <TabsList className="tabs-list" data-reveal>
                 <TabsTrigger value="drivers">Drivers</TabsTrigger>
                 <TabsTrigger value="constructors">Constructors</TabsTrigger>
@@ -98,14 +114,14 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
                 {drivers.error && !drivers.data ? (
                   <Notice title="Unable to load standings" message="Failed to load standings. Please try again." inTable />
                 ) : (
-                  <DriverStandingsTable standings={drivers.data || []} loading={!drivers.data} />
+                  <DriverStandingsTable key={`drivers-${season}`} standings={drivers.data || []} loading={!drivers.data} />
                 )}
               </TabsContent>
               <TabsContent value="constructors">
                 {constructors.error && !constructors.data ? (
                   <Notice title="Unable to load standings" message="Failed to load standings. Please try again." inTable />
                 ) : (
-                  <ConstructorStandingsTable standings={constructors.data || []} loading={!constructors.data} />
+                  <ConstructorStandingsTable key={`constructors-${season}`} standings={constructors.data || []} loading={!constructors.data} />
                 )}
               </TabsContent>
             </Tabs>

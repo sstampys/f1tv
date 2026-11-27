@@ -7,13 +7,14 @@ import {
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
-import { useState, useMemo, Component, type ReactNode } from "react";
+import { useState, useMemo, useRef, useLayoutEffect, Component, type ReactNode } from "react";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { SystemSelect } from "@/components/ui/system-select";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
+import { fadeOutList, revealNow } from "@/lib/reveal";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -49,6 +50,10 @@ function SchedulePage() {
 
 export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);
+  const listRef = useRef<HTMLDivElement>(null);
+  const swapSeason = (next: string) => {
+    void fadeOutList(listRef.current).then(() => setSeason(next));
+  };
 
   const seasons = useResource(seasonsRes);
   const schedule = useResource(scheduleRes(season));
@@ -69,12 +74,13 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
             <SystemSelect
               value={season}
               options={seasons.data.map((s) => ({ value: s, label: `${s} Season` }))}
-              onChange={setSeason}
+              onChange={swapSeason}
               ariaLabel="Season"
             />
           )}
         </div>
 
+        <div ref={listRef} className="contents">
         <ScheduleBoundary key={season}>
           {!schedule.data && !schedule.error ? null : schedule.error ? (
             <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
@@ -89,6 +95,7 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
             <Notice title="No Races Scheduled" message="No races scheduled for this season." />
           )}
         </ScheduleBoundary>
+        </div>
       </section>
     </div>
   );
@@ -136,6 +143,12 @@ function RaceCalendar({
 }) {
   const nextRaceRound = nextRace?.round;
   const [showPast, setShowPast] = useState(false);
+  const pastRef = useRef<HTMLDivElement>(null);
+
+  // The list appears the instant the control is pressed: no fade, no stagger.
+  useLayoutEffect(() => {
+    if (showPast) revealNow(pastRef.current);
+  }, [showPast]);
 
   const upcomingRaces = useMemo(
     () => [...races].filter((race) => !isRaceCompleted(race.date, race.time)).sort(byDate),
@@ -183,7 +196,7 @@ function RaceCalendar({
       )}
 
       {showPast && (
-        <div id="past-races" className="contents">
+        <div id="past-races" className="contents" ref={pastRef}>
           {pastRaces.map((race) => (
             <RaceRow key={race.round} race={race} isNext={race.round === nextRaceRound} isCompleted />
           ))}
