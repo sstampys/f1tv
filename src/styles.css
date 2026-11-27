@@ -106,8 +106,6 @@
   --t-ui: .15s;
   --t-in: .7s;
   --t-theme: 250ms;
-  --t-theme-text: 100ms;
-  --t-theme-muted: 150ms;
 
   /* .reveal, ye() in main-BVZYWS9J.js */
   --motion-reveal-duration: var(--t-in);
@@ -1032,11 +1030,15 @@ h1[tabindex="-1"]:focus {
   color: var(--selection-fg);
 }
 
-/* Theme switch: colours swap in one frame (no colour transitions anywhere), so
-   no text can lag behind the background. While the toggle runs, every
-   transition and CSS animation is frozen; the reveal fades run through Web
-   Animations and are unaffected. The circular view transition, when the
-   browser supports it, is the only theme animation. */
+/* Theme switch: the whole page fades between themes in one view transition.
+   Colours themselves never transition, so text and background always change
+   on the same frame: the `data-theme-switching` guard freezes every transition
+   and CSS animation while the theme class changes (the reveal fades run
+   through Web Animations and are unaffected).
+
+   The old snapshot stays fully visible underneath and only the new one fades
+   in on top. `mix-blend-mode: normal` replaces the UA's `plus-lighter`, which
+   would otherwise brighten the two snapshots while they overlap. */
 html[data-theme-switching],
 html[data-theme-switching] *,
 html[data-theme-switching] *::before,
@@ -1044,8 +1046,21 @@ html[data-theme-switching] *::after {
   transition: none !important;
   animation-duration: 0s !important;
 }
-::view-transition-old(root),
-::view-transition-new(root) {
+::view-transition-old(root) {
   animation: none;
   mix-blend-mode: normal;
+  z-index: 1;
+}
+::view-transition-new(root) {
+  animation: var(--t-theme) var(--ease) fade-in;
+  mix-blend-mode: normal;
+  z-index: 2;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }

@@ -59,6 +59,11 @@ export function resolvedTheme(): Theme {
  * Tailwind variant), the `data-theme` marker (needed so the no-JS
  * prefers-color-scheme fallback stops applying once JS has decided),
  * `color-scheme`, and the theme-color meta.
+ *
+ * When the browser supports view transitions the swap runs inside one, so the
+ * page fades as a whole: the old snapshot stays visible and the new one fades
+ * in on top (see styles.css). Without support — or with reduced motion — the
+ * theme is written straight away, with no animation.
  */
 export function applyTheme(theme: Theme, animate = true): void {
   if (typeof document === "undefined") return;
@@ -69,20 +74,27 @@ export function applyTheme(theme: Theme, animate = true): void {
     (typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
+  // The update callback runs at most once, so a transition that was
+  // superseded can never undo the newer theme.
+  let applied = false;
   const write = () => {
     // Freeze transitions for the frame the colours change in, then release
     // two frames later so every colour lands at once.
     root.setAttribute("data-theme-switching", "");
-    root.classList.toggle("dark", theme === "dark");
-    root.dataset.theme = theme;
-    root.style.colorScheme = theme;
-    const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) {
-      meta.setAttribute("content", theme === "dark" ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
+    try {
+      root.classList.toggle("dark", theme === "dark");
+      root.dataset.theme = theme;
+      root.style.colorScheme = theme;
+      const meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) {
+        meta.setAttribute("content", theme === "dark" ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
+      }
+      applied = true;
+    } finally {
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
+      );
     }
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
-    );
   };
 
   const doc = document as Document & {
@@ -94,7 +106,17 @@ export function applyTheme(theme: Theme, animate = true): void {
   }
   try {
     const vt = doc.startViewTransition(write);
-    vt.ready.catch(() => {});
+    // A transition that is skipped or aborted can reject before the update
+    // callback ran: re-apply the theme so the page never stays in the old
+    // one. `write` runs at most once, so a transition that was superseded by
+    // a newer one can never pull the page back to the older theme.
+    vt.ready.catch(() => {
+      try {
+        write();
+      } catch {
+        /* nothing else to do: the DOM write already failed */
+      }
+    });
     vt.finished.catch(() => {});
   } catch {
     write();
