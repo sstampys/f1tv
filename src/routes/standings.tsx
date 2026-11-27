@@ -186,7 +186,14 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
         {standings.map((standing) => (
           <tr key={standing.Constructor.constructorId} data-reveal>
             <td>{standing.position}</td>
-            <td>{standing.Constructor.name}</td>
+            <td>
+              <div className="driver">
+                <div className="driver__name">
+                  <p>{standing.Constructor.name}</p>
+                  <p className="mute">{standing.Constructor.nationality}</p>
+                </div>
+              </div>
+            </td>
             <td></td>
             <td className="num">{standing.points}</td>
             <td className="num">{standing.wins}</td>
