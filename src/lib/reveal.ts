@@ -259,20 +259,38 @@ export function startReveal(): () => void {
   };
 
   // Added nodes are gathered and armed together once per frame, so everything
-  // one commit mounts is observed (and delivered) as one batch.
-  let added = new Set<Node>();
+  // one commit mounts is observed (and delivered) as one batch. Removed nodes
+  // are forgotten in the same frame so a data change (switching season, tab)
+  // cannot leave detached leaves observed forever, growing the pending set.
+  let added = new Set<HTMLElement>();
+  let removed = new Set<HTMLElement>();
   let scanFrame = 0;
   const scan = (node: ParentNode) => {
     if (node instanceof HTMLElement && node.matches(LEAF)) watch(node);
     node.querySelectorAll<HTMLElement>(LEAF).forEach(watch);
   };
+  const forget = (node: ParentNode) => {
+    const leaves = [
+      ...(node instanceof HTMLElement && node.matches(LEAF) ? [node] : []),
+      ...node.querySelectorAll<HTMLElement>(LEAF),
+    ];
+    leaves.forEach((el) => {
+      if (!el.isConnected && pending.has(el)) {
+        pending.delete(el);
+        io.unobserve(el);
+      }
+    });
+  };
   const scheduleScan = () => {
     if (!scanFrame) {
       scanFrame = window.requestAnimationFrame(() => {
         scanFrame = 0;
-        const nodes = added;
+        const pendingAdded = added;
+        const pendingRemoved = removed;
         added = new Set();
-        nodes.forEach((node) => node.isConnected && scan(node as ParentNode));
+        removed = new Set();
+        pendingAdded.forEach((node) => node.isConnected && scan(node));
+        pendingRemoved.forEach((node) => forget(node));
       });
     }
   };
@@ -284,8 +302,11 @@ export function startReveal(): () => void {
       record.addedNodes.forEach((node) => {
         if (node instanceof HTMLElement) added.add(node);
       });
+      record.removedNodes.forEach((node) => {
+        if (node instanceof HTMLElement) removed.add(node);
+      });
     }
-    if (added.size) scheduleScan();
+    if (added.size || removed.size) scheduleScan();
   });
   mo.observe(document.body, { childList: true, subtree: true });
 

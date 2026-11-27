@@ -13,7 +13,10 @@ export type Resource<T> = {
 
 export type ResourceState<T> = { data: T | null; error: unknown; updatedAt: number };
 
-const IDLE: ResourceState<never> = { data: null, error: null, updatedAt: 0 };
+/** State carries the key it belongs to, so one key never shows another's data. */
+type Stored<T> = ResourceState<T> & { key: string };
+
+const IDLE: Stored<never> = { key: "", data: null, error: null, updatedAt: 0 };
 
 /**
  * Stale-while-revalidate read of a resource.
@@ -23,32 +26,38 @@ const IDLE: ResourceState<never> = { data: null, error: null, updatedAt: 0 };
  * the first paint, either shows fresh data with no network at all or shows stale
  * data while the request revalidates in the background. A stale or missing
  * cache never blocks the cached value from rendering.
+ *
+ * When the key changes (switching season, tab, etc.) the previous key's data is
+ * never shown under the new key: the hook reports "empty" until the new key's
+ * cache or network value arrives. This is what stops a slow or failed request
+ * from leaving the old season's races on screen.
  */
 export function useResource<T>(res: Resource<T>, enabled = true): ResourceState<T> {
-  const [state, setState] = useState<ResourceState<T>>(IDLE as ResourceState<T>);
+  const [state, setState] = useState<Stored<T>>(IDLE as Stored<T>);
 
   useLayoutEffect(() => {
     if (!enabled) return;
+    const key = res.key;
     let alive = true;
 
-    const entry = readEntry<T>(res.key);
+    const entry = readEntry<T>(key);
     if (entry) {
-      setState({ data: entry.d, error: null, updatedAt: entry.t });
+      setState({ key, data: entry.d, error: null, updatedAt: entry.t });
       if (Date.now() - entry.t < res.ttl) return; // fresh: no network
     }
 
-    request<unknown>(res.key, res.url)
+    request<unknown>(key, res.url)
       .then(res.parse)
       .then(
         (data) => {
-          writeEntry(res.key, data); // persist for warm visits
+          writeEntry(key, data); // persist for warm visits
           if (!alive) return;
-          setState({ data, error: null, updatedAt: Date.now() });
+          setState({ key, data, error: null, updatedAt: Date.now() });
         },
         (error) => {
           // Never blank a populated page: keep the last good data on failure.
           if (!alive) return;
-          setState((s) => (s.data ? s : { data: null, error, updatedAt: 0 }));
+          setState((s) => (s.key === key && s.data ? s : { key, data: null, error, updatedAt: 0 }));
         },
       );
 
@@ -58,7 +67,8 @@ export function useResource<T>(res: Resource<T>, enabled = true): ResourceState<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [res.key, res.url, res.ttl, enabled]);
 
-  return state;
+  // Only ever expose data that belongs to the key we are rendering now.
+  return state.key === res.key ? state : (IDLE as ResourceState<T>);
 }
 
 /** Start a resource's request early (hover/focus intent) if it is not fresh. */

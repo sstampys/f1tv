@@ -77,6 +77,7 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
           <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
         ) : schedule.data && schedule.data.length > 0 ? (
           <RaceCalendar
+            key={season}
             races={schedule.data}
             nextRace={nextRace}
             isCurrentSeason={season === currentSeason}
