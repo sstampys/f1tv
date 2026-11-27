@@ -143,16 +143,25 @@ function RaceCalendar({
 }) {
   const nextRaceRound = nextRace?.round;
   const [showPast, setShowPast] = useState(false);
+  const [pastMounted, setPastMounted] = useState(false);
   const pastRef = useRef<HTMLDivElement>(null);
+  const fadeToken = useRef(0);
 
-  // Expanding reveals the rows with the normal fade; collapsing fades them out
-  // first, so the list leaves the way a page does.
+  // The control answers at once: its label flips on the same frame. Only the
+  // list itself is delayed — it fades out before unmounting, and fades in as it
+  // mounts, so both directions read like a page change.
   const togglePast = () => {
     if (!showPast) {
+      fadeToken.current += 1;
       setShowPast(true);
+      setPastMounted(true);
       return;
     }
-    void fadeOutList(pastRef.current).then(() => setShowPast(false));
+    const token = ++fadeToken.current;
+    setShowPast(false);
+    void fadeOutList(pastRef.current).then(() => {
+      if (fadeToken.current === token) setPastMounted(false);
+    });
   };
 
   const upcomingRaces = useMemo(
@@ -200,7 +209,7 @@ function RaceCalendar({
         </div>
       )}
 
-      {showPast && (
+      {pastMounted && (
         <div id="past-races" className="contents" ref={pastRef}>
           {pastRaces.map((race) => (
             <RaceRow key={race.round} race={race} isNext={race.round === nextRaceRound} isCompleted />
