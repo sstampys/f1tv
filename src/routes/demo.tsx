@@ -238,7 +238,7 @@ function DemoRoute() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <section className="page rows">
+      <section className="page page--center rows">
         <div className="page-container facts">
           <h1 className="statement" data-reveal>Demo Stream</h1>
           <p className="mute" data-reveal>Test the stream player with sample content</p>

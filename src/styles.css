@@ -359,18 +359,25 @@
   min-height: 100svh;
   padding: var(--page-top) 0 var(--page-bottom);
 }
-/* Countdown home: centre the block in the full screen, top edge to bottom edge,
-   on every device. No nav offset: the block is centred in the viewport itself,
-   not in the space left under the pill. dvh (with a vh fallback) tracks mobile
-   browser chrome as it hides and shows, so the centre stays the visible centre. */
+/* Countdown / player pages: centre the block in the full screen, top edge to
+   bottom edge, on every device. dvh (with a vh fallback) tracks mobile browser
+   chrome as it hides and shows, so the centre stays the visible centre.
+   The padding is symmetric, so it never moves the centre; the auto margins
+   collapse to zero when the block is taller than the screen, which lets a tall
+   player start below the pill and scroll normally instead of being clipped. */
 .page--center {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   min-height: 100vh;
   min-height: 100dvh;
-  padding-top: 0;
-  padding-bottom: 0;
+  padding-top: var(--nav-pill-bottom);
+  padding-bottom: var(--nav-pill-bottom);
+}
+.page--center > :first-child {
+  margin-block-start: auto;
+}
+.page--center > :last-child {
+  margin-block-end: auto;
 }
 .page-container {
   width: var(--page-w);

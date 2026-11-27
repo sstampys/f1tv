@@ -50,7 +50,7 @@ export default function StreamView({
   toggleFullscreen,
 }: Props) {
   return (
-    <div className="page">
+    <div className="page page--center">
       <section className="rows">
         {/* Stream Header */}
         <div className="page-container">
