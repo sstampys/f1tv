@@ -5,7 +5,8 @@ import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
 import { setStreamPlaying } from "@/lib/stream-status";
 import { request } from "@/lib/data/client";
 import { ENDPOINTS, KEYS } from "@/lib/data/config";
-import { Dropdown, type DropdownOption } from "@/components/Dropdown";
+import { LanguageSelectorDropdown } from "@/components/ui/language-selector-dropdown";
+import { type DropdownOption } from "@/components/Dropdown";
 
 export const Route = createFileRoute("/demo")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -259,7 +260,7 @@ function DemoRoute() {
 
         {iframeSrc && sources.length > 1 ? (
           <div className="page-container player-controls player-controls--outside justify-end">
-            <Dropdown
+            <LanguageSelectorDropdown
               value={iframeSrc ?? ""}
               options={dropdownOptions}
               onChange={setSelected}

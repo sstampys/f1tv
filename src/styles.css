@@ -802,10 +802,10 @@
   width: auto;
 }
 .results-table .col-num {
-  width: 4rem; /* increased from 3rem to give more breathing room before Time */
+  width: 4rem;
 }
 .results-table .col-time {
-  width: 5.75rem;
+  width: 6.5rem; /* increased to 104px for clear separation before Time */
 }
 @media (min-width: 761px) {
   .results-table .col-pos {
@@ -815,7 +815,7 @@
     width: 4rem;
   }
   .results-table .col-time {
-    width: 5.75rem;
+    width: 6.5rem;
   }
 }
 @media (max-width: 760px) {

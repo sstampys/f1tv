@@ -1,7 +1,8 @@
 import { Loader2, X, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SourceLanguage } from "@/lib/source-language";
-import { Dropdown, type DropdownOption } from "@/components/Dropdown";
+import { LanguageSelectorDropdown } from "@/components/ui/language-selector-dropdown";
+import { type DropdownOption } from "@/components/Dropdown";
 
 export type Source = { label: string; src: string; language: SourceLanguage | null };
 
@@ -161,7 +162,7 @@ export default function StreamView({
         {/* Source selector, outside the player */}
         {hasStream && sources.length > 1 && (
           <div className="page-container player-controls player-controls--outside">
-            <Dropdown
+            <LanguageSelectorDropdown
               value={iframeSrc ?? ""}
               options={dropdownOptions}
               onChange={handleSourceChange}
