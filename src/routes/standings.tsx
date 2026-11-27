@@ -72,7 +72,14 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
   const anyError = drivers.error || constructors.error;
   const hasData = !!(drivers.data || constructors.data);
-  const loading = !hasData && !anyError;
+
+  // The tab strip is static chrome. Once it has appeared it must never unmount,
+  // so switching season — which clears that season's data — cannot replay its
+  // reveal animation. Only the tables inside the tabs change.
+  const [tabsReady, setTabsReady] = useState(false);
+  useEffect(() => {
+    if (hasData) setTabsReady(true);
+  }, [hasData]);
 
   return (
     <div className="page">
@@ -94,8 +101,10 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
           )}
         </div>
 
-        {loading ? null : anyError && !hasData ? (
-          <Notice title="Unable to load standings" message="Failed to load standings. Please try again." retry />
+        {!tabsReady && !hasData ? (
+          anyError ? (
+            <Notice title="Unable to load standings" message="Failed to load standings. Please try again." retry />
+          ) : null
         ) : (
           <div className="page-container">
             <Tabs defaultValue="drivers" onValueChange={setTab}>
@@ -111,10 +120,18 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
               </TabsList>
 
               <TabsContent value="drivers">
-                <DriverStandingsTable standings={drivers.data || []} loading={!drivers.data} />
+                {drivers.error && !drivers.data ? (
+                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." />
+                ) : (
+                  <DriverStandingsTable standings={drivers.data || []} loading={!drivers.data} />
+                )}
               </TabsContent>
               <TabsContent value="constructors">
-                <ConstructorStandingsTable standings={constructors.data || []} loading={!constructors.data} />
+                {constructors.error && !constructors.data ? (
+                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." />
+                ) : (
+                  <ConstructorStandingsTable standings={constructors.data || []} loading={!constructors.data} />
+                )}
               </TabsContent>
             </Tabs>
           </div>
