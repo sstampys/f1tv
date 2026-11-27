@@ -154,6 +154,23 @@
   /* Bottom edge of the floating pill: what the countdown centres below */
   --nav-pill-bottom: calc(var(--m) + var(--nav-ctl) + 2 * var(--nav-pad-y) + 2 * var(--nav-line-w));
 
+  /* .menu — neither reference has a dropdown, so this reuses measured values:
+     the nav pill's fill/border, the field's radius, the link/list text colours,
+     and the reveal motion. Every value is an existing token. */
+  --menu-offset: var(--s1);
+  --menu-pad-y: var(--s1);
+  --menu-pad-x: var(--s2);
+  --menu-row-pad-y: calc((var(--s6) - var(--lh)) / 2);
+  --menu-radius: var(--r-field);
+  --menu-surface: var(--nav-paper);
+  --menu-border: var(--nav-line);
+  --menu-border-w: var(--nav-line-w);
+  --menu-z: 30;
+  --menu-duration: var(--motion-reveal-duration);
+  --menu-ease: var(--motion-reveal-ease);
+  --menu-distance: var(--motion-reveal-distance);
+  --menu-max-height: calc(100dvh - var(--nav-pill-bottom) - var(--s3));
+
   /* .film__btn */
   --player: var(--ink);
   --player-text: #fff;
@@ -479,9 +496,71 @@
   color: var(--ink);
   text-decoration-color: var(--ink);
 }
-select.control {
-  text-align: right;
-  text-align-last: right;
+
+/* Dropdown (src/components/Dropdown.tsx). No dropdown exists in either
+   reference: the trigger is the measured link style, the panel is the measured
+   nav pill surface with the measured field radius, and rows use the measured
+   list text colours with the reveal motion. */
+.menu {
+  position: fixed;
+  z-index: var(--menu-z);
+  width: max-content;
+  max-width: calc(100vw - 2 * var(--gutter));
+  max-height: var(--menu-max-height);
+  margin: 0;
+  padding: var(--menu-pad-y) 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--menu-surface);
+  border: var(--menu-border-w) solid var(--menu-border);
+  border-radius: var(--menu-radius);
+  color: var(--ink);
+  font-size: var(--t);
+  line-height: var(--lh);
+  letter-spacing: var(--tracking);
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--menu-distance)));
+  transition:
+    opacity var(--menu-duration) var(--menu-ease),
+    transform var(--menu-duration) var(--menu-ease);
+}
+.menu[data-state="open"] {
+  opacity: 1;
+  transform: translateY(0);
+}
+.menu__option {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  min-height: var(--s6);
+  padding: var(--menu-row-pad-y) var(--menu-pad-x);
+  color: var(--mute);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--t-ui) var(--menu-ease);
+}
+.menu__option[aria-selected="true"],
+.menu__option:hover,
+.menu__option:focus-visible {
+  color: var(--ink);
+}
+.menu__option[aria-disabled="true"] {
+  cursor: default;
+}
+.menu__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.menu__meta {
+  flex: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    transition: none;
+    transform: none;
+  }
 }
 
 /* Tabs: plain text, active = ink, inactive = mute */
@@ -645,28 +724,11 @@ select.control {
 .player-controls button:hover {
   background: var(--film-hover);
 }
-/* Source selector below the player: same control, on the page instead of the
-   video, so it uses the page's light field colours rather than the overlay's. */
+/* Source selector below the player: the shared plain-text dropdown, on the
+   page instead of the video, so it uses the page's light colours. */
 .player-controls--outside {
   display: flex;
   align-items: center;
-}
-.player-controls--outside button {
-  background: var(--field);
-  color: var(--ink);
-  backdrop-filter: none;
-}
-.player-controls--outside button:hover {
-  background: var(--soft-hover);
-}
-.source-menu {
-  background: var(--ground);
-  color: var(--ink);
-  border: 1px solid var(--line-nav);
-  border-radius: var(--r-field);
-}
-.source-item {
-  border-radius: var(--r-media);
 }
 .stream-links {
   display: flex;

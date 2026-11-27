@@ -1,17 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
 import { LiquidGlassButton } from "@/components/ui/apple-tahoe-liquid-glass-button";
 import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
 import { setStreamPlaying } from "@/lib/stream-status";
 import { request } from "@/lib/data/client";
 import { ENDPOINTS, KEYS } from "@/lib/data/config";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Dropdown, type DropdownOption } from "@/components/Dropdown";
 
 export const Route = createFileRoute("/demo")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -180,7 +174,6 @@ function DemoRoute() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const demoMode = demo || "sample";
@@ -213,6 +206,15 @@ function DemoRoute() {
     setStreamPlaying(!!iframeSrc);
     return () => setStreamPlaying(false);
   }, [iframeSrc]);
+
+  const dropdownOptions: DropdownOption[] = useMemo(
+    () => sources.map((source) => ({
+      value: source.src,
+      label: source.label,
+      meta: source.language?.code ?? undefined,
+    })),
+    [sources]
+  );
 
   return (
     <div className="min-h-screen bg-ground">
@@ -257,35 +259,13 @@ function DemoRoute() {
 
         {iframeSrc && sources.length > 1 ? (
           <div className="page-container player-controls player-controls--outside justify-end">
-            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <LiquidGlassButton aria-label="Change stream source">
-                  <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
-                  <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
-                </LiquidGlassButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                sideOffset={8}
-                className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
-              >
-                {sources.map((source) => (
-                  <DropdownMenuItem
-                    key={source.src}
-                    onSelect={() => setSelected(source.src)}
-                    className="source-item cursor-pointer gap-3 px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
-                  >
-                    <span className="flex-1 truncate">{source.label}</span>
-                    {source.language ? (
-                      <span className="shrink-0 opacity-75">{source.language.code}</span>
-                    ) : null}
-                    <span className="flex size-4 shrink-0 items-center justify-center">
-                      {source.src === iframeSrc ? <Check className="size-4" /> : null}
-                    </span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Dropdown
+              value={iframeSrc ?? ""}
+              options={dropdownOptions}
+              onChange={setSelected}
+              ariaLabel="Change stream source"
+              align="end"
+            />
           </div>
         ) : null}
       </section>

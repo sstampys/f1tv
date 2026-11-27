@@ -377,8 +377,14 @@ export function startReveal(): () => void {
   return engine.stop;
 }
 
+/** Broadcast just before the page's exit fade begins. */
+export const PAGE_EXIT_EVENT = "f1box:exit";
+
 /** Fade every revealed leaf out (opacity only) and resolve when all have finished. */
 export function leaveAll(): Promise<void> {
+  // Menus listen for this and close without animating, so nothing is left
+  // floating above the page while it fades out.
+  window.dispatchEvent(new Event(PAGE_EXIT_EVENT));
   return engine ? engine.leave() : Promise.resolve();
 }
 

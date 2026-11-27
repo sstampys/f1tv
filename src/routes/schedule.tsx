@@ -11,6 +11,7 @@ import { useState, useMemo, Component, type ReactNode } from "react";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
+import { Dropdown } from "@/components/Dropdown";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -63,17 +64,13 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
         <div className="page-container head">
           <h1 data-reveal>Race Schedule</h1>
           {seasons.data && (
-            <select
-              className="control"
-              aria-label="Season"
+            <Dropdown
               value={season}
-              onChange={(event) => setSeason(event.target.value)}
-              data-reveal
-            >
-              {seasons.data.map((s) => (
-                <option key={s} value={s}>{s} Season</option>
-              ))}
-            </select>
+              options={seasons.data.map((s) => ({ value: s, label: `${s} Season` }))}
+              onChange={setSeason}
+              ariaLabel="Season"
+              align="end"
+            />
           )}
         </div>
 

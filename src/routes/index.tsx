@@ -187,7 +187,6 @@ function Index() {
   const { demo } = Route.useSearch();
   const [selected, setSelected] = useState<string | null>(null);
   const [controlsVisible, setControlsVisible] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [streamLoaded, setStreamLoaded] = useState(false);
 
@@ -255,9 +254,7 @@ function Index() {
             hasStream={hasStream}
             streamLoaded={streamLoaded}
             controlsVisible={controlsVisible}
-            menuOpen={menuOpen}
             isFullscreen={isFullscreen}
-            setMenuOpen={setMenuOpen}
             setSelected={setSelected}
             setStreamLoaded={setStreamLoaded}
             setIsFullscreen={setIsFullscreen}
