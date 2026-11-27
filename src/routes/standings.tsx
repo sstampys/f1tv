@@ -6,7 +6,6 @@ import {
   constructorStandingsRes,
   type DriverStanding,
   type ConstructorStanding,
-  type Driver,
 } from "@/lib/jolpica-api";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
@@ -143,17 +142,8 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." />;
   if (loading && !standings.length) return null;
 
-  // Helper to generate a fallback code from driver name (e.g., "Max Verstappen" -> "VER")
-  const getDriverCode = (driver: DriverStanding["Driver"]): string => {
-    if (driver.code) return driver.code;
-    const given = driver.givenName?.trim() || "";
-    const family = driver.familyName?.trim() || "";
-    if (!given && !family) return "";
-    // Use first 3 letters of family name, uppercase
-    if (family.length >= 3) return family.slice(0, 3).toUpperCase();
-    // Fallback: initials
-    return (given[0] + family[0]).toUpperCase();
-  };
+  // Check if any driver has a real code from the API (not generated)
+  const hasRealCodes = standings.some((s) => s.Driver.code && s.Driver.code.trim() !== "");
 
   // Helper to get display position (handles "-" for unclassified)
   const getDisplayPosition = (standing: DriverStanding, index: number): string => {
@@ -180,7 +170,9 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
             <td>{getDisplayPosition(standing, index)}</td>
             <td>
               <div className="driver">
-                <span className="driver__code" aria-hidden="true">{getDriverCode(standing.Driver)}</span>
+                {hasRealCodes && (
+                  <span className="driver__code" aria-hidden="true">{standing.Driver.code || ""}</span>
+                )}
                 <div className="driver__name">
                   <p>{standing.Driver.givenName} {standing.Driver.familyName}</p>
                   <p className="mute">{standing.Driver.nationality}</p>
