@@ -1,11 +1,11 @@
 import { Dropdown, type DropdownOption } from "@/components/Dropdown";
 
 /**
- * Plain-text dropdown built on the site's single Dropdown element.
- * Keeps the officecommun.com look: no flags, emojis, pills, blur or borders —
- * just the current value and a list of names with optional right-aligned codes.
- * Defaults to language short codes (EN/ES/DE/IT/SV/NL) matching SourceLanguage.code,
- * but accepts any options for seasons, stream sources, etc.
+ * The site's plain-text dropdown, exposed under a single reusable component.
+ * Renders the existing Dropdown element (plain text trigger + nav-pill listbox,
+ * no flags, emojis, pills, blur or borders).
+ * Defaults to language short codes (EN/ES/DE/IT/SV/NL); accepts any options
+ * for seasons, stream sources, etc.
  */
 export const LANGUAGE_OPTIONS: readonly DropdownOption[] = [
   { value: "EN", label: "English", meta: "EN" },
