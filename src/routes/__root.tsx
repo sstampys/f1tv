@@ -144,10 +144,16 @@ function RootComponent() {
       </main>
       {pathname !== "/legal" && (
         <footer className="site-footer">
-          <div className="page-container">
+          <div className="page-container site-footer__row">
             <Link to="/legal" data-reveal>
               Privacy &amp; Legal
             </Link>
+            <span data-reveal>
+              Data from{" "}
+              <a href="https://api.jolpi.ca/" target="_blank" rel="noopener noreferrer">
+                Jolpica-F1
+              </a>
+            </span>
           </div>
         </footer>
       )}

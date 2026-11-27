@@ -905,6 +905,13 @@
   padding: 0 0 var(--s6);
   color: var(--mute);
 }
+.site-footer__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
 .site-footer a {
   text-decoration: underline;
   text-decoration-thickness: 1px;
