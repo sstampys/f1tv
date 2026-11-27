@@ -695,9 +695,24 @@
   width: 100%;
   font-variant-numeric: tabular-nums;
 }
-.results-table__row {
+/* Race / Sprint: 7 columns - Pos(2.75rem) | Driver(1fr) | Team(1fr) | Grid(3.5rem) | Laps(3.5rem) | Time(6.25rem) | Pts(3.5rem) */
+.results-table--7col .results-table__row {
   display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1.35fr) minmax(0, 1fr) 3.5rem 3.5rem 6.25rem;
+  grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr) 3.5rem 3.5rem 6.25rem 3.5rem;
+  column-gap: var(--s2);
+  align-items: start;
+}
+/* Qualifying: 6 columns - Pos(2.75rem) | Driver(1.2fr) | Team(1fr) | Q1(4.5rem) | Q2(4.5rem) | Q3(4.5rem) */
+.results-table--6col .results-table__row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1.2fr) minmax(0, 1fr) 4.5rem 4.5rem 4.5rem;
+  column-gap: var(--s2);
+  align-items: start;
+}
+/* Practice: 6 columns - Pos(2.75rem) | Driver(1.2fr) | Team(1fr) | Best Time(5.5rem) | Gap(4.5rem) | Laps(3.5rem) */
+.results-table--6col-practice .results-table__row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1.2fr) minmax(0, 1fr) 5.5rem 4.5rem 3.5rem;
   column-gap: var(--s2);
   align-items: start;
 }
@@ -741,17 +756,98 @@
   text-overflow: ellipsis;
 }
 
+/* Session tabs */
+.session-tabs {
+  display: flex;
+  gap: var(--s3);
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--line-nav);
+}
+.session-tab {
+  background: none;
+  border: none;
+  padding: var(--s1) var(--s2);
+  color: var(--mute);
+  font: inherit;
+  font-size: var(--t);
+  cursor: pointer;
+  border-radius: var(--r-field);
+  transition: color var(--t-ui), background var(--t-ui);
+}
+.session-tab:hover {
+  color: var(--ink);
+  background: var(--soft);
+}
+.session-tab.active {
+  color: var(--ink);
+  background: var(--soft);
+}
+
+/* Session summary */
+.session-summary {
+  padding: var(--s2) 0;
+}
+.session-summary p {
+  font-size: var(--t);
+  line-height: var(--lh);
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Driver name + number in results table (matches standings table) */
+.results-table .driver {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.results-table .driver__name {
+  min-width: 0;
+}
+.results-table .driver__name p:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.results-table .driver__name .mute {
+  font-size: var(--t);
+  line-height: var(--lh);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 760px) {
-  .results-table__row {
-    grid-template-columns: 1.5rem minmax(0, 1.2fr) minmax(0, 0.8fr) 2.5rem 2.5rem 6.25rem;
+  .results-table--7col .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1.2fr) minmax(0, 0.8fr) 2.5rem 2.5rem 6.25rem 2.5rem;
+    column-gap: var(--s1);
+  }
+  .results-table--6col .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1.1fr) minmax(0, 0.8fr) 3.5rem 3.5rem 3.5rem;
+    column-gap: var(--s1);
+  }
+  .results-table--6col-practice .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1.1fr) minmax(0, 0.8fr) 4.5rem 3.5rem 3rem;
     column-gap: var(--s1);
   }
 }
 @media (max-width: 440px) {
-  .results-table__row {
-    grid-template-columns: 1.5rem minmax(0, 1fr) 2.5rem 2.5rem 6.25rem;
+  /* Race/Sprint: Pos | Driver | Time | Pts */
+  .results-table--7col .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1fr) 6.25rem 2.5rem;
+  }
+  /* Qualifying: Pos | Driver | Q1 | Q2 | Q3 */
+  .results-table--6col .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1fr) 4rem 4rem 4rem;
+  }
+  /* Practice: Pos | Driver | Best Time | Gap | Laps */
+  .results-table--6col-practice .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1fr) 5rem 4rem 3.5rem;
   }
   .results-table__cell--team {
+    display: none;
+  }
+  .results-table--7col .results-table__cell:nth-child(4), /* Grid */
+  .results-table--7col .results-table__cell:nth-child(5) { /* Laps */
     display: none;
   }
 }

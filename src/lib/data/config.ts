@@ -16,6 +16,9 @@ export const ENDPOINTS = {
   driverStandings: (year: string) => `${JOLPICA}/${year}/driverStandings.json`,
   constructorStandings: (year: string) => `${JOLPICA}/${year}/constructorStandings.json`,
   results: (year: string, round: string) => `${JOLPICA}/${year}/${round}/results.json`,
+  qualifying: (year: string, round: string) => `${JOLPICA}/${year}/${round}/qualifying.json`,
+  practice: (year: string, round: string) => `${JOLPICA}/${year}/${round}/practice.json`,
+  sprint: (year: string, round: string) => `${JOLPICA}/${year}/${round}/sprint.json`,
   streams: "https://api.ppv.st/api/streams",
 } as const;
 
@@ -50,6 +53,9 @@ export const KEYS = {
   driverStandings: (year: string) => `driverStandings:${year}`,
   constructorStandings: (year: string) => `constructorStandings:${year}`,
   results: (year: string, round: string) => `results:${year}:${round}`,
+  qualifying: (year: string, round: string) => `qualifying:${year}:${round}`,
+  practice: (year: string, round: string) => `practice:${year}:${round}`,
+  sprint: (year: string, round: string) => `sprint:${year}:${round}`,
   streams: "streams",
 } as const;
 

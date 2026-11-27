@@ -96,6 +96,45 @@ export interface RaceResult {
   };
 }
 
+export interface QualifyingResult {
+  number: string;
+  position: string;
+  positionText: string;
+  Driver: Driver;
+  Constructor: Constructor;
+  Q1?: string;
+  Q2?: string;
+  Q3?: string;
+}
+
+export interface PracticeResult {
+  number: string;
+  position: string;
+  positionText: string;
+  Driver: Driver;
+  Constructor: Constructor;
+  time?: string;
+  laps?: string;
+}
+
+export interface SprintResult {
+  number: string;
+  position: string;
+  positionText: string;
+  points: string;
+  Driver: Driver;
+  Constructor: Constructor;
+  grid: string;
+  laps: string;
+  status: string;
+  Time?: { millis: string; time: string };
+  FastestLap?: {
+    rank: string;
+    lap: string;
+    Time: { time: string; averageSpeed?: { units: string; speed: string } };
+  };
+}
+
 // ============================================
 // Parsers (raw Jolpica JSON -> app shape)
 // ============================================
@@ -117,6 +156,12 @@ const parseConstructorStandings = (raw: any): ConstructorStanding[] => {
 };
 
 const parseResults = (raw: any): RaceResult[] => raw.MRData.RaceTable.Races[0]?.Results || [];
+
+const parseQualifying = (raw: any): QualifyingResult[] => raw.MRData.RaceTable.Races[0]?.QualifyingResults || [];
+
+const parsePractice = (raw: any): PracticeResult[] => raw.MRData.RaceTable.Races[0]?.PracticeResults || [];
+
+const parseSprint = (raw: any): SprintResult[] => raw.MRData.RaceTable.Races[0]?.SprintResults || [];
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ============================================
@@ -156,6 +201,27 @@ export const raceResultsRes = (year: string, round: string): Resource<RaceResult
   url: ENDPOINTS.results(year, round),
   ttl: resultsTtl(year),
   parse: parseResults,
+});
+
+export const qualifyingRes = (year: string, round: string): Resource<QualifyingResult[]> => ({
+  key: KEYS.qualifying(year, round),
+  url: ENDPOINTS.qualifying(year, round),
+  ttl: resultsTtl(year),
+  parse: parseQualifying,
+});
+
+export const practiceRes = (year: string, round: string): Resource<PracticeResult[]> => ({
+  key: KEYS.practice(year, round),
+  url: ENDPOINTS.practice(year, round),
+  ttl: resultsTtl(year),
+  parse: parsePractice,
+});
+
+export const sprintRes = (year: string, round: string): Resource<SprintResult[]> => ({
+  key: KEYS.sprint(year, round),
+  url: ENDPOINTS.sprint(year, round),
+  ttl: resultsTtl(year),
+  parse: parseSprint,
 });
 
 // ============================================
