@@ -392,7 +392,6 @@
 }
 .site-nav__link {
   color: var(--nav-mute);
-  transition: color var(--t-ui);
 }
 .site-nav__link:hover,
 .site-nav__link[aria-current="page"],
@@ -509,7 +508,6 @@
 }
 .link-row .row__body p {
   text-decoration: none;
-  transition: color var(--t-ui);
 }
 .link-row:hover .row__body p:first-child {
   color: var(--ink);
@@ -588,7 +586,6 @@
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: var(--underline);
-  transition: text-decoration-color var(--t-ui), color var(--t-ui);
 }
 .link:hover {
   color: var(--ink);
@@ -614,7 +611,6 @@
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: var(--underline);
-  transition: text-decoration-color var(--t-ui), color var(--t-ui);
 }
 .control:hover {
   color: var(--ink);
@@ -636,7 +632,6 @@
   font: inherit;
   letter-spacing: inherit;
   cursor: pointer;
-  transition: color var(--t-ui);
 }
 .tabs-list > button:hover,
 .tabs-list > button[data-state="active"] {
@@ -845,7 +840,6 @@
   font-size: var(--t);
   cursor: pointer;
   border-radius: var(--r-field);
-  transition: color var(--t-ui), background var(--t-ui);
 }
 .session-tab:hover {
   color: var(--ink);
@@ -941,7 +935,6 @@
   color: var(--player-text);
   border: 0;
   backdrop-filter: blur(var(--film-blur));
-  transition: background var(--t-ui);
 }
 .player-controls button:hover {
   background: var(--film-hover);
@@ -990,7 +983,6 @@
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   text-decoration-color: var(--underline);
-  transition: text-decoration-color var(--t-ui), color var(--t-ui);
 }
 .site-footer a:hover {
   color: var(--ink);
@@ -1018,7 +1010,6 @@ h1[tabindex="-1"]:focus {
   letter-spacing: inherit;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--t-ui), border-color var(--t-ui), color var(--t-ui);
 }
 .btn--primary {
   background: var(--dark);
@@ -1041,38 +1032,20 @@ h1[tabindex="-1"]:focus {
   color: var(--selection-fg);
 }
 
-/* Theme switch. Surfaces (page background, nav pill, borders, icon fills) fade
-   smoothly. Text colour is swapped crisply at --t-theme-text rather than faded:
-   a smooth fade would drag text through the background's own colour, so it
-   momentarily sits at ~1:1 contrast — the flicker. Swapping keeps every frame
-   legible. Only applied while switching, so hovers keep their own timing. */
-html.theme-switching,
-html.theme-switching *,
-html.theme-switching *::before,
-html.theme-switching *::after {
-  transition:
-    background-color var(--t-theme) ease,
-    border-color var(--t-theme) ease,
-    fill var(--t-theme) ease,
-    color 0s var(--t-theme-text) !important;
+/* Theme switch: colours swap in one frame (no colour transitions anywhere), so
+   no text can lag behind the background. While the toggle runs, every
+   transition and CSS animation is frozen; the reveal fades run through Web
+   Animations and are unaffected. The circular view transition, when the
+   browser supports it, is the only theme animation. */
+html[data-theme-switching],
+html[data-theme-switching] *,
+html[data-theme-switching] *::before,
+html[data-theme-switching] *::after {
+  transition: none !important;
+  animation-duration: 0s !important;
 }
-
-/* Muted text in light mode is semi-transparent black, so it tracks the fading
-   background and never washes. Its dark value is opaque, so it is swapped late,
-   once the background is already dark, instead of at the primary-text moment. */
-html.theme-switching :is(
-  .mute,
-  .row__label,
-  .link-row .row__label,
-  .link-row .row__arrow,
-  .label-line,
-  .countdown__label,
-  .race__meta-sep,
-  .table th,
-  .driver__code,
-  .results-table__head .results-table__cell,
-  .prose p,
-  .site-footer
-) {
-  transition: color 0s var(--t-theme-muted) !important;
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }

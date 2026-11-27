@@ -20,8 +20,6 @@ export const THEME_COLOR_LIGHT = "#fcfcfc";
 export const THEME_COLOR_DARK = "#171717";
 
 /** How long the colour fade runs; the class is kept a little longer than that. */
-const THEME_TRANSITION_MS = 250;
-let switchTimer: ReturnType<typeof setTimeout> | undefined;
 
 /** Read the saved choice. Returns null if unset or storage is blocked. */
 export function readStoredTheme(): Theme | null {
@@ -66,25 +64,40 @@ export function applyTheme(theme: Theme, animate = true): void {
   if (typeof document === "undefined") return;
   const root = document.documentElement;
 
-  // During an interactive switch, mark the document so the colour transitions
-  // (and only those) run. Skipped for reduced motion, and never on first paint.
   const reduce =
     !animate ||
     (typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-  if (!reduce) root.classList.add("theme-switching");
 
-  root.classList.toggle("dark", theme === "dark");
-  root.dataset.theme = theme;
-  root.style.colorScheme = theme;
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) {
-    meta.setAttribute("content", theme === "dark" ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
+  const write = () => {
+    // Freeze transitions for the frame the colours change in, then release
+    // two frames later so every colour lands at once.
+    root.setAttribute("data-theme-switching", "");
+    root.classList.toggle("dark", theme === "dark");
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", theme === "dark" ? THEME_COLOR_DARK : THEME_COLOR_LIGHT);
+    }
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
+    );
+  };
+
+  const doc = document as Document & {
+    startViewTransition?: (cb: () => void) => { finished: Promise<void>; ready: Promise<void> };
+  };
+  if (reduce || typeof doc.startViewTransition !== "function") {
+    write();
+    return;
   }
-
-  if (!reduce) {
-    clearTimeout(switchTimer);
-    switchTimer = setTimeout(() => root.classList.remove("theme-switching"), THEME_TRANSITION_MS + 60);
+  try {
+    const vt = doc.startViewTransition(write);
+    vt.ready.catch(() => {});
+    vt.finished.catch(() => {});
+  } catch {
+    write();
   }
 }
 
