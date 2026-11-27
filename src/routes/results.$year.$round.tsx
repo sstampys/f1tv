@@ -116,6 +116,18 @@ function ResultRow({ result }: { result: RaceResult }) {
   const raceTime = result.Time?.time || "";
   const isWinner = position === "1";
 
+  // Team name shortening: remove " F1 Team" suffix and map known alternatives
+  const teamName = (() => {
+    const name = result.Constructor.name;
+    const map: Record<string, string> = {
+      "Haas F1 Team": "Haas",
+      "RB F1 Team": "Racing Bulls",
+      "Alpine F1 Team": "Alpine",
+    };
+    if (map[name]) return map[name];
+    return name.replace(/ F1 Team$/, "");
+  })();
+
   const status = result.status || "";
   const isClassified = /^\d/.test(status) || status === "Finished";
   const isRetired = /ret|mechanical|accident|collision|engine|brakes|clutch|gearbox|electrical|oil leak|physical|throttle/i.test(status);
@@ -153,7 +165,7 @@ function ResultRow({ result }: { result: RaceResult }) {
           </div>
         </div>
       </td>
-      <td>{result.Constructor.name}</td>
+      <td>{teamName}</td>
       <td className="num">{gridPos}</td>
       <td className="num">{result.points}</td>
       <td className="num">{timeCell}</td>
