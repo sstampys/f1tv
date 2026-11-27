@@ -3,6 +3,7 @@ import { useStreamPlaying } from "@/lib/stream-status";
 import { prefetchResource } from "@/lib/data/use-resource";
 import { seasonsRes, scheduleRes, driverStandingsRes } from "@/lib/jolpica-api";
 import { currentYear } from "@/lib/data/config";
+import { applyTheme, storeTheme } from "@/lib/theme";
 
 const links = [
   { href: "/", label: "Countdown" },
@@ -21,11 +22,26 @@ function prefetchFor(href: string) {
 export function Navigation() {
   const location = useLocation();
   const streamPlaying = useStreamPlaying();
+
+  // The logo in the pill is the theme switch. It reads the live class so it
+  // always flips from what is actually applied.
+  const toggleTheme = () => {
+    const next = document.documentElement.classList.contains("dark") ? "light" : "dark";
+    applyTheme(next);
+    storeTheme(next);
+  };
+
   return (
     <nav className="site-nav" aria-label="Main navigation">
-      <Link to="/" className="site-nav__home" aria-label="F1Box Home" style={{ "--i": 0 }}>
-        <img src="/logo.svg" alt="" aria-hidden="true" className="site-nav__mark" />
-      </Link>
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className="site-nav__home"
+        aria-label="Toggle color theme"
+        style={{ "--i": 0 }}
+      >
+        <span className="site-nav__mark" aria-hidden="true" />
+      </button>
       {links.map(({ href, label }, index) => {
         // While a stream is playing the countdown entry is the live one.
         const live = href === "/" && streamPlaying;

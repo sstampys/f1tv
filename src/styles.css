@@ -105,6 +105,9 @@
   --ease: cubic-bezier(.22, 1, .36, 1);
   --t-ui: .15s;
   --t-in: .7s;
+  --t-theme: 250ms;
+  --t-theme-text: 100ms;
+  --t-theme-muted: 150ms;
 
   /* .reveal, ye() in main-BVZYWS9J.js */
   --motion-reveal-duration: var(--t-in);
@@ -163,9 +166,14 @@
   --film-blur: 12px;
   --error: #c4352b;
 
+  /* Theme-driven colours (light values; overridden under .dark) */
+  --underline: rgba(0, 0, 0, .35);
+  --logo: #000;
+  --on-dark: #fff;
+
   --font-sans: var(--font);
   --font-display: var(--font);
-  color-scheme: light;
+  color-scheme: light dark;
 }
 
 /* @media (max-width: 900px) / (max-width: 760px) / (max-width: 440px) */
@@ -187,6 +195,64 @@
 @media (max-width: 440px) {
   :root {
     --nav-gap: 14px;
+  }
+}
+
+/*
+ * Dark theme. Exact values measured from the Search Browser auto-dark
+ * screenshot: page background #171717, primary text #d4d4d4, muted text
+ * #6c6c6c, nav pill outline #343433, season-control underline #595959, logo
+ * mark #ffffff. The nav pill's fill is the page background, so it has no
+ * separate colour.
+ *
+ * Applied by the `dark` class / data-theme marker (written before first paint
+ * by the head script and by the toggle), and by the system preference when no
+ * choice is stored and no script has run (the no-JS fallback below).
+ */
+:root.dark,
+:root[data-theme="dark"] {
+  --ink: #d4d4d4;
+  --mute: #6c6c6c;
+  --paper: #171717;
+  --field: #343433;
+  --soft: #343433;
+  --soft-hover: #343433;
+  --line-nav: #343433;
+  --line-hover: #343433;
+  --line-on: #343433;
+  --placeholder: #6c6c6c;
+  --underline: #595959;
+  --logo: #ffffff;
+  --on-dark: #171717;
+  --dark: #d4d4d4;
+  --dark-hover: #ffffff;
+  --player: #171717;
+  --selection-bg: #343433;
+  --selection-fg: #d4d4d4;
+  color-scheme: dark;
+}
+/* No-JS fallback: with no explicit choice recorded, follow the system. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --ink: #d4d4d4;
+    --mute: #6c6c6c;
+    --paper: #171717;
+    --field: #343433;
+    --soft: #343433;
+    --soft-hover: #343433;
+    --line-nav: #343433;
+    --line-hover: #343433;
+    --line-on: #343433;
+    --placeholder: #6c6c6c;
+    --underline: #595959;
+    --logo: #ffffff;
+    --on-dark: #171717;
+    --dark: #d4d4d4;
+    --dark-hover: #ffffff;
+    --player: #171717;
+    --selection-bg: #343433;
+    --selection-fg: #d4d4d4;
+    color-scheme: dark;
   }
 }
 
@@ -316,6 +382,13 @@
 }
 .site-nav__home {
   color: var(--nav-ink);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
 }
 .site-nav__link {
   color: var(--nav-mute);
@@ -330,7 +403,9 @@
   display: block;
   width: var(--nav-mark);
   height: var(--nav-mark);
-  object-fit: contain;
+  background-color: var(--logo);
+  -webkit-mask: url(/logo.svg) center / contain no-repeat;
+  mask: url(/logo.svg) center / contain no-repeat;
 }
 .first-visit .site-nav,
 .first-visit .site-nav > * {
@@ -513,7 +588,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(0, 0, 0, .35);
+  text-decoration-color: var(--underline);
   transition: text-decoration-color var(--t-ui), color var(--t-ui);
 }
 .link:hover {
@@ -539,7 +614,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(0, 0, 0, .35);
+  text-decoration-color: var(--underline);
   transition: text-decoration-color var(--t-ui), color var(--t-ui);
 }
 .control:hover {
@@ -916,7 +991,7 @@
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(0, 0, 0, .35);
+  text-decoration-color: var(--underline);
   transition: text-decoration-color var(--t-ui), color var(--t-ui);
 }
 .site-footer a:hover {
@@ -949,7 +1024,7 @@ h1[tabindex="-1"]:focus {
 }
 .btn--primary {
   background: var(--dark);
-  color: #fff;
+  color: var(--on-dark);
 }
 .btn--primary:hover {
   background: var(--dark-hover);
@@ -959,4 +1034,47 @@ h1[tabindex="-1"]:focus {
 }
 .btn--secondary:hover {
   background: var(--soft-hover);
+}
+
+/* Themed text selection (dark only; light keeps the browser default). */
+:root.dark ::selection,
+:root[data-theme="dark"] ::selection {
+  background: var(--selection-bg);
+  color: var(--selection-fg);
+}
+
+/* Theme switch. Surfaces (page background, nav pill, borders, icon fills) fade
+   smoothly. Text colour is swapped crisply at --t-theme-text rather than faded:
+   a smooth fade would drag text through the background's own colour, so it
+   momentarily sits at ~1:1 contrast — the flicker. Swapping keeps every frame
+   legible. Only applied while switching, so hovers keep their own timing. */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition:
+    background-color var(--t-theme) ease,
+    border-color var(--t-theme) ease,
+    fill var(--t-theme) ease,
+    color 0s var(--t-theme-text) !important;
+}
+
+/* Muted text in light mode is semi-transparent black, so it tracks the fading
+   background and never washes. Its dark value is opaque, so it is swapped late,
+   once the background is already dark, instead of at the primary-text moment. */
+html.theme-switching :is(
+  .mute,
+  .row__label,
+  .link-row .row__label,
+  .link-row .row__arrow,
+  .label-line,
+  .countdown__label,
+  .race__meta-sep,
+  .table th,
+  .driver__code,
+  .results-table__head .results-table__cell,
+  .prose p,
+  .site-footer
+) {
+  transition: color 0s var(--t-theme-muted) !important;
 }

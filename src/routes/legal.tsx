@@ -81,7 +81,8 @@ function Legal() {
               browser's local storage on your own device, under keys beginning f1box:. This is public
               Formula&nbsp;1 data, it stays on your device, it is never sent to F1Box, and you can remove it at any
               time by clearing this site's data in your browser settings. F1Box also keeps a one-time navigation flag
-              in session storage. Stream players that load inside F1Box are operated by third parties and may use their
+              in session storage, and saves your theme choice (light or dark) in your browser's local storage on your
+              own device; it is never sent to us. Stream players that load inside F1Box are operated by third parties and may use their
               own cookies or similar technologies, which F1Box doesn't control.
             </p>
           </div>

@@ -11,6 +11,7 @@ import { useEffect, type ReactNode } from "react";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navigation } from "@/components/Navigation";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { themeInitScript } from "@/lib/theme";
 import appCss from "../styles.css?url";
 import { Analytics } from "@vercel/analytics/react";
 
@@ -76,6 +77,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "color-scheme", content: "light dark" },
       { name: "theme-color", content: "#fcfcfc" },
       { title: "F1Box" },
       { name: "description", content: "Live Formula 1 countdown, standings, schedule, and race results." },
@@ -88,6 +90,11 @@ export const Route = createRootRoute({
       { name: "twitter:description", content: "Live Formula 1 countdown, standings, schedule, and race results." },
     ],
     scripts: [
+      {
+        // Runs before first paint: applies the saved theme (or the system
+        // preference) so a dark reload never flashes light.
+        children: themeInitScript,
+      },
       {
         children: `(function(){try{var h=document.documentElement;if(!sessionStorage.getItem('f1box-nav-seen')){h.classList.add('first-visit');sessionStorage.setItem('f1box-nav-seen','1')}}catch(e){}})();`,
       },
