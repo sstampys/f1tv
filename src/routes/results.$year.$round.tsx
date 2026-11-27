@@ -127,6 +127,12 @@ function ResultRow({ result }: { result: RaceResult }) {
   const isDidNotFinish = /did not finish/i.test(status);
   const isLapDown = /^\+\d+ Lap(s)?/i.test(status);
 
+  // Helper to get driver number (same as standings page)
+  const getDriverNumber = (driver: { permanentNumber?: string }): string => {
+    const number = driver.permanentNumber?.trim();
+    return number ? `#${number}` : "";
+  };
+
   let timeCell: string;
   if (isDisqualified) {
     timeCell = "DSQ";
@@ -154,7 +160,12 @@ function ResultRow({ result }: { result: RaceResult }) {
     <div className="results-table__row" role="row" data-reveal>
       <div className="results-table__cell" role="cell">{position}</div>
       <div className="results-table__cell" role="cell">
-        <p className="results-table__name">{result.Driver.givenName} {result.Driver.familyName}</p>
+        <div className="driver">
+          <div className="driver__name">
+            <p>{result.Driver.givenName} {result.Driver.familyName}</p>
+            <p className="mute">{getDriverNumber(result.Driver)}</p>
+          </div>
+        </div>
       </div>
       <div className="results-table__cell results-table__cell--team" role="cell">{result.Constructor.name}</div>
       <div className="results-table__cell results-table__num" role="cell">{gridPos}</div>

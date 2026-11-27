@@ -718,6 +718,29 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Driver name + number in results table (matches standings table) */
+.results-table .driver {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.results-table .driver__name {
+  min-width: 0;
+}
+.results-table .driver__name p:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.results-table .driver__name .mute {
+  font-size: var(--t);
+  line-height: var(--lh);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 @media (max-width: 760px) {
   .results-table__row {
     grid-template-columns: 1.5rem minmax(0, 1.2fr) minmax(0, 0.8fr) 2.5rem 2.5rem 6.25rem;
