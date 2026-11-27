@@ -359,12 +359,17 @@
   min-height: 100svh;
   padding: var(--page-top) 0 var(--page-bottom);
 }
-/* Countdown home: centre the block in the space from the pill to the screen bottom */
+/* Countdown home: centre the block in the full screen, top edge to bottom edge,
+   on every device. No nav offset: the block is centred in the viewport itself,
+   not in the space left under the pill. dvh (with a vh fallback) tracks mobile
+   browser chrome as it hides and shows, so the centre stays the visible centre. */
 .page--center {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-top: var(--nav-pill-bottom);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: 0;
   padding-bottom: 0;
 }
 .page-container {
