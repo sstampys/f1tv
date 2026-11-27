@@ -29,11 +29,12 @@ export const Route = createFileRoute("/standings")({
       { rel: "canonical", href: "https://www.f1box.org/standings" },
     ],
     scripts: [
-      // Only the default tab's data is started early; the other tab loads on idle.
+      // Both tabs' data started early so constructor standings are ready on click.
       {
         children: earlyFetchScript([
           { url: ENDPOINTS.seasons, key: KEYS.seasons, ttl: TTL.completedSeason },
           { url: ENDPOINTS.driverStandings(currentYear()), key: KEYS.driverStandings(currentYear()), ttl: standingsTtl(currentYear()) },
+          { url: ENDPOINTS.constructorStandings(currentYear()), key: KEYS.constructorStandings(currentYear()), ttl: standingsTtl(currentYear()) },
         ]),
       },
     ],
@@ -50,27 +51,10 @@ function StandingsPage() {
 export function StandingsSection({ currentSeason }: { currentSeason: string }) {
   const [season, setSeason] = useState<string>(currentSeason);
   const [tab, setTab] = useState("drivers");
-  const [otherEnabled, setOtherEnabled] = useState(false);
-
-  // The inactive tab's data is requested on idle (or when that tab is opened),
-  // so only the default tab's request sits on the critical path.
-  useEffect(() => {
-    type IdleWindow = Window & {
-      requestIdleCallback?: (cb: () => void) => number;
-      cancelIdleCallback?: (id: number) => void;
-    };
-    const w = window as IdleWindow;
-    if (typeof w.requestIdleCallback === "function") {
-      const id = w.requestIdleCallback(() => setOtherEnabled(true));
-      return () => w.cancelIdleCallback?.(id);
-    }
-    const id = window.setTimeout(() => setOtherEnabled(true), 1200);
-    return () => window.clearTimeout(id);
-  }, []);
 
   const seasons = useResource(seasonsRes);
   const drivers = useResource(driverStandingsRes(season));
-  const constructors = useResource(constructorStandingsRes(season), otherEnabled || tab === "constructors");
+  const constructors = useResource(constructorStandingsRes(season));
 
   const anyError = drivers.error || constructors.error;
   const hasData = !!(drivers.data || constructors.data);
@@ -108,13 +92,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
             <Tabs defaultValue="drivers" onValueChange={setTab}>
               <TabsList className="tabs-list" data-reveal>
                 <TabsTrigger value="drivers">Drivers</TabsTrigger>
-                <TabsTrigger
-                  value="constructors"
-                  onPointerEnter={() => setOtherEnabled(true)}
-                  onFocus={() => setOtherEnabled(true)}
-                >
-                  Constructors
-                </TabsTrigger>
+                <TabsTrigger value="constructors">Constructors</TabsTrigger>
               </TabsList>
 
               <TabsContent value="drivers">
