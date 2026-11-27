@@ -688,68 +688,48 @@
   }
 }
 
-/* Results table: shared grid column sizing to prevent overlap.
-   Single template applied to header and rows so they can never drift apart. */
+/* Results: one shared grid template for the header row and every body row,
+   so the columns can never drift apart. Grid/Points sit 16px apart and the
+   Time track is wide enough for 1:27:39.624, +0.639, +1 Lap, RET and DNS. */
 .results-table {
   width: 100%;
-  table-layout: fixed;
-  border-collapse: collapse;
   font-variant-numeric: tabular-nums;
 }
-.results-table th,
-.results-table td {
-  padding: calc(var(--stack) / 2) var(--s1) calc(var(--stack) / 2) 0;
-  text-align: left;
-  vertical-align: top;
-  font-weight: 400;
+.results-table__row {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1.35fr) minmax(0, 1fr) 3.5rem 3.5rem 6.25rem;
+  column-gap: var(--s2);
+  align-items: start;
+}
+.results-table__cell {
+  min-width: 0;
+  padding: calc(var(--stack) / 2) 0;
   color: var(--ink);
 }
-.results-table th {
+.results-table__head .results-table__cell {
   color: var(--mute);
 }
-.results-table th:last-child,
-.results-table td:last-child {
-  padding-right: 0;
-}
-.results-table .num {
+.results-table__num {
   text-align: right;
   white-space: nowrap;
 }
-.results-table .col-pos {
-  width: 2.75rem; /* 44px: room after the rank number before the driver name */
-  padding-right: var(--s2);
-}
-.results-table .col-driver {
-  width: auto;
-}
-.results-table .col-team {
-  width: auto;
-}
-.results-table .col-num {
-  width: 4rem;
-  padding-right: var(--s3); /* generous gap before Time */
-}
-.results-table .col-time {
-  width: 7.25rem; /* 116px right-aligned track: wide daylight before the time */
-}
-@media (min-width: 761px) {
-  .results-table .col-pos {
-    width: 2.75rem;
-  }
-  .results-table .col-num {
-    width: 4rem;
-  }
-  .results-table .col-time {
-    width: 7.25rem;
-  }
+.results-table__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 @media (max-width: 760px) {
-  .results-table .col-pos {
-    width: var(--s2);
+  .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1.2fr) minmax(0, 0.8fr) 2.5rem 2.5rem 6.25rem;
+    column-gap: var(--s1);
   }
-  .results-table .col-num,
-  .results-table .col-time {
-    width: var(--s3);
+}
+@media (max-width: 440px) {
+  .results-table__row {
+    grid-template-columns: 1.5rem minmax(0, 1fr) 2.5rem 2.5rem 6.25rem;
+  }
+  .results-table__cell--team {
+    display: none;
   }
 }
 

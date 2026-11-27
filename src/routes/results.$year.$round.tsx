@@ -90,23 +90,21 @@ function ResultsPage() {
 
 function ResultsTable({ results }: { results: RaceResult[] }) {
   return (
-    <table className="table results-table">
-      <thead>
-        <tr data-reveal>
-          <th className="col-pos">Pos</th>
-          <th className="col-driver">Driver</th>
-          <th className="col-team">Team</th>
-          <th className="col-num num">Grid</th>
-          <th className="col-num num">Points</th>
-          <th className="col-time num">Time</th>
-        </tr>
-      </thead>
-      <tbody>
+    <div className="results-table" role="table" aria-label="Race results">
+      <div className="results-table__row results-table__head" role="row" data-reveal>
+        <div className="results-table__cell" role="columnheader">Pos</div>
+        <div className="results-table__cell" role="columnheader">Driver</div>
+        <div className="results-table__cell results-table__cell--team" role="columnheader">Team</div>
+        <div className="results-table__cell results-table__num" role="columnheader">Grid</div>
+        <div className="results-table__cell results-table__num" role="columnheader">Points</div>
+        <div className="results-table__cell results-table__num" role="columnheader">Time</div>
+      </div>
+      <div className="results-table__body" role="rowgroup">
         {results.map((result) => (
           <ResultRow key={result.Driver.driverId} result={result} />
         ))}
-      </tbody>
-    </table>
+      </div>
+    </div>
   );
 }
 
@@ -117,7 +115,6 @@ function ResultRow({ result }: { result: RaceResult }) {
   const raceTime = result.Time?.time || "";
   const isWinner = position === "1";
 
-  const isClassified = /^\d/.test(status) || status === "Finished";
   const isRetired = /ret|mechanical|accident|collision|engine|brakes|clutch|gearbox|electrical|oil leak|physical|throttle/i.test(status);
   const isDisqualified = /disqual/i.test(status);
   const isNotStarted = /did not start/i.test(status);
@@ -126,9 +123,7 @@ function ResultRow({ result }: { result: RaceResult }) {
   const isLapDown = /^\+\d+ Lap(s)?/i.test(status);
 
   let timeCell: string;
-  if (isWinner) {
-    timeCell = raceTime;
-  } else if (isDisqualified) {
+  if (isDisqualified) {
     timeCell = "DSQ";
   } else if (isNotStarted) {
     timeCell = "DNS";
@@ -140,27 +135,27 @@ function ResultRow({ result }: { result: RaceResult }) {
     timeCell = "RET";
   } else if (isLapDown) {
     timeCell = status;
+  } else if (isWinner) {
+    // The winner's own total race time, even if the API also sent a "Time".
+    timeCell = raceTime;
   } else if (raceTime) {
     timeCell = raceTime;
   } else {
-    timeCell = "";
+    // Classified with no gap string (e.g. some feeds send "Finished" only).
+    timeCell = status && !/^finished$/i.test(status) ? status : "";
   }
 
   return (
-    <tr data-reveal>
-      <td>{position}</td>
-      <td>
-        <div className="driver">
-          <div className="driver__name">
-            <p>{result.Driver.givenName} {result.Driver.familyName}</p>
-          </div>
-        </div>
-      </td>
-      <td>{result.Constructor.name}</td>
-      <td className="num">{gridPos}</td>
-      <td className="num">{result.points}</td>
-      <td className="num col-time">{timeCell}</td>
-    </tr>
+    <div className="results-table__row" role="row" data-reveal>
+      <div className="results-table__cell" role="cell">{position}</div>
+      <div className="results-table__cell" role="cell">
+        <p className="results-table__name">{result.Driver.givenName} {result.Driver.familyName}</p>
+      </div>
+      <div className="results-table__cell results-table__cell--team" role="cell">{result.Constructor.name}</div>
+      <div className="results-table__cell results-table__num" role="cell">{gridPos}</div>
+      <div className="results-table__cell results-table__num" role="cell">{result.points}</div>
+      <div className="results-table__cell results-table__num" role="cell">{timeCell}</div>
+    </div>
   );
 }
 function Notice({ title, message, retry }: { title: string; message: string; retry?: boolean }) {
