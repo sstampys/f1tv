@@ -720,9 +720,10 @@
 }
 .results-table .col-num {
   width: 4rem;
+  padding-right: var(--s3); /* generous gap before Time */
 }
 .results-table .col-time {
-  width: 6.5rem; /* increased to 104px for clear separation before Time */
+  width: 7.25rem; /* 116px right-aligned track: wide daylight before the time */
 }
 @media (min-width: 761px) {
   .results-table .col-pos {
@@ -732,7 +733,7 @@
     width: 4rem;
   }
   .results-table .col-time {
-    width: 6.5rem;
+    width: 7.25rem;
   }
 }
 @media (max-width: 760px) {
