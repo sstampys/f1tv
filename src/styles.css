@@ -755,10 +755,10 @@
 }
 @media (min-width: 761px) {
   .table .col-pos {
-    width: var(--s8);
+    width: var(--s4);
   }
   .table .col-num {
-    width: var(--s8);
+    width: var(--s4);
   }
   .driver__code {
     width: var(--s6);
