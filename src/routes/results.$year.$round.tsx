@@ -96,6 +96,7 @@ function ResultsTable({ results }: { results: RaceResult[] }) {
           <th className="col-pos">Pos</th>
           <th>Driver</th>
           <th>Team</th>
+          <th className="col-num num">Grid</th>
           <th className="col-num num">Points</th>
           <th className="col-num num">Status</th>
         </tr>
@@ -111,6 +112,7 @@ function ResultsTable({ results }: { results: RaceResult[] }) {
 
 function ResultRow({ result }: { result: RaceResult }) {
   const position = result.positionText || result.position;
+  const gridPos = result.grid === "0" ? "Pit Lane" : `P${result.grid}`;
   const status = result.status || "—";
 
   return (
@@ -124,6 +126,7 @@ function ResultRow({ result }: { result: RaceResult }) {
         </div>
       </td>
       <td>{result.Constructor.name}</td>
+      <td className="num">{gridPos}</td>
       <td className="num">{result.points}</td>
       <td className="num">{status}</td>
     </tr>
