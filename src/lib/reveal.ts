@@ -391,6 +391,28 @@ export function startReveal(): () => void {
   return engine.stop;
 }
 
+/**
+ * Play the reveal fade on one element immediately, marking it revealed at the
+ * same moment. Used for table headers: they are chrome that must be visible
+ * from the first paint, but should still arrive with the same motion as the
+ * rows instead of popping in.
+ */
+export function playReveal(el: HTMLElement | null, delay = 0): void {
+  if (!el) return;
+  el.setAttribute("data-in", "");
+  const tokens = readTokens();
+  if (!tokens || prefersReducedMotion()) return;
+  const down = el.getAttribute("data-reveal") === "down";
+  const from = down ? `0 -${tokens.distance}` : `0 ${tokens.distance}`;
+  el.animate(
+    [
+      { opacity: tokens.opacityFrom, translate: from },
+      { opacity: 1, translate: "0 0" },
+    ],
+    { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
+  );
+}
+
 /** Broadcast just before the page's exit fade begins. */
 export const PAGE_EXIT_EVENT = "f1box:exit";
 

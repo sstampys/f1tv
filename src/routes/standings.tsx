@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   seasonsRes,
   driverStandingsRes,
@@ -14,7 +14,7 @@ import { earlyFetchScript } from "@/lib/data/early";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
-import { fadeOutList } from "@/lib/reveal";
+import { fadeOutList, playReveal } from "@/lib/reveal";
 
 export const Route = createFileRoute("/standings")({
   head: () => ({
@@ -133,6 +133,17 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
   );
 }
 
+/**
+ * Table head chrome. It mounts with the table (never with the loading
+ * skeleton) and reveals its own row on that first paint, so it always arrives
+ * with the same motion as the rows below and can never be left hidden.
+ */
+function RevealHead({ children }: { children: ReactNode }) {
+  const ref = useRef<HTMLTableSectionElement>(null);
+  useLayoutEffect(() => playReveal(ref.current?.querySelector("tr") ?? null), []);
+  return <thead ref={ref}>{children}</thead>;
+}
+
 function DriverStandingsTable({ standings, loading }: { standings: DriverStanding[]; loading?: boolean }) {
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." inTable />;
   if (loading && !standings.length) {
@@ -165,15 +176,15 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
 
   return (
     <table className="table">
-      <thead>
-        <tr>
+      <RevealHead>
+        <tr data-reveal>
           <th className="col-pos">Pos</th>
           <th>Driver</th>
           <th>Team</th>
           <th className="col-num num">Points</th>
           <th className="col-num num">Wins</th>
         </tr>
-      </thead>
+      </RevealHead>
       <tbody>
         {standings.map((standing, index) => (
           <tr key={standing.Driver.driverId || standing.Driver.familyName} data-reveal>
@@ -214,15 +225,15 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
 
   return (
     <table className="table">
-      <thead>
-        <tr>
+      <RevealHead>
+        <tr data-reveal>
           <th className="col-pos">Pos</th>
           <th>Constructor</th>
           <th></th>
           <th className="col-num num">Points</th>
           <th className="col-num num">Wins</th>
         </tr>
-      </thead>
+      </RevealHead>
       <tbody>
         {standings.map((standing) => (
           <tr key={standing.Constructor.constructorId} data-reveal>
