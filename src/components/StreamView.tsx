@@ -108,43 +108,7 @@ export default function StreamView({
                 controlsVisible || menuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="btn btn--secondary gap-2" aria-label="Change stream source">
-                        <span className="max-w-36 truncate hidden sm:block">{currentSource?.label ?? "Sources"}</span>
-                        <span className="sm:hidden">{currentSource?.label ?? "Sources"}</span>
-                        <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      align="end"
-                      sideOffset={8}
-                      className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
-                    >
-                      {sources.map((source) => (
-                        <DropdownMenuItem
-                          key={source.src}
-                          onSelect={() => { setSelected(source.src); setStreamLoaded(false); }}
-                          className="source-item cursor-pointer gap-3 px-3 py-2 text-sm focus:bg-wash focus:text-ink"
-                        >
-                          <span className="flex-1 truncate">{source.label}</span>
-                          {source.language ? (
-                            <span className="flex shrink-0 items-center gap-2">
-                              <span aria-hidden="true">{source.language.flag}</span>
-                              <span className="opacity-75">{source.language.name}</span>
-                            </span>
-                          ) : null}
-                          <span className="flex size-4 shrink-0 items-center justify-center">
-                            {source.src === iframeSrc ? <Check className="size-4 text-ink" /> : null}
-                          </span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
+              <div className="flex items-center justify-end">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -191,6 +155,41 @@ export default function StreamView({
             </div>
           )}
         </div>
+
+        {/* Source selector, outside the player */}
+        {hasStream && sources.length > 1 && (
+          <div className="page-container player-controls player-controls--outside">
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="btn btn--secondary gap-2" aria-label="Change stream source">
+                  <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
+                  <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={8}
+                className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
+              >
+                {sources.map((source) => (
+                  <DropdownMenuItem
+                    key={source.src}
+                    onSelect={() => { setSelected(source.src); setStreamLoaded(false); }}
+                    className="source-item cursor-pointer gap-3 px-3 py-2 text-sm focus:bg-wash focus:text-ink"
+                  >
+                    <span className="flex-1 truncate">{source.label}</span>
+                    {source.language ? (
+                      <span className="shrink-0 opacity-75">{source.language.code}</span>
+                    ) : null}
+                    <span className="flex size-4 shrink-0 items-center justify-center">
+                      {source.src === iframeSrc ? <Check className="size-4 text-ink" /> : null}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
 
         {/* Quick links below stream */}
         <div className="page-container stream-links">

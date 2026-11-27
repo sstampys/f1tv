@@ -639,6 +639,20 @@ select.control {
 .player-controls button:hover {
   background: var(--film-hover);
 }
+/* Source selector below the player: same control, on the page instead of the
+   video, so it uses the page's light field colours rather than the overlay's. */
+.player-controls--outside {
+  display: flex;
+  align-items: center;
+}
+.player-controls--outside button {
+  background: var(--field);
+  color: var(--ink);
+  backdrop-filter: none;
+}
+.player-controls--outside button:hover {
+  background: var(--soft-hover);
+}
 .source-menu {
   background: var(--ground);
   color: var(--ink);

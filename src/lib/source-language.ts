@@ -1,13 +1,13 @@
-export type SourceLanguage = { flag: string; name: string };
+export type SourceLanguage = { flag: string; name: string; code: string };
 
 const languages = {
-  enGB: { flag: "🇬🇧", name: "English" },
-  enUS: { flag: "🇺🇸", name: "English" },
-  es: { flag: "🇪🇸", name: "Español" },
-  de: { flag: "🇩🇪", name: "Deutsch" },
-  it: { flag: "🇮🇹", name: "Italiano" },
-  sv: { flag: "🇸🇪", name: "Svenska" },
-  nl: { flag: "🇳🇱", name: "Nederlands" },
+  enGB: { flag: "🇬🇧", name: "English", code: "EN" },
+  enUS: { flag: "🇺🇸", name: "English", code: "EN" },
+  es: { flag: "🇪🇸", name: "Español", code: "ES" },
+  de: { flag: "🇩🇪", name: "Deutsch", code: "DE" },
+  it: { flag: "🇮🇹", name: "Italiano", code: "IT" },
+  sv: { flag: "🇸🇪", name: "Svenska", code: "SV" },
+  nl: { flag: "🇳🇱", name: "Nederlands", code: "NL" },
 } satisfies Record<string, SourceLanguage>;
 
 // PPV's explicit locale takes priority; region hints are a fallback.

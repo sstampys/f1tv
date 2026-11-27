@@ -180,7 +180,6 @@ function DemoRoute() {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
-  const [controlsVisible, setControlsVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -215,27 +214,6 @@ function DemoRoute() {
     return () => setStreamPlaying(false);
   }, [iframeSrc]);
 
-  useEffect(() => {
-    if (!iframeSrc) return;
-    let timer: ReturnType<typeof setTimeout>;
-    const show = () => {
-      setControlsVisible(true);
-      clearTimeout(timer);
-      timer = setTimeout(() => setControlsVisible(false), 3000);
-    };
-    const events = [
-      "pointermove", "pointerdown", "mousemove", "touchstart", "touchmove", "click", "keydown", "scroll",
-    ] as const;
-    show();
-    events.forEach((e) => document.addEventListener(e, show, { capture: true, passive: true }));
-    window.addEventListener("focus", show);
-    return () => {
-      clearTimeout(timer);
-      events.forEach((e) => document.removeEventListener(e, show, { capture: true }));
-      window.removeEventListener("focus", show);
-    };
-  }, [iframeSrc]);
-
   return (
     <div className="min-h-screen bg-ground">
       <section className="page page--center rows">
@@ -253,69 +231,63 @@ function DemoRoute() {
 
           {iframeSrc ? (
             <div className="stream-player" data-reveal>
-              <video
-                key={iframeSrc}
-                className="absolute inset-0 w-full h-full object-contain"
-                src={iframeSrc}
-                autoPlay
-                controls
-                playsInline
-              />
-
-              {iframeSrc && sources.length > 1 ? (
-                <>
-                  <div
-                    className="fixed right-0 top-0 z-40 h-24 w-56"
-                    aria-hidden="true"
-                    onPointerMove={() => setControlsVisible(true)}
-                    onPointerDown={() => setControlsVisible(true)}
-                    onTouchStart={() => setControlsVisible(true)}
-                  />
-                  <div
-                    className={`player-controls absolute right-4 bottom-4 z-40 transition-all duration-300 ${
-                      controlsVisible || menuOpen
-                        ? "translate-y-0 opacity-100"
-                        : "pointer-events-none -translate-y-2 opacity-0"
-                    }`}
-                  >
-                    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-                      <DropdownMenuTrigger asChild>
-                        <LiquidGlassButton aria-label="Change stream source">
-                          <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
-                          <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
-                        </LiquidGlassButton>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        sideOffset={8}
-                        className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
-                      >
-                        {sources.map((source) => (
-                          <DropdownMenuItem
-                            key={source.src}
-                            onSelect={() => setSelected(source.src)}
-                            className="source-item cursor-pointer gap-3 px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
-                          >
-                            <span className="flex-1 truncate">{source.label}</span>
-                            {source.language ? (
-                              <span className="flex shrink-0 items-center gap-2">
-                                <span aria-hidden="true">{source.language.flag}</span>
-                                <span className="opacity-75">{source.language.name}</span>
-                              </span>
-                            ) : null}
-                            <span className="flex size-4 shrink-0 items-center justify-center">
-                              {source.src === iframeSrc ? <Check className="size-4" /> : null}
-                            </span>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </>
-              ) : null}
+              {demo === "ppv" ? (
+                <iframe
+                  key={iframeSrc}
+                  src={iframeSrc}
+                  title={currentSource?.label ?? "Demo stream"}
+                  className="absolute inset-0 w-full h-full border-0 bg-player"
+                  allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              ) : (
+                <video
+                  key={iframeSrc}
+                  className="absolute inset-0 w-full h-full object-contain"
+                  src={iframeSrc}
+                  autoPlay
+                  controls
+                  playsInline
+                />
+              )}
             </div>
           ) : null}
         </div>
+
+        {iframeSrc && sources.length > 1 ? (
+          <div className="page-container player-controls player-controls--outside justify-end">
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <LiquidGlassButton aria-label="Change stream source">
+                  <span className="max-w-36 truncate">{currentSource?.label ?? "Sources"}</span>
+                  <ChevronDown className="size-4 opacity-80 transition-transform group-data-[state=open]:rotate-180" />
+                </LiquidGlassButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="source-menu w-80 max-w-[calc(100vw-2rem)] p-1.5"
+              >
+                {sources.map((source) => (
+                  <DropdownMenuItem
+                    key={source.src}
+                    onSelect={() => setSelected(source.src)}
+                    className="source-item cursor-pointer gap-3 px-3 py-2.5 text-sm focus:bg-stream-hover focus:text-stream-text"
+                  >
+                    <span className="flex-1 truncate">{source.label}</span>
+                    {source.language ? (
+                      <span className="shrink-0 opacity-75">{source.language.code}</span>
+                    ) : null}
+                    <span className="flex size-4 shrink-0 items-center justify-center">
+                      {source.src === iframeSrc ? <Check className="size-4" /> : null}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : null}
       </section>
     </div>
   );
