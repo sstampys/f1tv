@@ -7,7 +7,7 @@ import {
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
-import { useState, useMemo } from "react";
+import { useState, useMemo, Component, type ReactNode } from "react";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
@@ -51,7 +51,11 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
   const schedule = useResource(scheduleRes(season));
 
   // The next race is derived from the schedule already in hand — no extra request.
-  const nextRace = useMemo(() => (schedule.data ? findNextRace(schedule.data) : null), [schedule.data]);
+  // Only the current season can have one; a finished season has no next race.
+  const nextRace = useMemo(
+    () => (season === currentSeason && schedule.data ? findNextRace(schedule.data) : null),
+    [schedule.data, season, currentSeason],
+  );
 
   return (
     <div className="page">
@@ -73,21 +77,48 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
           )}
         </div>
 
-        {!schedule.data && !schedule.error ? null : schedule.error ? (
-          <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
-        ) : schedule.data && schedule.data.length > 0 ? (
-          <RaceCalendar
-            key={season}
-            races={schedule.data}
-            nextRace={nextRace}
-            isCurrentSeason={season === currentSeason}
-          />
-        ) : (
-          <Notice title="No Races Scheduled" message="No races scheduled for this season." />
-        )}
+        <ScheduleBoundary key={season}>
+          {!schedule.data && !schedule.error ? null : schedule.error ? (
+            <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
+          ) : schedule.data && schedule.data.length > 0 ? (
+            <RaceCalendar
+              key={season}
+              races={schedule.data}
+              nextRace={nextRace}
+              isCurrentSeason={season === currentSeason}
+            />
+          ) : (
+            <Notice title="No Races Scheduled" message="No races scheduled for this season." />
+          )}
+        </ScheduleBoundary>
       </section>
     </div>
   );
+}
+
+/**
+ * Keeps a bad season's data from taking the page down: the heading and the
+ * season selector live outside this boundary, so the user can always switch
+ * away. Keyed by season, so choosing another season retries cleanly.
+ */
+class ScheduleBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <div className="page-container stack-tight">
+          <p>Unable to display this season</p>
+          <p className="mute">The data for this season could not be shown. Pick another season above.</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
 }
 
 const byDate = (a: Race, b: Race) => {

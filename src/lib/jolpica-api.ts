@@ -68,13 +68,14 @@ export interface Race {
     };
   };
   date: string;
-  time: string;
-  FirstPractice?: { date: string; time: string };
-  SecondPractice?: { date: string; time: string };
-  ThirdPractice?: { date: string; time: string };
-  Qualifying?: { date: string; time: string };
-  Sprint?: { date: string; time: string };
-  SprintQualifying?: { date: string; time: string };
+  // Older seasons (and some races) publish no start time at all.
+  time?: string;
+  FirstPractice?: { date: string; time?: string };
+  SecondPractice?: { date: string; time?: string };
+  ThirdPractice?: { date: string; time?: string };
+  Qualifying?: { date: string; time?: string };
+  Sprint?: { date: string; time?: string };
+  SprintQualifying?: { date: string; time?: string };
 }
 
 export interface RaceResult {
@@ -194,10 +195,21 @@ export async function getCurrentSeason(): Promise<string> {
   return seasons[0] || currentYear();
 }
 
+/** The instant a race starts: its published time, or the end of its date (UTC). */
+function raceStart(date: string, time?: string | null): Date {
+  const clean = normalizeTime(time);
+  return new Date(`${date}T${clean || "23:59:59"}Z`);
+}
+
 /** The first race in a schedule whose start is still in the future. */
 export function findNextRace(schedule: Race[]): Race | null {
   const now = new Date();
-  return schedule.find((race) => new Date(`${race.date}T${normalizeTime(race.time)}Z`) > now) || null;
+  return (
+    schedule.find((race) => {
+      const start = raceStart(race.date, race.time);
+      return !isNaN(start.getTime()) && start > now;
+    }) || null
+  );
 }
 
 /** Get the next upcoming race for a season's schedule. */
@@ -209,7 +221,10 @@ export async function getNextRace(year?: string): Promise<Race | null> {
 export async function getLastRace(year?: string): Promise<Race | null> {
   const schedule = await getRaceSchedule(year);
   const now = new Date();
-  const past = schedule.filter((race) => new Date(`${race.date}T${normalizeTime(race.time)}Z`) <= now);
+  const past = schedule.filter((race) => {
+    const start = raceStart(race.date, race.time);
+    return !isNaN(start.getTime()) && start <= now;
+  });
   return past[past.length - 1] || null;
 }
 
@@ -217,9 +232,20 @@ export async function getLastRace(year?: string): Promise<Race | null> {
 // Helpers
 // ============================================
 
-/** Convert UTC race date/time to user's local timezone */
-export function formatRaceDateTime(date: string, time: string, options: Intl.DateTimeFormatOptions = {}): string {
-  const cleanTime = time.endsWith("Z") ? time.slice(0, -1) : time;
+/** Convert UTC race date/time to user's local timezone. Date only when no time. */
+export function formatRaceDateTime(
+  date: string,
+  time?: string | null,
+  options: Intl.DateTimeFormatOptions = {},
+): string {
+  const cleanTime = normalizeTime(time);
+  if (!cleanTime) {
+    // No start time published: show the date alone. Format in UTC at midday so
+    // the calendar day never shifts into the previous/next one.
+    const day = new Date(`${date}T12:00:00Z`);
+    if (isNaN(day.getTime())) return "Invalid date";
+    return day.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric", timeZone: "UTC", ...options });
+  }
   const utcString = `${date}T${cleanTime}Z`;
   const raceDate = new Date(utcString);
   if (isNaN(raceDate.getTime())) return "Invalid date";
@@ -234,16 +260,17 @@ export function formatRaceDateTime(date: string, time: string, options: Intl.Dat
   });
 }
 
-/** Normalize API time (strips trailing Z if present) */
-function normalizeTime(time: string): string {
+/** Normalize API time (strips trailing Z if present); null when absent. */
+function normalizeTime(time?: string | null): string | null {
+  if (!time) return null;
   return time.endsWith("Z") ? time.slice(0, -1) : time;
 }
 
 /** Get time until race (for countdown) */
-export function getTimeUntilRace(date: string, time: string): {
+export function getTimeUntilRace(date: string, time?: string | null): {
   days: number; hours: number; minutes: number; seconds: number; totalMs: number; isPast: boolean;
 } {
-  const raceDate = new Date(`${date}T${normalizeTime(time)}Z`);
+  const raceDate = raceStart(date, time);
   const now = new Date();
   const diff = raceDate.getTime() - now.getTime();
 
@@ -261,8 +288,8 @@ export function getTimeUntilRace(date: string, time: string): {
 }
 
 /** Check if race is completed */
-export function isRaceCompleted(date: string, time: string): boolean {
-  const raceDate = new Date(`${date}T${normalizeTime(time)}Z`);
+export function isRaceCompleted(date: string, time?: string | null): boolean {
+  const raceDate = raceStart(date, time);
   return !isNaN(raceDate.getTime()) && raceDate <= new Date();
 }
 

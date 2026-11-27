@@ -37,30 +37,36 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
   }, [error]);
 
   return (
-    <div className="page">
-      <section className="rows">
-        <div className="page-container stack-tight">
-          <h1 data-reveal>This page didn't load</h1>
-          <p className="mute" data-reveal>
-            Something went wrong on our end. You can try refreshing or head back home.
-          </p>
+    <>
+      {/* This renders in place of RootComponent, so it must carry the nav itself
+          and must not use data-reveal: nothing observes reveals outside
+          RootComponent, and an unobserved [data-reveal] stays at opacity 0 —
+          which is what turned a render error into a blank white page. */}
+      <Navigation />
+      <main className="flex-1">
+        <div className="page">
+          <section className="rows">
+            <div className="page-container stack-tight">
+              <h1>This page didn't load</h1>
+              <p className="mute">Something went wrong. Try again, or head back home.</p>
+            </div>
+            <div className="page-container head" style={{ justifyContent: "flex-start", columnGap: "var(--s3)" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  router.invalidate();
+                  reset();
+                }}
+                className="control"
+              >
+                Try again
+              </button>
+              <Link to="/" className="link">Go home</Link>
+            </div>
+          </section>
         </div>
-        <div className="page-container head" style={{ justifyContent: "flex-start", columnGap: "var(--s3)" }}>
-          <button
-            type="button"
-            onClick={() => {
-              router.invalidate();
-              reset();
-            }}
-            className="control"
-            data-reveal
-          >
-            Try again
-          </button>
-          <Link to="/" className="link" data-reveal>Go home</Link>
-        </div>
-      </section>
-    </div>
+      </main>
+    </>
   );
 }
 
