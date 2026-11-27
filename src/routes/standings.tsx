@@ -12,7 +12,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { LanguageSelectorDropdown } from "@/components/ui/language-selector-dropdown";
+import { SystemSelect } from "@/components/ui/system-select";
 
 export const Route = createFileRoute("/standings")({
   head: () => ({
@@ -73,12 +73,11 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
         <div className="page-container head">
           <h1 data-reveal>Championship Standings</h1>
           {seasons.data && (
-            <LanguageSelectorDropdown
+            <SystemSelect
               value={season}
               options={seasons.data.map((s) => ({ value: s, label: `${s} Season` }))}
               onChange={setSeason}
               ariaLabel="Season"
-              align="end"
             />
           )}
         </div>

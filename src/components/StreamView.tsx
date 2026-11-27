@@ -1,8 +1,7 @@
 import { Loader2, X, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SourceLanguage } from "@/lib/source-language";
-import { LanguageSelectorDropdown } from "@/components/ui/language-selector-dropdown";
-import { type DropdownOption } from "@/components/Dropdown";
+import { SystemSelect } from "@/components/ui/system-select";
 
 export type Source = { label: string; src: string; language: SourceLanguage | null };
 
@@ -46,10 +45,9 @@ export default function StreamView({
     setStreamLoaded(false);
   };
 
-  const dropdownOptions: DropdownOption[] = sources.map((source) => ({
+  const sourceOptions = sources.map((source) => ({
     value: source.src,
-    label: source.label,
-    meta: source.language?.code ?? undefined,
+    label: source.language?.code ? `${source.label} (${source.language.code})` : source.label,
   }));
 
   return (
@@ -162,12 +160,11 @@ export default function StreamView({
         {/* Source selector, outside the player */}
         {hasStream && sources.length > 1 && (
           <div className="page-container player-controls player-controls--outside">
-            <LanguageSelectorDropdown
+            <SystemSelect
               value={iframeSrc ?? ""}
-              options={dropdownOptions}
+              options={sourceOptions}
               onChange={handleSourceChange}
               ariaLabel="Change stream source"
-              align="start"
             />
           </div>
         )}

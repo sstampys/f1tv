@@ -11,7 +11,7 @@ import { useState, useMemo, Component, type ReactNode } from "react";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
-import { LanguageSelectorDropdown } from "@/components/ui/language-selector-dropdown";
+import { SystemSelect } from "@/components/ui/system-select";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/schedule")({
@@ -65,12 +65,11 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
         <div className="page-container head">
           <h1 data-reveal>Race Schedule</h1>
           {seasons.data && (
-            <LanguageSelectorDropdown
+            <SystemSelect
               value={season}
               options={seasons.data.map((s) => ({ value: s, label: `${s} Season` }))}
               onChange={setSeason}
               ariaLabel="Season"
-              align="end"
             />
           )}
         </div>

@@ -5,8 +5,7 @@ import { getSourceLanguage, type SourceLanguage } from "@/lib/source-language";
 import { setStreamPlaying } from "@/lib/stream-status";
 import { request } from "@/lib/data/client";
 import { ENDPOINTS, KEYS } from "@/lib/data/config";
-import { LanguageSelectorDropdown } from "@/components/ui/language-selector-dropdown";
-import { type DropdownOption } from "@/components/Dropdown";
+import { SystemSelect } from "@/components/ui/system-select";
 
 export const Route = createFileRoute("/demo")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -208,11 +207,10 @@ function DemoRoute() {
     return () => setStreamPlaying(false);
   }, [iframeSrc]);
 
-  const dropdownOptions: DropdownOption[] = useMemo(
+  const sourceOptions = useMemo(
     () => sources.map((source) => ({
       value: source.src,
-      label: source.label,
-      meta: source.language?.code ?? undefined,
+      label: source.language?.code ? `${source.label} (${source.language.code})` : source.label,
     })),
     [sources]
   );
@@ -260,12 +258,11 @@ function DemoRoute() {
 
         {iframeSrc && sources.length > 1 ? (
           <div className="page-container player-controls player-controls--outside justify-end">
-            <LanguageSelectorDropdown
+            <SystemSelect
               value={iframeSrc ?? ""}
-              options={dropdownOptions}
+              options={sourceOptions}
               onChange={setSelected}
               ariaLabel="Change stream source"
-              align="end"
             />
           </div>
         ) : null}
