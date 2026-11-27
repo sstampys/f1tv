@@ -105,7 +105,7 @@ export default function StreamView({
           {/* Controls overlay */}
           {hasStream && sources.length > 1 && (
             <div
-              className={`player-controls absolute bottom-0 left-0 right-0 z-20 transition-all duration-300 px-4 pb-4 ${
+              className={`player-controls absolute bottom-0 left-0 right-0 z-20 transition-opacity duration-300 px-4 pb-4 ${
                 controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
               }`}
             >
