@@ -15,6 +15,7 @@ import { SystemSelect } from "@/components/ui/system-select";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { fadeOutList } from "@/lib/reveal";
+import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -82,7 +83,11 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
 
         <div ref={listRef} className="contents">
         <ScheduleBoundary key={season}>
-          {!schedule.data && !schedule.error ? null : schedule.error ? (
+          {!schedule.data && !schedule.error ? (
+            <div className="page-container">
+              <LoadingSpinner className="mute" />
+            </div>
+          ) : schedule.error ? (
             <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
           ) : schedule.data && schedule.data.length > 0 ? (
             <RaceCalendar

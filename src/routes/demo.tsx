@@ -6,6 +6,7 @@ import { setStreamPlaying } from "@/lib/stream-status";
 import { request } from "@/lib/data/client";
 import { ENDPOINTS, KEYS } from "@/lib/data/config";
 import { SystemSelect } from "@/components/ui/system-select";
+import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 
 export const Route = createFileRoute("/demo")({
   validateSearch: (search: Record<string, unknown>): { demo?: "sample" | "ppv" } => {
@@ -226,7 +227,9 @@ function DemoRoute() {
         <div className="page-container">
           {!loading && !iframeSrc ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', background: 'var(--ground)' }}>
-              <div className="mute">Demo Stream Loading...</div>
+              <div className="mute">
+                <LoadingSpinner size={14} />
+              </div>
             </div>
           ) : null}
 

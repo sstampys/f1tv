@@ -11,6 +11,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { Link } from "@tanstack/react-router";
+import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 
 export const Route = createFileRoute("/results/$year/$round")({
   validateSearch: (search: Record<string, unknown>) => ({}),
@@ -72,8 +73,12 @@ function ResultsPage() {
 
         <div className="page-container">
           {!results.data && !results.error ? (
-            <div className="stack-tight">
-              <p data-reveal>Loading results…</p>
+            <div className="results-table">
+              <div className="results-table__row results-table__head" data-reveal>
+                <div className="results-table__cell">
+                  <LoadingSpinner size={15} />
+                </div>
+              </div>
             </div>
           ) : results.error ? (
             <Notice title="Unable to load results" message="Failed to load race results. Please try again." retry />

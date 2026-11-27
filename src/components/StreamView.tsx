@@ -1,4 +1,5 @@
-import { Loader2, X, Maximize2, Minimize2 } from "lucide-react";
+import { X, Maximize2, Minimize2 } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { Button } from "@/components/ui/button";
 import type { SourceLanguage } from "@/lib/source-language";
 import { SystemSelect } from "@/components/ui/system-select";
@@ -95,9 +96,8 @@ export default function StreamView({
           {/* Loading overlay */}
           {!streamLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-player-overlay z-10">
-              <div className="text-center text-player-text">
-                <Loader2 className="w-10 h-10 mx-auto mb-4 animate-spin text-player-text" />
-                <p className="text-lg">Loading stream...</p>
+              <div className="text-player-text">
+                <LoadingSpinner size={40} className="mx-auto block" />
               </div>
             </div>
           )}

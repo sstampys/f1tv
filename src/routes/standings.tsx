@@ -13,6 +13,7 @@ import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/conf
 import { earlyFetchScript } from "@/lib/data/early";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
+import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { fadeOutList } from "@/lib/reveal";
 
 export const Route = createFileRoute("/standings")({
@@ -134,7 +135,19 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
 function DriverStandingsTable({ standings, loading }: { standings: DriverStanding[]; loading?: boolean }) {
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." inTable />;
-  if (loading && !standings.length) return null;
+  if (loading && !standings.length) {
+    return (
+      <table className="table">
+        <thead>
+          <tr>
+            <th className="col-pos">
+              <LoadingSpinner size={15} />
+            </th>
+          </tr>
+        </thead>
+      </table>
+    );
+  }
 
   // Helper to get display position (handles "-" for unclassified)
   const getDisplayPosition = (standing: DriverStanding, index: number): string => {
@@ -185,7 +198,19 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
 
 function ConstructorStandingsTable({ standings, loading }: { standings: ConstructorStanding[]; loading?: boolean }) {
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No constructor standings available for this season." inTable />;
-  if (loading && !standings.length) return null;
+  if (loading && !standings.length) {
+    return (
+      <table className="table">
+        <thead>
+          <tr>
+            <th className="col-pos">
+              <LoadingSpinner size={15} />
+            </th>
+          </tr>
+        </thead>
+      </table>
+    );
+  }
 
   return (
     <table className="table">
