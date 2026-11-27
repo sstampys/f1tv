@@ -407,7 +407,6 @@
   -webkit-mask: url(/logo.svg) center / contain no-repeat;
   mask: url(/logo.svg) center / contain no-repeat;
 }
-.first-visit .site-nav,
 .first-visit .site-nav > * {
   animation: nav-in var(--motion-intro-duration) var(--motion-intro-ease) backwards;
 }
@@ -417,7 +416,7 @@
 @keyframes nav-in {
   0% {
     opacity: 0;
-    translate: 0 calc(-1 * var(--motion-intro-distance));
+    transform: translate3d(0, calc(-1 * var(--motion-intro-distance)), 0);
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -724,7 +723,6 @@
   width: var(--s6);
 }
 .table tbody tr {
-  transition: color var(--t-ui);
 }
 .driver {
   display: flex;

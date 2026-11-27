@@ -35,8 +35,8 @@ export function AnimateCount({ children: count, animate = true, className, minDi
         {shouldAnimate && prev !== null && prev !== count && (
           <motion.div
             key={`exit-${prev}-${count}`}
-            initial={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-            animate={{ opacity: 0, filter: "blur(2px)", y: -12 }}
+            initial={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 0, y: -12 }}
             transition={transition}
             onAnimationComplete={() => setPrev(null)}
           >
@@ -46,8 +46,8 @@ export function AnimateCount({ children: count, animate = true, className, minDi
       </AnimatePresence>
       <motion.div
         key={`enter-${count}`}
-        initial={shouldAnimate ? { opacity: 0, filter: "blur(2px)", y: 8 } : false}
-        animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+        initial={shouldAnimate ? { opacity: 0, y: 8 } : false}
+        animate={{ opacity: 1, y: 0 }}
         transition={transition}
       >
         {format(count)}

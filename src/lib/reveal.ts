@@ -66,6 +66,29 @@ function readTokens(): Tokens | null {
   return ok ? tokens : null;
 }
 
+
+/**
+ * Run the reveal keyframes on one leaf. Only opacity and transform animate;
+ * translate3d with a whole-pixel distance keeps text from snapping at the end.
+ * will-change is set just before the animation and dropped two frames after it
+ * finishes so WebKit does not flash the text colour when the layer is removed.
+ */
+function animateLeaf(el: HTMLElement, tokens: Tokens, delay: number): void {
+  const px = Math.round(parseFloat(tokens.distance)) || 0;
+  const y = el.getAttribute("data-reveal") === "down" ? -px : px;
+  el.style.willChange = "opacity, transform";
+  const animation = el.animate(
+    [
+      { opacity: tokens.opacityFrom, transform: `translate3d(0, ${y}px, 0)` },
+      { opacity: 1, transform: "translate3d(0, 0, 0)" },
+    ],
+    { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
+  );
+  const clear = () =>
+    requestAnimationFrame(() => requestAnimationFrame(() => el.style.removeProperty("will-change")));
+  animation.finished.then(clear, clear);
+}
+
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const isWrapper = (el: Element) => el.querySelector(LEAF) !== null;
@@ -151,18 +174,7 @@ export function startReveal(): () => void {
     if (isRevealed(el)) return;
     markIn(el);
     if (still || !tokens) return;
-    // `data-reveal="down"` drops in from above (dropdown-style lists); every
-    // other leaf rises from below as the page scrolls.
-    const from = el.getAttribute("data-reveal") === "down"
-      ? `0 -${tokens.distance}`
-      : `0 ${tokens.distance}`;
-    el.animate(
-      [
-        { opacity: tokens.opacityFrom, translate: from },
-        { opacity: 1, translate: "0 0" },
-      ],
-      { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
-    );
+    animateLeaf(el, tokens, delay);
   };
 
   const whenImagesReady = (el: HTMLElement): Promise<void> | null => {
@@ -402,15 +414,7 @@ export function playReveal(el: HTMLElement | null, delay = 0): void {
   el.setAttribute("data-in", "");
   const tokens = readTokens();
   if (!tokens || prefersReducedMotion()) return;
-  const down = el.getAttribute("data-reveal") === "down";
-  const from = down ? `0 -${tokens.distance}` : `0 ${tokens.distance}`;
-  el.animate(
-    [
-      { opacity: tokens.opacityFrom, translate: from },
-      { opacity: 1, translate: "0 0" },
-    ],
-    { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
-  );
+  animateLeaf(el, tokens, delay);
 }
 
 /** Broadcast just before the page's exit fade begins. */

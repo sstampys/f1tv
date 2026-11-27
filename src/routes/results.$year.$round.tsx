@@ -95,7 +95,7 @@ function ResultsPage() {
         {/* Session Tabs */}
         {availableTabs.length > 1 && (
           <div className="page-container">
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
               <TabsList className="tabs-list" data-reveal>
                 {availableTabs.map((tab) => (
                   <TabsTrigger key={tab} value={tab} data-reveal>
@@ -123,22 +123,22 @@ function ResultsPage() {
                           let isLoading: boolean;
                           switch (tab) {
                             case "qualifying":
-                              currentData = qualifying.data;
+                              currentData = qualifying.data ?? undefined;
                               currentError = qualifying.error;
                               isLoading = !qualifying.data && !qualifying.error;
                               break;
                             case "practice":
-                              currentData = practice.data;
+                              currentData = practice.data ?? undefined;
                               currentError = practice.error;
                               isLoading = !practice.data && !practice.error;
                               break;
                             case "sprint":
-                              currentData = sprint.data;
+                              currentData = sprint.data ?? undefined;
                               currentError = sprint.error;
                               isLoading = !sprint.data && !sprint.error;
                               break;
                             default:
-                              currentData = results.data;
+                              currentData = results.data ?? undefined;
                               currentError = results.error;
                               isLoading = !results.data && !results.error;
                           }
@@ -165,8 +165,8 @@ function ResultsPage() {
                                 data={currentData as (RaceResult | QualifyingResult | PracticeResult | SprintResult)[]}
                                 sessionType={tab}
                                 race={race}
-                                allResults={results.data}
-                                qualifying={qualifying.data}
+                                allResults={results.data ?? undefined}
+                                qualifying={qualifying.data ?? undefined}
                               />
                             );
                           }

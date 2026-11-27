@@ -243,7 +243,7 @@ function RaceRow({
 
   if (isCompleted) {
     return (
-      <Link to={`/results/${race.season}/${race.round}`} className="row link-row" data-reveal={reveal}>
+      <Link to="/results/$year/$round" params={{ year: race.season, round: race.round }} className="row link-row" data-reveal={reveal}>
         <p className="row__label" aria-label={`Round ${race.round}`}>{race.round}</p>
         <div className="row__body">
           <p>
