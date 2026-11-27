@@ -624,6 +624,61 @@
   }
 }
 
+/* Plain-text dropdown (src/components/ui/language-selector-dropdown.tsx):
+   the measured menu surface anchored to the plain-text trigger. */
+.dropdown-plain-root {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-plain {
+  position: absolute;
+  top: 100%;
+  z-index: var(--menu-z);
+  width: max-content;
+  min-width: 100%;
+  max-width: calc(100vw - 2 * var(--m));
+  max-height: var(--menu-max-height);
+  margin-top: var(--menu-offset);
+  padding: var(--menu-pad-y) 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--menu-surface);
+  border: var(--menu-border-w) solid var(--menu-border);
+  border-radius: var(--menu-radius);
+  color: var(--ink);
+  font-size: var(--t);
+  line-height: var(--lh);
+  letter-spacing: var(--tracking);
+  animation: dropdown-plain-in var(--menu-duration) var(--menu-ease);
+}
+.dropdown-plain[data-align="start"] {
+  left: 0;
+}
+.dropdown-plain[data-align="end"] {
+  right: 0;
+}
+.dropdown-plain[data-placement="top"] {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: var(--menu-offset);
+}
+@keyframes dropdown-plain-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--menu-distance)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dropdown-plain {
+    animation: none;
+  }
+}
+
 /* Tabs: plain text, active = ink, inactive = mute */
 .tabs-list {
   display: flex;
