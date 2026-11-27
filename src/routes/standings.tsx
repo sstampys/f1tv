@@ -178,6 +178,7 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
         <tr data-reveal>
           <th className="col-pos">Pos</th>
           <th>Constructor</th>
+          <th></th>
           <th className="col-num num">Points</th>
           <th className="col-num num">Wins</th>
         </tr>
@@ -187,6 +188,7 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
           <tr key={standing.Constructor.constructorId} data-reveal>
             <td>{standing.position}</td>
             <td>{standing.Constructor.name}</td>
+            <td></td>
             <td className="num">{standing.points}</td>
             <td className="num">{standing.wins}</td>
           </tr>
