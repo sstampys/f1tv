@@ -97,14 +97,14 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
               <TabsContent value="drivers">
                 {drivers.error && !drivers.data ? (
-                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." />
+                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." inTable />
                 ) : (
                   <DriverStandingsTable standings={drivers.data || []} loading={!drivers.data} />
                 )}
               </TabsContent>
               <TabsContent value="constructors">
                 {constructors.error && !constructors.data ? (
-                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." />
+                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." inTable />
                 ) : (
                   <ConstructorStandingsTable standings={constructors.data || []} loading={!constructors.data} />
                 )}
@@ -118,7 +118,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 }
 
 function DriverStandingsTable({ standings, loading }: { standings: DriverStanding[]; loading?: boolean }) {
-  if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." />;
+  if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." inTable />;
   if (loading && !standings.length) return null;
 
   // Helper to get display position (handles "-" for unclassified)
@@ -132,7 +132,7 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
   // Helper to get driver number only (no code)
   const getDriverNumber = (driver: Driver): string => {
     const number = driver.permanentNumber?.trim();
-    return number || "";
+    return number ? `#${number}` : "";
   };
 
   return (
@@ -169,7 +169,7 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
 }
 
 function ConstructorStandingsTable({ standings, loading }: { standings: ConstructorStanding[]; loading?: boolean }) {
-  if (!standings.length && !loading) return <Notice title="No Data Available" message="No constructor standings available for this season." />;
+  if (!standings.length && !loading) return <Notice title="No Data Available" message="No constructor standings available for this season." inTable />;
   if (loading && !standings.length) return null;
 
   return (
@@ -198,7 +198,22 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
   );
 }
 
-function Notice({ title, message, retry }: { title: string; message: string; retry?: boolean }) {
+function Notice({ title, message, retry, inTable = false }: { title: string; message: string; retry?: boolean; inTable?: boolean }) {
+  if (inTable) {
+    return (
+      <tr data-reveal>
+        <td colSpan={5} className="stack-tight">
+          <p>{title}</p>
+          <p className="mute">{message}</p>
+          {retry && (
+            <p>
+              <button type="button" className="control" onClick={() => window.location.reload()}>Try Again</button>
+            </p>
+          )}
+        </td>
+      </tr>
+    );
+  }
   return (
     <div className="page-container stack-tight">
       <p data-reveal>{title}</p>
