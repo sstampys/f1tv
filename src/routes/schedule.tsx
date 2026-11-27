@@ -13,6 +13,7 @@ import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/confi
 import { earlyFetchScript } from "@/lib/data/early";
 import { SystemSelect } from "@/components/ui/system-select";
 import { Link } from "@tanstack/react-router";
+import { ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -204,7 +205,7 @@ function RaceRow({ race, isNext, isCompleted }: { race: Race; isNext: boolean; i
           <p>
             {race.raceName}
             <span className="row__arrow" aria-hidden="true">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h6M9 4l3 4-3 4"/></svg>
+              <ChevronRight size={16} strokeWidth={2} />
             </span>
           </p>
           <p className="mute">
