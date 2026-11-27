@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   raceResultsRes,
   scheduleRes,
@@ -12,7 +12,6 @@ import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
-import { playReveal } from "@/lib/reveal";
 
 export const Route = createFileRoute("/results/$year/$round")({
   validateSearch: (search: Record<string, unknown>) => ({}),
@@ -95,20 +94,15 @@ function ResultsPage() {
 }
 
 function ResultsTable({ results }: { results: RaceResult[] }) {
-  // The header arrives with the same motion as the rows, and is revealed at the
-  // same moment so it can never be left hidden.
-  const headRef = useRef<HTMLDivElement>(null);
-  useLayoutEffect(() => playReveal(headRef.current), []);
-
   return (
     <div className="results-table" role="table" aria-label="Race results">
-      <div className="results-table__row results-table__head" role="row" data-reveal ref={headRef}>
-        <div className="results-table__cell" role="columnheader">Pos</div>
-        <div className="results-table__cell" role="columnheader">Driver</div>
-        <div className="results-table__cell results-table__cell--team" role="columnheader">Team</div>
-        <div className="results-table__cell results-table__num" role="columnheader">Grid</div>
-        <div className="results-table__cell results-table__num" role="columnheader">Points</div>
-        <div className="results-table__cell results-table__num" role="columnheader">Time</div>
+      <div className="results-table__row results-table__head" role="row">
+        <div className="results-table__cell" role="columnheader" data-reveal>Pos</div>
+        <div className="results-table__cell" role="columnheader" data-reveal>Driver</div>
+        <div className="results-table__cell results-table__cell--team" role="columnheader" data-reveal>Team</div>
+        <div className="results-table__cell results-table__num" role="columnheader" data-reveal>Grid</div>
+        <div className="results-table__cell results-table__num" role="columnheader" data-reveal>Points</div>
+        <div className="results-table__cell results-table__num" role="columnheader" data-reveal>Time</div>
       </div>
       <div className="results-table__body" role="rowgroup">
         {results.map((result) => (

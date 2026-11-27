@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useLayoutEffect, useMemo, useRef, type ReactNode } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   seasonsRes,
   driverStandingsRes,
@@ -14,7 +14,7 @@ import { earlyFetchScript } from "@/lib/data/early";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
-import { fadeOutList, playReveal } from "@/lib/reveal";
+import { fadeOutList } from "@/lib/reveal";
 
 export const Route = createFileRoute("/standings")({
   head: () => ({
@@ -107,8 +107,8 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
           <div className="page-container" ref={listRef}>
             <Tabs value={tab} onValueChange={handleTab}>
               <TabsList className="tabs-list" data-reveal>
-                <TabsTrigger value="drivers">Drivers</TabsTrigger>
-                <TabsTrigger value="constructors">Constructors</TabsTrigger>
+                <TabsTrigger value="drivers" data-reveal>Drivers</TabsTrigger>
+                <TabsTrigger value="constructors" data-reveal>Constructors</TabsTrigger>
               </TabsList>
 
               <TabsContent value="drivers">
@@ -135,13 +135,11 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
 /**
  * Table head chrome. It mounts with the table (never with the loading
- * skeleton) and reveals its own row on that first paint, so it always arrives
- * with the same motion as the rows below and can never be left hidden.
+ * skeleton). The header cells are individual reveal leaves so they stagger
+ * left-to-right like the rest of the page.
  */
 function RevealHead({ children }: { children: ReactNode }) {
-  const ref = useRef<HTMLTableSectionElement>(null);
-  useLayoutEffect(() => playReveal(ref.current?.querySelector("tr") ?? null), []);
-  return <thead ref={ref}>{children}</thead>;
+  return <thead>{children}</thead>;
 }
 
 function DriverStandingsTable({ standings, loading }: { standings: DriverStanding[]; loading?: boolean }) {
@@ -177,12 +175,12 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
   return (
     <table className="table">
       <RevealHead>
-        <tr data-reveal>
-          <th className="col-pos">Pos</th>
-          <th>Driver</th>
-          <th>Team</th>
-          <th className="col-num num">Points</th>
-          <th className="col-num num">Wins</th>
+        <tr>
+          <th className="col-pos" data-reveal>Pos</th>
+          <th data-reveal>Driver</th>
+          <th data-reveal>Team</th>
+          <th className="col-num num" data-reveal>Points</th>
+          <th className="col-num num" data-reveal>Wins</th>
         </tr>
       </RevealHead>
       <tbody>
@@ -226,12 +224,12 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
   return (
     <table className="table">
       <RevealHead>
-        <tr data-reveal>
-          <th className="col-pos">Pos</th>
-          <th>Constructor</th>
-          <th></th>
-          <th className="col-num num">Points</th>
-          <th className="col-num num">Wins</th>
+        <tr>
+          <th className="col-pos" data-reveal>Pos</th>
+          <th data-reveal>Constructor</th>
+          <th data-reveal></th>
+          <th className="col-num num" data-reveal>Points</th>
+          <th className="col-num num" data-reveal>Wins</th>
         </tr>
       </RevealHead>
       <tbody>
