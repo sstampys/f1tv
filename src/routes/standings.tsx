@@ -166,7 +166,7 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
   return (
     <table className="table">
       <thead>
-        <tr data-reveal>
+        <tr>
           <th className="col-pos">Pos</th>
           <th>Driver</th>
           <th>Team</th>
@@ -215,7 +215,7 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
   return (
     <table className="table">
       <thead>
-        <tr data-reveal>
+        <tr>
           <th className="col-pos">Pos</th>
           <th>Constructor</th>
           <th></th>

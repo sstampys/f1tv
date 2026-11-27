@@ -96,7 +96,7 @@ function ResultsPage() {
 function ResultsTable({ results }: { results: RaceResult[] }) {
   return (
     <div className="results-table" role="table" aria-label="Race results">
-      <div className="results-table__row results-table__head" role="row" data-reveal>
+      <div className="results-table__row results-table__head" role="row">
         <div className="results-table__cell" role="columnheader">Pos</div>
         <div className="results-table__cell" role="columnheader">Driver</div>
         <div className="results-table__cell results-table__cell--team" role="columnheader">Team</div>

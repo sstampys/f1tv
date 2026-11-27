@@ -296,6 +296,15 @@ export function startReveal(): () => void {
         removed = new Set();
         pendingAdded.forEach((node) => node.isConnected && scan(node));
         pendingRemoved.forEach((node) => forget(node));
+        // A container can be mounted in one commit and finished in the next
+        // (a table skeleton, then its header cells). One follow-up pass catches
+        // leaves that only appeared just after the first scan, so a header row
+        // can never be left sitting at opacity 0.
+        if (pendingAdded.size) {
+          window.requestAnimationFrame(() => {
+            pendingAdded.forEach((node) => node.isConnected && scan(node));
+          });
+        }
       });
     }
   };
