@@ -776,14 +776,22 @@
   width: 1fr;
 }
 .results-table .col-num {
-  width: var(--s6);
+  width: var(--s4);
+}
+.results-table th,
+.results-table td {
+  padding-right: var(--s1);
+}
+.results-table th:last-child,
+.results-table td:last-child {
+  padding-right: 0;
 }
 @media (min-width: 761px) {
   .results-table .col-pos {
     width: var(--s4);
   }
   .results-table .col-num {
-    width: var(--s6);
+    width: var(--s4);
   }
 }
 
