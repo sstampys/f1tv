@@ -212,7 +212,7 @@ function RaceCalendar({
       {pastMounted && (
         <div id="past-races" className="contents" ref={pastRef}>
           {pastRaces.map((race) => (
-            <RaceRow key={race.round} race={race} isNext={race.round === nextRaceRound} isCompleted />
+            <RaceRow key={race.round} race={race} isNext={race.round === nextRaceRound} isCompleted dropDown />
           ))}
         </div>
       )}
@@ -220,13 +220,25 @@ function RaceCalendar({
   );
 }
 
-function RaceRow({ race, isNext, isCompleted }: { race: Race; isNext: boolean; isCompleted: boolean }) {
+function RaceRow({
+  race,
+  isNext,
+  isCompleted,
+  dropDown = false,
+}: {
+  race: Race;
+  isNext: boolean;
+  isCompleted: boolean;
+  /** Reveal by dropping in from above (lists opened by a control). */
+  dropDown?: boolean;
+}) {
   const status = isCompleted ? "Completed" : isNext ? "This weekend" : null;
+  const reveal = dropDown ? "down" : "";
   const when = formatRaceDateTime(race.date, race.time, { weekday: "short", month: "short", day: "numeric" });
 
   if (isCompleted) {
     return (
-      <Link to={`/results/${race.season}/${race.round}`} className="row link-row" data-reveal>
+      <Link to={`/results/${race.season}/${race.round}`} className="row link-row" data-reveal={reveal}>
         <p className="row__label" aria-label={`Round ${race.round}`}>{race.round}</p>
         <div className="row__body">
           <p>
@@ -245,13 +257,13 @@ function RaceRow({ race, isNext, isCompleted }: { race: Race; isNext: boolean; i
 
   return (
     <div className="row">
-      <p className="row__label" aria-label={`Round ${race.round}`} data-reveal>{race.round}</p>
+      <p className="row__label" aria-label={`Round ${race.round}`} data-reveal={reveal}>{race.round}</p>
       <div className="row__body">
-        <p data-reveal>
+        <p data-reveal={reveal}>
           {race.raceName}
           {status && <span className="mute"> · {status}</span>}
         </p>
-        <p className="mute" data-reveal>
+        <p className="mute" data-reveal={reveal}>
           {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country} · {when}
         </p>
       </div>

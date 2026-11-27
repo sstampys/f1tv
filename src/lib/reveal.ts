@@ -151,9 +151,14 @@ export function startReveal(): () => void {
     if (isRevealed(el)) return;
     markIn(el);
     if (still || !tokens) return;
+    // `data-reveal="down"` drops in from above (dropdown-style lists); every
+    // other leaf rises from below as the page scrolls.
+    const from = el.getAttribute("data-reveal") === "down"
+      ? `0 -${tokens.distance}`
+      : `0 ${tokens.distance}`;
     el.animate(
       [
-        { opacity: tokens.opacityFrom, translate: `0 ${tokens.distance}` },
+        { opacity: tokens.opacityFrom, translate: from },
         { opacity: 1, translate: "0 0" },
       ],
       { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
