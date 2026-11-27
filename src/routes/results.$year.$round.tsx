@@ -98,7 +98,7 @@ function ResultsTable({ results }: { results: RaceResult[] }) {
           <th className="col-team">Team</th>
           <th className="col-num num">Grid</th>
           <th className="col-num num">Points</th>
-          <th className="col-num num">Time</th>
+          <th className="col-time num">Time</th>
         </tr>
       </thead>
       <tbody>
@@ -159,7 +159,7 @@ function ResultRow({ result }: { result: RaceResult }) {
       <td>{result.Constructor.name}</td>
       <td className="num">{gridPos}</td>
       <td className="num">{result.points}</td>
-      <td className="num">{timeCell}</td>
+      <td className="num col-time">{timeCell}</td>
     </tr>
   );
 }

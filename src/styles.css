@@ -765,33 +765,66 @@
   }
 }
 
-/* Results table: explicit column widths to prevent overlap */
-.results-table .col-pos {
-  width: var(--s4);
-}
-.results-table .col-driver {
-  width: 1fr;
-}
-.results-table .col-team {
-  width: 1fr;
-}
-.results-table .col-num {
-  width: var(--s4);
+/* Results table: shared grid column sizing to prevent overlap.
+   Single template applied to header and rows so they can never drift apart. */
+.results-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
 }
 .results-table th,
 .results-table td {
-  padding-right: var(--s1);
+  padding: calc(var(--stack) / 2) var(--s1) calc(var(--stack) / 2) 0;
+  text-align: left;
+  vertical-align: top;
+  font-weight: 400;
+  color: var(--ink);
+}
+.results-table th {
+  color: var(--mute);
 }
 .results-table th:last-child,
 .results-table td:last-child {
   padding-right: 0;
 }
+.results-table .num {
+  text-align: right;
+  white-space: nowrap;
+}
+.results-table .col-pos {
+  width: 2rem;
+}
+.results-table .col-driver {
+  width: auto;
+}
+.results-table .col-team {
+  width: auto;
+}
+.results-table .col-num {
+  width: 3rem;
+}
+.results-table .col-time {
+  width: 5.75rem;
+}
 @media (min-width: 761px) {
   .results-table .col-pos {
-    width: var(--s4);
+    width: 2rem;
   }
   .results-table .col-num {
-    width: var(--s4);
+    width: 3rem;
+  }
+  .results-table .col-time {
+    width: 5.75rem;
+  }
+}
+@media (max-width: 760px) {
+  .results-table .col-pos {
+    width: var(--s2);
+  }
+  .results-table .col-num,
+  .results-table .col-time {
+    width: var(--s3);
   }
 }
 
