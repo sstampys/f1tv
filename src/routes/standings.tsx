@@ -6,6 +6,7 @@ import {
   constructorStandingsRes,
   type DriverStanding,
   type ConstructorStanding,
+  type Driver,
 } from "@/lib/jolpica-api";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
@@ -142,6 +143,26 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." />;
   if (loading && !standings.length) return null;
 
+  // Helper to generate a fallback code from driver name (e.g., "Max Verstappen" -> "VER")
+  const getDriverCode = (driver: DriverStanding["Driver"]): string => {
+    if (driver.code) return driver.code;
+    const given = driver.givenName?.trim() || "";
+    const family = driver.familyName?.trim() || "";
+    if (!given && !family) return "";
+    // Use first 3 letters of family name, uppercase
+    if (family.length >= 3) return family.slice(0, 3).toUpperCase();
+    // Fallback: initials
+    return (given[0] + family[0]).toUpperCase();
+  };
+
+  // Helper to get display position (handles "-" for unclassified)
+  const getDisplayPosition = (standing: DriverStanding, index: number): string => {
+    if (standing.positionText && standing.positionText !== "-") return standing.positionText;
+    if (standing.position && standing.position !== "-") return standing.position;
+    // Fallback to array index + 1 for unclassified
+    return `${index + 1}*`;
+  };
+
   return (
     <table className="table">
       <thead>
@@ -154,12 +175,12 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
         </tr>
       </thead>
       <tbody>
-        {standings.map((standing) => (
+        {standings.map((standing, index) => (
           <tr key={standing.Driver.driverId || standing.Driver.familyName} data-reveal>
-            <td>{standing.position}</td>
+            <td>{getDisplayPosition(standing, index)}</td>
             <td>
               <div className="driver">
-                <span className="driver__code" aria-hidden="true">{standing.Driver.code || ""}</span>
+                <span className="driver__code" aria-hidden="true">{getDriverCode(standing.Driver)}</span>
                 <div className="driver__name">
                   <p>{standing.Driver.givenName} {standing.Driver.familyName}</p>
                   <p className="mute">{standing.Driver.nationality}</p>

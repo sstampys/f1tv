@@ -12,6 +12,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navigation } from "@/components/Navigation";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import appCss from "../styles.css?url";
+import { Analytics } from "@vercel/analytics/react";
 
 function NotFoundComponent() {
   return (
@@ -135,6 +136,7 @@ function RootComponent() {
 
   return (
     <>
+      <Analytics />
       <Navigation />
       <ScrollReveal />
       <main className="flex-1">

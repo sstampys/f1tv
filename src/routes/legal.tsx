@@ -60,8 +60,20 @@ function Legal() {
               technical data to identify or profile visitors.
             </p>
             <p data-reveal>
-              F1Box does not run any analytics tools. The only usage data is the infrastructure-level logging by
-              Vercel described above.
+              F1Box uses Vercel Web Analytics to collect anonymized, aggregated visitor analytics. This service does
+              not use cookies or cross-site tracking. It provides us with high-level metrics such as page views,
+              visitor regions (country/city), device types, and referrer sources, which help us understand site
+              traffic and improve the experience. No personal identifiers are collected, and the data cannot be
+              linked to individual visitors. The analytics script is loaded from Vercel's infrastructure and its
+              data processing is governed by the Vercel Privacy Notice (
+              <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
+                vercel.com/legal/privacy-policy
+              </a>
+              ).
+            </p>
+            <p data-reveal>
+              Beyond Vercel Web Analytics, F1Box does not run any other analytics tools. The only other usage data
+              is the infrastructure-level logging by Vercel described above.
             </p>
             <p data-reveal>
               F1Box does not set cookies of its own and does not use advertising or cross-site tracking cookies. To
