@@ -90,12 +90,12 @@ function ResultsPage() {
 
 function ResultsTable({ results }: { results: RaceResult[] }) {
   return (
-    <table className="table">
+    <table className="table results-table">
       <thead>
         <tr data-reveal>
           <th className="col-pos">Pos</th>
-          <th>Driver</th>
-          <th>Team</th>
+          <th className="col-driver">Driver</th>
+          <th className="col-team">Team</th>
           <th className="col-num num">Grid</th>
           <th className="col-num num">Points</th>
           <th className="col-num num">Time</th>
@@ -113,8 +113,10 @@ function ResultsTable({ results }: { results: RaceResult[] }) {
 function ResultRow({ result }: { result: RaceResult }) {
   const position = result.positionText || result.position;
   const gridPos = result.grid === "0" ? "Pit Lane" : `P${result.grid}`;
+  const status = result.status || "";
   const raceTime = result.Time?.time || "";
   const isWinner = position === "1";
+
   const isClassified = /^\d/.test(status) || status === "Finished";
   const isRetired = /ret|mechanical|accident|collision|engine|brakes|clutch|gearbox|electrical|oil leak|physical|throttle/i.test(status);
   const isDisqualified = /disqual/i.test(status);
@@ -138,7 +140,7 @@ function ResultRow({ result }: { result: RaceResult }) {
     timeCell = "RET";
   } else if (isLapDown) {
     timeCell = status;
-  } else if (isClassified && raceTime) {
+  } else if (raceTime) {
     timeCell = raceTime;
   } else {
     timeCell = "";

@@ -755,12 +755,34 @@
 }
 @media (min-width: 761px) {
   .table .col-pos {
-    width: var(--s4);
+    width: var(--s8);
   }
   .table .col-num {
-    width: var(--s4);
+    width: var(--s8);
   }
   .driver__code {
+    width: var(--s6);
+  }
+}
+
+/* Results table: explicit column widths to prevent overlap */
+.results-table .col-pos {
+  width: var(--s4);
+}
+.results-table .col-driver {
+  width: 1fr;
+}
+.results-table .col-team {
+  width: 1fr;
+}
+.results-table .col-num {
+  width: var(--s6);
+}
+@media (min-width: 761px) {
+  .results-table .col-pos {
+    width: var(--s4);
+  }
+  .results-table .col-num {
     width: var(--s6);
   }
 }
