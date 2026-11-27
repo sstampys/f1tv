@@ -99,7 +99,6 @@ function ResultsTable({ results }: { results: RaceResult[] }) {
           <th className="col-num num">Grid</th>
           <th className="col-num num">Points</th>
           <th className="col-num num">Time</th>
-          <th className="col-num num">Interval</th>
         </tr>
       </thead>
       <tbody>
@@ -116,6 +115,7 @@ function ResultRow({ result }: { result: RaceResult }) {
   const gridPos = result.grid === "0" ? "Pit Lane" : `P${result.grid}`;
   const raceTime = result.Time?.time || "";
   const isWinner = position === "1";
+  const merged = isWinner ? raceTime : result.Time?.time || "";
 
   return (
     <tr data-reveal>
@@ -130,12 +130,10 @@ function ResultRow({ result }: { result: RaceResult }) {
       <td>{result.Constructor.name}</td>
       <td className="num">{gridPos}</td>
       <td className="num">{result.points}</td>
-      <td className="num">{isWinner ? raceTime : ""}</td>
-      <td className="num">{!isWinner ? raceTime : ""}</td>
+      <td className="num">{merged}</td>
     </tr>
   );
 }
-
 function Notice({ title, message, retry }: { title: string; message: string; retry?: boolean }) {
   return (
     <div className="page-container stack-tight">
