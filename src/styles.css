@@ -764,6 +764,147 @@
   }
 }
 
+/* Race Results — minimal list layout */
+.results-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+.result-row {
+  display: grid;
+  grid-template-columns: var(--s6) 1fr minmax(0, 280px);
+  column-gap: var(--gutter);
+  align-items: center;
+  padding: var(--s2) 0;
+  border-bottom: 1px solid var(--line-nav);
+  transition: background-color var(--t-ui);
+}
+.result-row:last-child {
+  border-bottom: none;
+}
+.result-row:hover {
+  background-color: var(--soft);
+}
+.result-row__pos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pos-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--mute);
+  font-size: var(--t);
+  line-height: var(--lh);
+}
+.result-row__primary {
+  min-width: 0;
+}
+.result-row__driver-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  flex-wrap: wrap;
+  color: var(--ink);
+  font-size: var(--t);
+  line-height: var(--lh);
+}
+.driver-name {
+  font-weight: 400;
+}
+.driver-code {
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875em;
+}
+.driver-team {
+  color: var(--mute);
+}
+.result-row__meta-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  flex-wrap: wrap;
+  color: var(--mute);
+  font-size: 0.8125em;
+  line-height: var(--lh);
+  margin-top: var(--s1);
+}
+.driver-nationality,
+.driver-grid,
+.driver-laps {
+  color: var(--mute);
+}
+.result-row__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--s1);
+  text-align: right;
+  min-width: 0;
+}
+.result-row__points-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.points {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--t);
+  line-height: var(--lh);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.points.mute {
+  color: var(--mute);
+}
+.status {
+  color: var(--mute);
+  font-size: 0.8125em;
+  white-space: nowrap;
+}
+.result-row__fastest-line {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+}
+.fastest-lap {
+  color: var(--mute);
+  font-size: 0.8125em;
+  white-space: nowrap;
+}
+.fastest-lap.fastest-overall {
+  color: var(--ink);
+  font-weight: 500;
+}
+@media (max-width: 900px) {
+  .result-row {
+    grid-template-columns: var(--s6) 1fr;
+    grid-template-rows: auto auto;
+    row-gap: var(--s1);
+  }
+  .result-row__summary {
+    grid-column: 2;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .result-row__points-line {
+    justify-content: flex-start;
+  }
+}
+@media (max-width: 520px) {
+  .result-row {
+    grid-template-columns: var(--s4) 1fr;
+  }
+  .result-row__driver-line,
+  .result-row__meta-line {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}
+
 /* Stream page (restored: removed by mistake in ac18fc9) */
 .stream-player {
   position: relative;

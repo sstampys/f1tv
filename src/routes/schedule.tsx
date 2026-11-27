@@ -204,7 +204,6 @@ function RaceRow({ race, isNext, isCompleted }: { race: Race; isNext: boolean; i
         <div className="row__body">
           <p>
             {race.raceName}
-            {status && <span className="mute"> · {status}</span>}
             <span className="row__arrow" aria-hidden="true">
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h6M9 4l3 4-3 4"/></svg>
             </span>

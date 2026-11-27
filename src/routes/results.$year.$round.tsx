@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect, useMemo } from "react";
 import {
   raceResultsRes,
+  scheduleRes,
+  formatRaceDateTime,
   type RaceResult,
   type Race,
 } from "@/lib/jolpica-api";
@@ -36,14 +39,50 @@ export const Route = createFileRoute("/results/$year/$round")({
 function ResultsPage() {
   const { year, round } = Route.useParams();
   const results = useResource(raceResultsRes(year, round));
+  const schedule = useResource(scheduleRes(year));
+  const [race, setRace] = useState<Race | null>(null);
+
+  // Find the specific race from the schedule
+  useEffect(() => {
+    if (schedule.data) {
+      const found = schedule.data.find((r) => r.round === round);
+      if (found) setRace(found);
+    }
+  }, [schedule.data, round]);
+
+  const formattedDate = race
+    ? formatRaceDateTime(race.date, race.time, { weekday: "short", month: "long", day: "numeric", year: "numeric" })
+    : null;
+
+  // Determine overall fastest lap across all results
+  const fastestLapOverall = useMemo(() => {
+    if (!results.data) return null;
+    let fastest: RaceResult | null = null;
+    for (const r of results.data) {
+      if (r.FastestLap && r.FastestLap.rank === "1") {
+        return r;
+      }
+      if (r.FastestLap && !fastest) {
+        fastest = r;
+      }
+    }
+    return fastest;
+  }, [results.data]);
 
   return (
     <div className="page">
       <section id="results" className="rows">
         <div className="page-container head">
-          <h1 data-reveal>Race Results</h1>
+          <div>
+            <h1 data-reveal>{race?.raceName || "Race Results"}</h1>
+            {race && (
+              <p className="mute" data-reveal>
+                {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country} · {formattedDate}
+              </p>
+            )}
+          </div>
           <Link to="/schedule" className="control" data-reveal>
-            Back to Schedule
+            ← Schedule
           </Link>
         </div>
 
@@ -54,7 +93,7 @@ function ResultsPage() {
         ) : results.error ? (
           <Notice title="Unable to load results" message="Failed to load race results. Please try again." retry />
         ) : results.data && results.data.length > 0 ? (
-          <ResultsTable key={`${year}-${round}`} results={results.data} />
+          <ResultsList key={`${year}-${round}`} results={results.data} fastestLapOverall={fastestLapOverall} />
         ) : (
           <Notice title="No Results" message="No results available for this race." />
         )}
@@ -72,55 +111,56 @@ function ResultsPage() {
   );
 }
 
-function ResultsTable({ results }: { results: RaceResult[] }) {
+function ResultsList({ results, fastestLapOverall }: { results: RaceResult[]; fastestLapOverall: RaceResult | null }) {
   return (
-    <table className="table">
-      <thead>
-        <tr data-reveal>
-          <th className="col-pos">Pos</th>
-          <th>Driver</th>
-          <th>Team</th>
-          <th className="col-num num">Points</th>
-          <th className="col-num num">Grid</th>
-          <th className="col-num num">Laps</th>
-          <th>Status</th>
-          <th>Fastest Lap</th>
-        </tr>
-      </thead>
-      <tbody>
-        {results.map((result) => (
-          <ResultRow key={result.Driver.driverId} result={result} />
-        ))}
-      </tbody>
-    </table>
+    <div className="results-list">
+      {results.map((result) => (
+        <ResultRow key={result.Driver.driverId} result={result} isFastestOverall={fastestLapOverall?.Driver.driverId === result.Driver.driverId} />
+      ))}
+    </div>
   );
 }
 
-function ResultRow({ result }: { result: RaceResult }) {
+function ResultRow({ result, isFastestOverall }: { result: RaceResult; isFastestOverall: boolean }) {
   const position = result.positionText || result.position;
-  const fastestLap = result.FastestLap
-    ? `${result.FastestLap.lap} (${result.FastestLap.Time.time}${result.FastestLap.Time.averageSpeed ? ` • ${result.FastestLap.Time.averageSpeed.speed} ${result.FastestLap.Time.averageSpeed.units}` : ""})`
+  const points = result.points ? `${result.points} pts` : "0 pts";
+  const isZeroPoints = result.points === "0" || result.points === "" || !result.points;
+  const gridPos = result.grid === "0" ? "Pit Lane" : `Grid P${result.grid}`;
+  const laps = result.laps ? `${result.laps} laps` : "—";
+  const status = result.status || "—";
+  const fl = result.FastestLap;
+  const hasFastestLap = fl && fl.Time && fl.Time.time;
+  const fastestLapText = hasFastestLap
+    ? `FL ${fl.Time.time}${fl.lap ? ` · L${fl.lap}` : ""}`
     : "—";
 
   return (
-    <tr data-reveal>
-      <td>{position}</td>
-      <td>
-        <div className="driver">
-          <span className="driver__code" aria-hidden="true">{result.Driver.code || ""}</span>
-          <div className="driver__name">
-            <p>{result.Driver.givenName} {result.Driver.familyName}</p>
-            <p className="mute">{result.Driver.nationality}</p>
-          </div>
+    <div className="result-row" data-reveal>
+      <div className="result-row__pos">
+        <span className="pos-num">{position}</span>
+      </div>
+      <div className="result-row__primary">
+        <div className="result-row__driver-line">
+          <span className="driver-name">{result.Driver.givenName} {result.Driver.familyName}</span>
+          {result.Driver.code && <span className="driver-code">{result.Driver.code}</span>}
+          <span className="driver-team">{result.Constructor.name}</span>
         </div>
-      </td>
-      <td>{result.Constructor.name}</td>
-      <td className="num">{result.points}</td>
-      <td className="num">{result.grid}</td>
-      <td className="num">{result.laps}</td>
-      <td className="mute">{result.status}</td>
-      <td className="mute">{fastestLap}</td>
-    </tr>
+        <div className="result-row__meta-line">
+          {result.Driver.nationality && <span className="driver-nationality">{result.Driver.nationality}</span>}
+          <span className="driver-grid">{gridPos}</span>
+          <span className="driver-laps">{laps}</span>
+        </div>
+      </div>
+      <div className="result-row__summary">
+        <div className="result-row__points-line">
+          <span className={`points ${isZeroPoints ? "mute" : ""}`}>{points}</span>
+          <span className="status">{status}</span>
+        </div>
+        <div className="result-row__fastest-line">
+          <span className={`fastest-lap ${isFastestOverall ? "fastest-overall" : ""}`}>{fastestLapText}</span>
+        </div>
+      </div>
+    </div>
   );
 }
 
