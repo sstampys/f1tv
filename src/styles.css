@@ -379,6 +379,12 @@
 .page--center > :last-child {
   margin-block-end: auto;
 }
+/* Live player: centre in the space from the pill's bottom edge to the screen
+   bottom, not the whole screen. Dropping the bottom padding leaves the top one
+   as the only inset, which shifts the centre down by half of it. */
+.page--center.page--center--below-pill {
+  padding-bottom: 0;
+}
 .page-container {
   width: var(--page-w);
   margin: 0 auto;
