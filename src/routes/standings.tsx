@@ -148,7 +148,7 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
     if (standing.positionText && standing.positionText !== "-") return standing.positionText;
     if (standing.position && standing.position !== "-") return standing.position;
     // Fallback to array index + 1 for unclassified
-    return `${index + 1}*`;
+    return `${index + 1}`;
   };
 
   // Helper to get driver number only (no code)
