@@ -12,6 +12,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { Dropdown } from "@/components/Dropdown";
+import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/schedule")({
   head: () => ({
@@ -195,6 +196,23 @@ function RaceCalendar({
 function RaceRow({ race, isNext, isCompleted }: { race: Race; isNext: boolean; isCompleted: boolean }) {
   const status = isCompleted ? "Completed" : isNext ? "This weekend" : null;
   const when = formatRaceDateTime(race.date, race.time, { weekday: "short", month: "short", day: "numeric" });
+
+  if (isCompleted) {
+    return (
+      <Link to={`/results/${race.season}/${race.round}`} className="row link-row" data-reveal>
+        <p className="row__label" aria-label={`Round ${race.round}`}>{race.round}</p>
+        <div className="row__body">
+          <p>
+            {race.raceName}
+            {status && <span className="mute"> · {status}</span>}
+          </p>
+          <p className="mute">
+            {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country} · {when}
+          </p>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <div className="row">

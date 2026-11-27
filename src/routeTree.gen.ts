@@ -14,6 +14,7 @@ import { Route as DemoRouteImport } from './routes/demo'
 import { Route as LegalRouteImport } from './routes/legal'
 import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as StandingsRouteImport } from './routes/standings'
+import { Route as ResultsYearRoundRouteImport } from './routes/results.$year.$round'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const StandingsRoute = StandingsRouteImport.update({
   path: '/standings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResultsYearRoundRoute = ResultsYearRoundRouteImport.update({
+  id: '/results/$year/$round',
+  path: '/results/$year/$round',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/legal': typeof LegalRoute
   '/schedule': typeof ScheduleRoute
   '/standings': typeof StandingsRoute
+  '/results/$year/$round': typeof ResultsYearRoundRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/legal': typeof LegalRoute
   '/schedule': typeof ScheduleRoute
   '/standings': typeof StandingsRoute
+  '/results/$year/$round': typeof ResultsYearRoundRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/legal': typeof LegalRoute
   '/schedule': typeof ScheduleRoute
   '/standings': typeof StandingsRoute
+  '/results/$year/$round': typeof ResultsYearRoundRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo' | '/legal' | '/schedule' | '/standings'
+  fullPaths:
+    | '/'
+    | '/demo'
+    | '/legal'
+    | '/schedule'
+    | '/standings'
+    | '/results/$year/$round'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo' | '/legal' | '/schedule' | '/standings'
-  id: '__root__' | '/' | '/demo' | '/legal' | '/schedule' | '/standings'
+  to:
+    | '/'
+    | '/demo'
+    | '/legal'
+    | '/schedule'
+    | '/standings'
+    | '/results/$year/$round'
+  id:
+    | '__root__'
+    | '/'
+    | '/demo'
+    | '/legal'
+    | '/schedule'
+    | '/standings'
+    | '/results/$year/$round'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   LegalRoute: typeof LegalRoute
   ScheduleRoute: typeof ScheduleRoute
   StandingsRoute: typeof StandingsRoute
+  ResultsYearRoundRoute: typeof ResultsYearRoundRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StandingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/results/$year/$round': {
+      id: '/results/$year/$round'
+      path: '/results/$year/$round'
+      fullPath: '/results/$year/$round'
+      preLoaderRoute: typeof ResultsYearRoundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalRoute: LegalRoute,
   ScheduleRoute: ScheduleRoute,
   StandingsRoute: StandingsRoute,
+  ResultsYearRoundRoute: ResultsYearRoundRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
