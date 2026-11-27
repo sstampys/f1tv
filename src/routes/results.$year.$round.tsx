@@ -115,7 +115,33 @@ function ResultRow({ result }: { result: RaceResult }) {
   const gridPos = result.grid === "0" ? "Pit Lane" : `P${result.grid}`;
   const raceTime = result.Time?.time || "";
   const isWinner = position === "1";
-  const merged = isWinner ? raceTime : result.Time?.time || "";
+
+  const status = result.status || "";
+  const isClassified = /^\d/.test(status) || status === "Finished";
+  const isRetired = /ret|mechanical|accident|collision|engine|brakes|clutch|gearbox|electrical|oil leak|physical|throttle/i.test(status);
+  const isDisqualified = /disqual/i.test(status);
+  const isNotStarted = /did not start/i.test(status);
+  const isNotClassified = /not classified/i.test(status);
+  const isDidNotFinish = /did not finish/i.test(status);
+
+  let timeCell: string;
+  if (isWinner) {
+    timeCell = raceTime;
+  } else if (isDisqualified) {
+    timeCell = "DSQ";
+  } else if (isNotStarted) {
+    timeCell = "DNS";
+  } else if (isNotClassified) {
+    timeCell = "NC";
+  } else if (isDidNotFinish) {
+    timeCell = "DNF";
+  } else if (isRetired) {
+    timeCell = "RET";
+  } else if (isClassified && raceTime) {
+    timeCell = raceTime;
+  } else {
+    timeCell = "";
+  }
 
   return (
     <tr data-reveal>
@@ -130,7 +156,7 @@ function ResultRow({ result }: { result: RaceResult }) {
       <td>{result.Constructor.name}</td>
       <td className="num">{gridPos}</td>
       <td className="num">{result.points}</td>
-      <td className="num">{merged}</td>
+      <td className="num">{timeCell}</td>
     </tr>
   );
 }
