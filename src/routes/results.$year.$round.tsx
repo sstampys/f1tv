@@ -56,8 +56,8 @@ function ResultsPage() {
   return (
     <div className="page">
       <section id="results" className="rows">
-        <div className="page-container head">
-          <div>
+        <div className="page-container head" style={{ flexWrap: "nowrap" }}>
+          <div style={{ minWidth: 0 }}>
             <h1 data-reveal>{race?.raceName || "Race Results"}</h1>
             {race && (
               <p className="mute" data-reveal>
@@ -70,17 +70,19 @@ function ResultsPage() {
           </Link>
         </div>
 
-        {!results.data && !results.error ? (
-          <div className="page-container stack-tight">
-            <p data-reveal>Loading results…</p>
-          </div>
-        ) : results.error ? (
-          <Notice title="Unable to load results" message="Failed to load race results. Please try again." retry />
-        ) : results.data && results.data.length > 0 ? (
-          <ResultsTable key={`${year}-${round}`} results={results.data} />
-        ) : (
-          <Notice title="No Results" message="No results available for this race." />
-        )}
+        <div className="page-container">
+          {!results.data && !results.error ? (
+            <div className="stack-tight">
+              <p data-reveal>Loading results…</p>
+            </div>
+          ) : results.error ? (
+            <Notice title="Unable to load results" message="Failed to load race results. Please try again." retry />
+          ) : results.data && results.data.length > 0 ? (
+            <ResultsTable key={`${year}-${round}`} results={results.data} />
+          ) : (
+            <Notice title="No Results" message="No results available for this race." />
+          )}
+        </div>
       </section>
     </div>
   );
@@ -95,7 +97,6 @@ function ResultsTable({ results }: { results: RaceResult[] }) {
           <th>Driver</th>
           <th>Team</th>
           <th className="col-num num">Points</th>
-          <th className="col-num num">Grid</th>
           <th className="col-num num">Status</th>
         </tr>
       </thead>
@@ -110,13 +111,7 @@ function ResultsTable({ results }: { results: RaceResult[] }) {
 
 function ResultRow({ result }: { result: RaceResult }) {
   const position = result.positionText || result.position;
-  const gridPos = result.grid === "0" ? "Pit Lane" : `Grid P${result.grid}`;
-
-  const fl = result.FastestLap;
-  const hasFastestLap = fl && fl.Time && fl.Time.time;
-  const status = hasFastestLap
-    ? `FL ${fl.Time.time}${fl.lap ? ` · L${fl.lap}` : ""}`
-    : result.status || "—";
+  const status = result.status || "—";
 
   return (
     <tr data-reveal>
@@ -130,7 +125,6 @@ function ResultRow({ result }: { result: RaceResult }) {
       </td>
       <td>{result.Constructor.name}</td>
       <td className="num">{result.points}</td>
-      <td className="num">{gridPos}</td>
       <td className="num">{status}</td>
     </tr>
   );

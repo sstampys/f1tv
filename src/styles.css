@@ -717,6 +717,7 @@
 }
 .table .num {
   text-align: right;
+  white-space: nowrap;
 }
 .table .col-pos {
   width: var(--s4);
