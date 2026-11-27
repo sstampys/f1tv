@@ -142,8 +142,8 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 }
 
 function DriverStandingsTable({ standings, loading }: { standings: DriverStanding[]; loading?: boolean }) {
+  if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." />;
   if (loading && !standings.length) return null;
-  if (!standings.length) return <Notice title="No Data Available" message="No driver standings available for this season." />;
 
   return (
     <table className="table">
@@ -158,18 +158,18 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
       </thead>
       <tbody>
         {standings.map((standing) => (
-          <tr key={standing.Driver.driverId} data-reveal>
+          <tr key={standing.Driver.driverId || standing.Driver.familyName} data-reveal>
             <td>{standing.position}</td>
             <td>
               <div className="driver">
-                <span className="driver__code" aria-hidden="true">{standing.Driver.code}</span>
+                <span className="driver__code" aria-hidden="true">{standing.Driver.code || ""}</span>
                 <div className="driver__name">
                   <p>{standing.Driver.givenName} {standing.Driver.familyName}</p>
                   <p className="mute">{standing.Driver.nationality}</p>
                 </div>
               </div>
             </td>
-            <td>{standing.Constructors[0]?.name}</td>
+            <td>{standing.Constructors[0]?.name || "Unknown"}</td>
             <td className="num">{standing.points}</td>
             <td className="num">{standing.wins}</td>
           </tr>
@@ -180,8 +180,8 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
 }
 
 function ConstructorStandingsTable({ standings, loading }: { standings: ConstructorStanding[]; loading?: boolean }) {
+  if (!standings.length && !loading) return <Notice title="No Data Available" message="No constructor standings available for this season." />;
   if (loading && !standings.length) return null;
-  if (!standings.length) return <Notice title="No Data Available" message="No constructor standings available for this season." />;
 
   return (
     <table className="table">
