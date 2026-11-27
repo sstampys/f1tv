@@ -6,6 +6,7 @@ import {
   constructorStandingsRes,
   type DriverStanding,
   type ConstructorStanding,
+  type Driver,
 } from "@/lib/jolpica-api";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
@@ -142,15 +143,18 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." />;
   if (loading && !standings.length) return null;
 
-  // Check if any driver has a real code from the API (not generated)
-  const hasRealCodes = standings.some((s) => s.Driver.code && s.Driver.code.trim() !== "");
-
   // Helper to get display position (handles "-" for unclassified)
   const getDisplayPosition = (standing: DriverStanding, index: number): string => {
     if (standing.positionText && standing.positionText !== "-") return standing.positionText;
     if (standing.position && standing.position !== "-") return standing.position;
     // Fallback to array index + 1 for unclassified
     return `${index + 1}*`;
+  };
+
+  // Helper to get driver number only (no code)
+  const getDriverNumber = (driver: Driver): string => {
+    const number = driver.permanentNumber?.trim();
+    return number || "";
   };
 
   return (
@@ -170,12 +174,9 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
             <td>{getDisplayPosition(standing, index)}</td>
             <td>
               <div className="driver">
-                {hasRealCodes && (
-                  <span className="driver__code" aria-hidden="true">{standing.Driver.code || ""}</span>
-                )}
                 <div className="driver__name">
                   <p>{standing.Driver.givenName} {standing.Driver.familyName}</p>
-                  <p className="mute">{standing.Driver.nationality}</p>
+                  <p className="mute">{getDriverNumber(standing.Driver)}</p>
                 </div>
               </div>
             </td>
