@@ -135,6 +135,7 @@ function ResultRow({ result }: { result: RaceResult }) {
   const isNotStarted = /did not start/i.test(status);
   const isNotClassified = /not classified/i.test(status);
   const isDidNotFinish = /did not finish/i.test(status);
+  const isLapDown = /^\+\d+ Lap(s)?/i.test(status);
 
   let timeCell: string;
   if (isWinner) {
@@ -149,6 +150,8 @@ function ResultRow({ result }: { result: RaceResult }) {
     timeCell = "DNF";
   } else if (isRetired) {
     timeCell = "RET";
+  } else if (isLapDown) {
+    timeCell = status;
   } else if (isClassified && raceTime) {
     timeCell = raceTime;
   } else {
