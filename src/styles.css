@@ -716,7 +716,8 @@
   white-space: nowrap;
 }
 .results-table .col-pos {
-  width: 2rem;
+  width: 2.75rem; /* 44px: room after the rank number before the driver name */
+  padding-right: var(--s2);
 }
 .results-table .col-driver {
   width: auto;
@@ -733,7 +734,7 @@
 }
 @media (min-width: 761px) {
   .results-table .col-pos {
-    width: 2rem;
+    width: 2.75rem;
   }
   .results-table .col-num {
     width: 4rem;
