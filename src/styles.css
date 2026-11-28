@@ -1004,6 +1004,10 @@ a.control:focus-visible,
 .player-controls--outside {
   display: flex;
   align-items: center;
+  /* These controls sit on the page, not over the dark player, so they take the
+     page's ink (the base .player-controls sets the overlay's white text, which
+     the select would otherwise inherit and be illegible on a light page). */
+  color: var(--ink);
 }
 .stream-links {
   display: flex;
