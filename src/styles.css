@@ -1005,8 +1005,10 @@ a.control:focus-visible,
    type with a soft shadow so it stays readable over bright footage. */
 .stream-player__source {
   position: absolute;
-  top: var(--s1);
-  left: var(--s1);
+  /* Where the text sat while the chip had its own padding: one step in from the
+     player edge, plus the chip's inner padding. */
+  top: calc(var(--s1) + 2px);
+  left: calc(var(--s1) * 2);
   z-index: 2;
   color: rgba(255, 255, 255, .6);
   font-size: 12px;
