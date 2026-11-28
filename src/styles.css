@@ -1079,10 +1079,6 @@ a.control:focus-visible,
 .stream-stage__head {
   grid-row: 1;
   align-self: end;
-  text-align: center;
-}
-.stream-stage__head .facts {
-  align-items: center;
 }
 .stream-stage__player {
   grid-row: 2;
