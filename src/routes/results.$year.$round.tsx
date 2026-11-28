@@ -71,11 +71,17 @@ function SwapText({ value }: { value: string | null }) {
   const [shown, setShown] = useState<string | null>(value);
   const ref = useRef<HTMLSpanElement>(null);
   const shownRef = useRef<string | null>(value);
+  const genRef = useRef(0);
   shownRef.current = shown;
 
   useEffect(() => {
     if (value === shownRef.current) return;
-    fadeSwap(ref.current, () => setShown(value));
+    const gen = ++genRef.current;
+    // Only the latest change may swap the text; a superseded dip's timer is
+    // ignored so rapid switching can't land on an intermediate value.
+    fadeSwap(ref.current, () => {
+      if (gen === genRef.current) setShown(value);
+    });
   }, [value]);
 
   return (

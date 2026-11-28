@@ -424,13 +424,16 @@ export function playReveal(el: HTMLElement | null, delay = 0): void {
 export const PAGE_EXIT_EVENT = "f1box:exit";
 
 /**
- * Fade an element's text out, run `swap` to change it, then fade it back in.
+ * Dip-fade an element's text and run `swap` at the lowest point to change it.
  * Used for text that updates in place — the session timestamp on the results
- * page — so the change reads as a dissolve instead of a cut, with only one
- * value ever on screen (no overlapping double image).
+ * page — so the change reads as a quick dissolve: the value dips out and the
+ * new one comes back, with only one value ever on screen (no overlapping
+ * double image) and no fully blank frame (the opacity is continuous through
+ * the swap, so it never sits at 0 for a whole frame).
  *
- * Only opacity animates, over half the exit duration each way, so the text
- * keeps its colour, weight and rendering and nothing around it moves.
+ * Only opacity animates; the text keeps its colour, weight and rendering and
+ * nothing around it moves. `swap` runs at the midpoint; a newer call cancels
+ * the previous animation and its pending swap.
  */
 export function fadeSwap(el: HTMLElement | null, swap: () => void): void {
   if (!el) {
@@ -445,23 +448,22 @@ export function fadeSwap(el: HTMLElement | null, swap: () => void): void {
 
   // A newer swap supersedes whatever is still running.
   el.getAnimations().forEach((animation) => animation.cancel());
-  const half = tokens.exitDuration / 2;
-  const easing = tokens.exitEase;
+  const duration = tokens.exitDuration;
 
-  const out = el.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: half,
-    easing,
-    fill: "forwards",
-  });
-  void out.finished
-    .then(() => {
-      swap();
-      // The text is now the new value (still transparent from `out`); fade it in.
-      requestAnimationFrame(() => {
-        el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: half, easing, fill: "forwards" });
-      });
-    })
-    .catch(() => {});
+  // Linear so the opacity minimum lands exactly at the 50% midpoint, where the
+  // swap fires — the text is only at zero for an instant, never a full frame.
+  const animation = el.animate(
+    [
+      { opacity: 1, offset: 0 },
+      { opacity: 0, offset: 0.5 },
+      { opacity: 1, offset: 1 },
+    ],
+    { duration },
+  );
+  // Change the text as the opacity crosses its minimum, between two frames.
+  const timer = window.setTimeout(swap, duration / 2);
+  const clear = () => window.clearTimeout(timer);
+  animation.finished.then(clear, clear);
 }
 
 /**
