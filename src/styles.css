@@ -382,6 +382,9 @@
 [data-instant] {
   animation: swap-in var(--motion-exit-duration) var(--ease) both;
 }
+[data-instant] [data-reveal] {
+  opacity: 1;
+}
 @keyframes swap-in {
   from {
     opacity: 0;
