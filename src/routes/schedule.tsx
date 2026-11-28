@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   seasonsRes,
   scheduleRes,
@@ -7,17 +7,26 @@ import {
   isRaceCompleted,
   type Race
 } from "@/lib/jolpica-api";
-import { useState, useMemo, useRef, Component, type ReactNode } from "react";
+import { useState, useMemo, useRef, useEffect, Component, type ReactNode } from "react";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, scheduleTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
+import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
 import { SystemSelect } from "@/components/ui/system-select";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { fadeOutList } from "@/lib/reveal";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
+import { ControlButton } from "@/components/ui/control-button";
+import { asSeason, setSeason, useSeason } from "@/lib/season";
 
 export const Route = createFileRoute("/schedule")({
+  // The season travels in the URL, so it survives a reload, a shared link and
+  // the browser's back button.
+  validateSearch: (search: Record<string, unknown>): { season?: string } => {
+    const season = asSeason(search.season);
+    return season ? { season } : {};
+  },
   head: () => ({
     meta: [
       { title: "Schedule" },
@@ -50,14 +59,44 @@ function SchedulePage() {
 }
 
 export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
-  const [season, setSeason] = useState<string>(currentSeason);
+  const search = Route.useSearch();
+  // The URL is the source of truth, but only a real year counts: a hand
+  // typed ?season=abc falls back to the season the visitor picked before.
+  const seasonParam = asSeason(search.season);
+  const navigate = useNavigate();
+  // The season the visitor last chose, for routes opened without a parameter.
+  const remembered = useSeason();
+  const season = seasonParam ?? remembered ?? currentSeason;
   const listRef = useRef<HTMLDivElement>(null);
+
+  // A season in the URL is remembered, so the navigation pill and the routes
+  // without a selector carry it along. A value that is not a year is dropped
+  // and the address bar is corrected to the season on screen.
+  useEffect(() => {
+    if (seasonParam) {
+      setSeason(seasonParam);
+      return;
+    }
+    if (!season) return;
+    if (search.season !== undefined || (remembered && remembered !== currentSeason)) {
+      navigate({ to: "/schedule", search: { season }, replace: true });
+    }
+  }, [seasonParam, remembered, currentSeason, search.season, season, navigate]);
+
   const swapSeason = (next: string) => {
-    void fadeOutList(listRef.current).then(() => setSeason(next));
+    void fadeOutList(listRef.current).then(() => {
+      navigate({ to: "/schedule", search: { season: next }, replace: true });
+    });
   };
 
   const seasons = useResource(seasonsRes);
   const schedule = useResource(scheduleRes(season));
+  // The schedule has been waiting longer than the shared timeout: the spinner
+  // has said enough and the page owes the visitor an explanation.
+  const { slow, error: attemptError } = useLoadTimeout(
+    scheduleRes(season).key,
+    !schedule.data && !schedule.error,
+  );
 
   // The next race is derived from the schedule already in hand — no extra request.
   // Only the current season can have one; a finished season has no next race.
@@ -86,9 +125,12 @@ export function ScheduleSection({ currentSeason }: { currentSeason: string }) {
           {!schedule.data && !schedule.error ? (
             <div className="page-container">
               <LoadingSpinner className="mute" />
+              {slow && (
+                <Notice title="Still loading" message={loadErrorMessage(attemptError, "the schedule")} retry />
+              )}
             </div>
           ) : schedule.error ? (
-            <Notice title="Unable to load schedule" message="Failed to load schedule. Please try again." retry />
+            <Notice title="Unable to load schedule" message={loadErrorMessage(schedule.error, "the schedule")} retry />
           ) : schedule.data && schedule.data.length > 0 ? (
             <RaceCalendar
               key={season}
@@ -283,7 +325,7 @@ function Notice({ title, message, retry }: { title: string; message: string; ret
       <p className="mute" data-reveal>{message}</p>
       {retry && (
         <p data-reveal>
-          <button type="button" className="control" onClick={() => window.location.reload()}>Try Again</button>
+          <ControlButton onClick={() => window.location.reload()}>Try Again</ControlButton>
         </p>
       )}
     </div>

@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navigation } from "@/components/Navigation";
+import { ControlButton } from "@/components/ui/control-button";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { themeInitScript } from "@/lib/theme";
 import appCss from "../styles.css?url";
@@ -57,16 +58,14 @@ function ErrorComponent({ error, reset }: { error: unknown; reset: () => void })
               <p className="mute">Something went wrong. Try again, or head back home.</p>
             </div>
             <div className="page-container head" style={{ justifyContent: "flex-start", columnGap: "var(--s3)" }}>
-              <button
-                type="button"
+              <ControlButton
                 onClick={() => {
                   router.invalidate();
                   reset();
                 }}
-                className="control"
               >
                 Try again
-              </button>
+              </ControlButton>
               <Link to="/" className="link">Go home</Link>
             </div>
           </section>

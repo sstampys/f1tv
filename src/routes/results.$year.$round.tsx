@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, type RefObject } from "react";
 import {
   raceResultsRes,
   qualifyingRes,
@@ -7,17 +7,22 @@ import {
   sprintRes,
   scheduleRes,
   formatRaceDateTime,
+  sessionDateTime,
   type RaceResult,
   type QualifyingResult,
   type PracticeResult,
   type SprintResult,
   type Race,
+  type SessionKey,
 } from "@/lib/jolpica-api";
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
+import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
+import { fadeOutList } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
+import { ControlButton } from "@/components/ui/control-button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export const Route = createFileRoute("/results/$year/$round")({
@@ -52,7 +57,7 @@ function ResultsPage() {
   const sprint = useResource(sprintRes(year, round));
   const schedule = useResource(scheduleRes(year));
   const [race, setRace] = useState<Race | null>(null);
-  const [activeTab, setActiveTab] = useState<"race" | "qualifying" | "practice" | "sprint">("race");
+  const [activeTab, setActiveTab] = useState<SessionKey>("race");
 
   useEffect(() => {
     if (schedule.data) {
@@ -61,18 +66,49 @@ function ResultsPage() {
     }
   }, [schedule.data, round]);
 
-  const formattedDate = race
-    ? formatRaceDateTime(race.date, race.time, { weekday: "short", month: "long", day: "numeric", year: "numeric" })
-    : null;
+  // The sessions of the weekend, each with the resource that carries it.
+  const sessions = { race: results, qualifying, practice, sprint } as const;
+  // The cache key of each session: the load timeout watches it.
+  const sessionKeys = {
+    race: raceResultsRes(year, round).key,
+    qualifying: qualifyingRes(year, round).key,
+    practice: practiceRes(year, round).key,
+    sprint: sprintRes(year, round).key,
+  };
 
   // Determine available tabs based on data
   const availableTabs = useMemo(() => {
-    const tabs: Array<"race" | "qualifying" | "practice" | "sprint"> = ["race"];
+    const tabs: SessionKey[] = ["race"];
     if (qualifying.data && qualifying.data.length > 0) tabs.push("qualifying");
     if (practice.data && practice.data.length > 0) tabs.push("practice");
     if (sprint.data && sprint.data.length > 0) tabs.push("sprint");
     return tabs;
   }, [qualifying.data, practice.data, sprint.data]);
+
+  // A session whose data has gone keeps the tab it was on out of the strip;
+  // the race is always there to fall back to.
+  const active = availableTabs.includes(activeTab) ? activeTab : "race";
+
+  const formattedDate = useMemo(() => {
+    if (!race) return null;
+    // The timestamp follows the session on screen: the race's own date and
+    // time for the race, the qualifying session's for qualifying, and so on.
+    const when = sessionDateTime(race, active) ?? { date: race.date, time: race.time };
+    return formatRaceDateTime(when.date, when.time, {
+      weekday: "short",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }, [race, active]);
+
+  // The session on screen fades out before the next one arrives, like a page
+  // change instead of a cut. The new session fades in with the reveal.
+  const listRef = useRef<HTMLDivElement>(null);
+  const handleTab = (next: SessionKey) => {
+    if (next === active) return;
+    void fadeOutList(listRef.current).then(() => setActiveTab(next));
+  };
 
   return (
     <div className="page">
@@ -82,20 +118,24 @@ function ResultsPage() {
             <h1 data-reveal>{race?.raceName || "Race Results"}</h1>
             {race && (
               <p className="mute" data-reveal>
-                {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country} ·{" "}
+                {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
+                <br />
                 <span style={{ whiteSpace: "nowrap" }}>{formattedDate}</span>
               </p>
             )}
           </div>
-          <Link to="/schedule" className="control" data-reveal>
+          <Link to="/schedule" search={{ season: year }} className="control" data-reveal>
             ← Schedule
           </Link>
         </div>
 
-        {/* Session Tabs */}
-        {availableTabs.length > 1 && (
-          <div className="page-container">
-            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+        {/* The session on screen. The tab strip only appears once there is more
+            than one session to switch between; the results themselves are
+            always here, so a race without a qualifying session still shows
+            its results. */}
+        <div className="page-container">
+          <Tabs value={active} onValueChange={(v) => handleTab(v as SessionKey)}>
+            {availableTabs.length > 1 && (
               <TabsList className="tabs-list" data-reveal>
                 {availableTabs.map((tab) => (
                   <TabsTrigger key={tab} value={tab} data-reveal>
@@ -103,84 +143,123 @@ function ResultsPage() {
                   </TabsTrigger>
                 ))}
               </TabsList>
+            )}
 
-              {availableTabs.map((tab) => (
-                <TabsContent key={tab} value={tab}>
-                  {activeTab === tab && (
-                    <>
-                      <SessionSummary
-                        activeTab={tab}
-                        race={race}
-                        results={results.data as RaceResult[] | undefined}
-                        qualifying={qualifying.data as QualifyingResult[] | undefined}
-                        practice={practice.data as PracticeResult[] | undefined}
-                        sprint={sprint.data as SprintResult[] | undefined}
-                      />
-                      <div>
-                        {(() => {
-                          let currentData: (RaceResult | QualifyingResult | PracticeResult | SprintResult)[] | undefined;
-                          let currentError: unknown;
-                          let isLoading: boolean;
-                          switch (tab) {
-                            case "qualifying":
-                              currentData = qualifying.data ?? undefined;
-                              currentError = qualifying.error;
-                              isLoading = !qualifying.data && !qualifying.error;
-                              break;
-                            case "practice":
-                              currentData = practice.data ?? undefined;
-                              currentError = practice.error;
-                              isLoading = !practice.data && !practice.error;
-                              break;
-                            case "sprint":
-                              currentData = sprint.data ?? undefined;
-                              currentError = sprint.error;
-                              isLoading = !sprint.data && !sprint.error;
-                              break;
-                            default:
-                              currentData = results.data ?? undefined;
-                              currentError = results.error;
-                              isLoading = !results.data && !results.error;
-                          }
-                          if (isLoading && !currentData) {
-                            return (
-                              <div className="results-table">
-                                <div className="results-table__row results-table__head" data-reveal>
-                                  <div className="results-table__cell">
-                                    <LoadingSpinner size={15} />
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          }
-                          if (currentError) {
-                            return (
-                              <Notice title="Unable to load results" message="Failed to load session results. Please try again." retry />
-                            );
-                          }
-                          if (currentData && currentData.length > 0) {
-                            return (
-                              <ResultsTable
-                                key={`${year}-${round}-${tab}`}
-                                data={currentData as (RaceResult | QualifyingResult | PracticeResult | SprintResult)[]}
-                                sessionType={tab}
-                                race={race}
-                                allResults={results.data ?? undefined}
-                                qualifying={qualifying.data ?? undefined}
-                              />
-                            );
-                          }
-                          return <Notice title="No Results" message="No results available for this session." />;
-                        })()}
-                      </div>
-                    </>
-                  )}
-                </TabsContent>
-              ))}
-            </Tabs>
-          </div>
-        )}
+            {availableTabs.map((tab) => (
+              <TabsContent key={tab} value={tab}>
+                {active === tab && (
+                  <SessionPanel
+                    tab={tab}
+                    year={year}
+                    round={round}
+                    race={race}
+                    session={sessions[tab]}
+                    resourceKey={sessionKeys[tab]}
+                    listRef={listRef}
+                    results={results.data ?? undefined}
+                    qualifying={qualifying.data ?? undefined}
+                    practice={practice.data ?? undefined}
+                    sprint={sprint.data ?? undefined}
+                  />
+                )}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </div>
       </section>
+    </div>
+  );
+}
+
+/**
+ * One session: its summary line and its table.
+ *
+ * While the session is loading the page shows the same loading circle as the
+ * rest of the site, and once the shared timeout has passed an error message
+ * explains what is wrong — the API rate limit, or a website error.
+ */
+function SessionPanel({
+  tab,
+  year,
+  round,
+  race,
+  session,
+  resourceKey,
+  listRef,
+  results,
+  qualifying,
+  practice,
+  sprint,
+}: {
+  tab: SessionKey;
+  year: string;
+  round: string;
+  race: Race | null;
+  session: { data: unknown[] | null; error: unknown };
+  resourceKey: string;
+  listRef: RefObject<HTMLDivElement | null>;
+  results: RaceResult[] | undefined;
+  qualifying: QualifyingResult[] | undefined;
+  practice: PracticeResult[] | undefined;
+  sprint: SprintResult[] | undefined;
+}) {
+  const loading = !session.data && !session.error;
+  const { slow, error: attemptError } = useLoadTimeout(resourceKey, loading);
+
+  const data = (
+    tab === "qualifying" ? qualifying :
+    tab === "practice" ? practice :
+    tab === "sprint" ? sprint :
+    results
+  ) as (RaceResult | QualifyingResult | PracticeResult | SprintResult)[] | undefined;
+
+  return (
+    <div ref={listRef}>
+      <SessionSummary
+        activeTab={tab}
+        race={race}
+        results={results}
+        qualifying={qualifying}
+        practice={practice}
+        sprint={sprint}
+      />
+      <div>
+        {loading && !data ? (
+          <>
+            <div className="results-table">
+              <div className="results-table__row results-table__head" data-reveal>
+                <div className="results-table__cell">
+                  <LoadingSpinner size={15} />
+                </div>
+              </div>
+            </div>
+            {slow && (
+              <Notice
+                title="Still loading"
+                message={loadErrorMessage(attemptError, "the session results")}
+                retry
+              />
+            )}
+          </>
+        ) : session.error ? (
+          <Notice
+            title="Unable to load results"
+            message={loadErrorMessage(session.error, "the session results")}
+            retry
+          />
+        ) : data && data.length > 0 ? (
+          <ResultsTable
+            key={`${year}-${round}-${tab}`}
+            data={data}
+            sessionType={tab}
+            race={race}
+            allResults={results}
+            qualifying={qualifying}
+          />
+        ) : (
+          <Notice title="No Results" message="No results available for this session." />
+        )}
+      </div>
     </div>
   );
 }
@@ -193,7 +272,7 @@ function SessionSummary({
   practice,
   sprint,
 }: {
-  activeTab: "race" | "qualifying" | "practice" | "sprint";
+  activeTab: SessionKey;
   race: Race | null;
   results: RaceResult[] | undefined | null;
   qualifying: QualifyingResult[] | undefined | null;
@@ -252,7 +331,7 @@ function ResultsTable({
   qualifying,
 }: {
   data: (RaceResult | QualifyingResult | PracticeResult | SprintResult)[];
-  sessionType: "race" | "qualifying" | "practice" | "sprint";
+  sessionType: SessionKey;
   race: Race | null;
   allResults: RaceResult[] | undefined;
   qualifying: QualifyingResult[] | undefined;
@@ -358,13 +437,15 @@ function SprintResultsTable({ results }: { results: SprintResult[] }) {
   );
 }
 
-function RaceResultRow({ result }: { result: RaceResult }) {
-  const position = result.positionText || result.position;
-  const gridPos = result.grid === "0" ? "Pit Lane" : `P${result.grid}`;
-  const status = result.status || "";
-  const raceTime = result.Time?.time || "";
+/**
+ * The Time cell: the driver's time, or what ended their race.
+ *
+ * The statuses the API publishes are spelled out — Disqualified, Did Not
+ * Start, Not Classified, Did Not Finish, Retired — so the column reads as
+ * words rather than as a code the visitor has to know.
+ */
+function timeCellFor(position: string, status: string, raceTime: string): string {
   const isWinner = position === "1";
-
   const isRetired = /ret|mechanical|accident|collision|engine|brakes|clutch|gearbox|electrical|oil leak|physical|throttle/i.test(status);
   const isDisqualified = /disqual/i.test(status);
   const isNotStarted = /did not start/i.test(status);
@@ -372,32 +453,30 @@ function RaceResultRow({ result }: { result: RaceResult }) {
   const isDidNotFinish = /did not finish/i.test(status);
   const isLapDown = /^\+\d+ Lap(s)?/i.test(status);
 
+  if (isDisqualified) return "Disqualified";
+  if (isNotStarted) return "Did Not Start";
+  if (isNotClassified) return "Not Classified";
+  if (isDidNotFinish) return "Did Not Finish";
+  if (isRetired) return "Retired";
+  if (isLapDown) return status;
+  if (isWinner) return raceTime;
+  if (raceTime) return raceTime;
+  const isFinished = /^finished$/i.test(status);
+  return status && !isFinished ? status : "";
+}
+
+function RaceResultRow({ result }: { result: RaceResult }) {
+  const position = result.positionText || result.position;
+  const gridPos = result.grid === "0" ? "Pit Lane" : `P${result.grid}`;
+  const status = result.status || "";
+  const raceTime = result.Time?.time || "";
+
   const getDriverNumber = (driver: { permanentNumber?: string }): string => {
     const number = driver.permanentNumber?.trim();
     return number ? `#${number}` : "";
   };
 
-  let timeCell: string;
-  if (isDisqualified) {
-    timeCell = "DSQ";
-  } else if (isNotStarted) {
-    timeCell = "DNS";
-  } else if (isNotClassified) {
-    timeCell = "NC";
-  } else if (isDidNotFinish) {
-    timeCell = "DNF";
-  } else if (isRetired) {
-    timeCell = "RET";
-  } else if (isLapDown) {
-    timeCell = status;
-  } else if (isWinner) {
-    timeCell = raceTime;
-  } else if (raceTime) {
-    timeCell = raceTime;
-  } else {
-    const isFinished = /^finished$/i.test(status);
-    timeCell = status && !isFinished ? status : "";
-  }
+  const timeCell = timeCellFor(position, status, raceTime);
 
   return (
     <div className="results-table__row" role="row" data-reveal>
@@ -484,41 +563,13 @@ function SprintResultRow({ result }: { result: SprintResult }) {
   const gridPos = result.grid === "0" ? "Pit Lane" : `P${result.grid}`;
   const status = result.status || "";
   const raceTime = result.Time?.time || "";
-  const isWinner = position === "1";
-
-  const isRetired = /ret|mechanical|accident|collision|engine|brakes|clutch|gearbox|electrical|oil leak|physical|throttle/i.test(status);
-  const isDisqualified = /disqual/i.test(status);
-  const isNotStarted = /did not start/i.test(status);
-  const isNotClassified = /not classified/i.test(status);
-  const isDidNotFinish = /did not finish/i.test(status);
-  const isLapDown = /^\+\d+ Lap(s)?/i.test(status);
 
   const getDriverNumber = (driver: { permanentNumber?: string }): string => {
     const number = driver.permanentNumber?.trim();
     return number ? `#${number}` : "";
   };
 
-  let timeCell: string;
-  if (isDisqualified) {
-    timeCell = "DSQ";
-  } else if (isNotStarted) {
-    timeCell = "DNS";
-  } else if (isNotClassified) {
-    timeCell = "NC";
-  } else if (isDidNotFinish) {
-    timeCell = "DNF";
-  } else if (isRetired) {
-    timeCell = "RET";
-  } else if (isLapDown) {
-    timeCell = status;
-  } else if (isWinner) {
-    timeCell = raceTime;
-  } else if (raceTime) {
-    timeCell = raceTime;
-  } else {
-    const isFinished = /^finished$/i.test(status);
-    timeCell = status && !isFinished ? status : "";
-  }
+  const timeCell = timeCellFor(position, status, raceTime);
 
   return (
     <div className="results-table__row" role="row" data-reveal>
@@ -540,14 +591,15 @@ function SprintResultRow({ result }: { result: SprintResult }) {
   );
 }
 
+/** The notice sits inside the page container already, so it adds no width. */
 function Notice({ title, message, retry }: { title: string; message: string; retry?: boolean }) {
   return (
-    <div className="page-container stack-tight">
+    <div className="stack-tight">
       <p data-reveal>{title}</p>
       <p className="mute" data-reveal>{message}</p>
       {retry && (
         <p data-reveal>
-          <button type="button" className="control" onClick={() => window.location.reload()}>Try Again</button>
+          <ControlButton onClick={() => window.location.reload()}>Try Again</ControlButton>
         </p>
       )}
     </div>

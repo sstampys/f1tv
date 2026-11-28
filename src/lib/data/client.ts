@@ -33,6 +33,11 @@ function acquire(): Promise<void> {
 // ---- in-flight de-duplication by resource key ----
 const inflight = new Map<string, Promise<unknown>>();
 
+// ---- the last failure of a key, even while the request is retrying ----
+const lastErrors = new Map<string, unknown>();
+type ErrorListener = (error: unknown) => void;
+const errorListeners = new Map<string, Set<ErrorListener>>();
+
 export class HttpError extends Error {
   status: number;
   retryAfterMs: number;
@@ -41,6 +46,35 @@ export class HttpError extends Error {
     this.status = status;
     this.retryAfterMs = retryAfterMs;
   }
+}
+
+/**
+ * The most recent failure of a resource — the rate limit that is being
+ * retried, for instance. It is kept while the request is still running, so a
+ * page that is waiting can say what went wrong instead of only knowing that
+ * something did.
+ */
+export function lastErrorFor(key: string): unknown {
+  return lastErrors.get(key);
+}
+
+/** Listen to the failures of one resource, including the ones it retries. */
+export function subscribeRequestError(key: string, listener: ErrorListener): () => void {
+  let listeners = errorListeners.get(key);
+  if (!listeners) {
+    listeners = new Set();
+    errorListeners.set(key, listeners);
+  }
+  listeners.add(listener);
+  return () => {
+    listeners?.delete(listener);
+    if (listeners && !listeners.size) errorListeners.delete(key);
+  };
+}
+
+function recordError(key: string, error: unknown): void {
+  lastErrors.set(key, error);
+  errorListeners.get(key)?.forEach((listener) => listener(error));
 }
 
 function parseRetryAfter(res: Response): number {
@@ -85,8 +119,13 @@ async function run<T>(key: string, url: string): Promise<T> {
       const res = pending ? await pending : await doFetch(url);
       if (res.status === 429) throw new HttpError(429, parseRetryAfter(res));
       if (!res.ok) throw new HttpError(res.status, parseRetryAfter(res));
-      return (await res.json()) as T;
+      const data = (await res.json()) as T;
+      lastErrors.delete(key);
+      return data;
     } catch (error) {
+      // The failure is remembered even when the request is about to be
+      // retried: a page that is waiting can name the cause straight away.
+      recordError(key, error);
       if (attempt >= LIMITS.maxRetries) throw error;
       const retryAfter = error instanceof HttpError ? error.retryAfterMs : 0;
       // A hard client error (not 429) will not get better by retrying.

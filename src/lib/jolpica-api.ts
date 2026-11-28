@@ -332,6 +332,40 @@ function normalizeTime(time?: string | null): string | null {
   return time.endsWith("Z") ? time.slice(0, -1) : time;
 }
 
+/** The sessions a race weekend has results for. */
+export type SessionKey = "race" | "qualifying" | "practice" | "sprint";
+
+/**
+ * When a session runs.
+ *
+ * The schedule publishes the date — and, for recent seasons, the start time —
+ * of every session of the weekend, so the header can show the timestamp of the
+ * session that is on screen instead of always the race's. Older seasons
+ * published dates only; the time is then left out.
+ */
+export function sessionDateTime(
+  race: Race,
+  session: SessionKey,
+): { date: string; time?: string } | null {
+  switch (session) {
+    case "qualifying":
+      return race.Qualifying ? { date: race.Qualifying.date, time: race.Qualifying.time } : null;
+    case "sprint":
+      // A sprint weekend: the sprint race, or its qualifying session when the
+      // schedule only lists that one.
+      if (race.Sprint) return { date: race.Sprint.date, time: race.Sprint.time };
+      if (race.SprintQualifying) {
+        return { date: race.SprintQualifying.date, time: race.SprintQualifying.time };
+      }
+      return null;
+    case "practice":
+      // The practice results are the last practice session of the weekend.
+      return race.ThirdPractice ?? race.SecondPractice ?? race.FirstPractice ?? null;
+    default:
+      return { date: race.date, time: race.time };
+  }
+}
+
 /** Get time until race (for countdown) */
 export function getTimeUntilRace(date: string, time?: string | null): {
   days: number; hours: number; minutes: number; seconds: number; totalMs: number; isPast: boolean;

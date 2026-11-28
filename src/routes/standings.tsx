@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   seasonsRes,
@@ -11,12 +11,21 @@ import {
 import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
+import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
+import { ControlButton } from "@/components/ui/control-button";
 import { fadeOutList } from "@/lib/reveal";
+import { asSeason, setSeason, useSeason } from "@/lib/season";
 
 export const Route = createFileRoute("/standings")({
+  // The season travels in the URL, so it survives a reload, a shared link and
+  // the browser's back button.
+  validateSearch: (search: Record<string, unknown>): { season?: string } => {
+    const season = asSeason(search.season);
+    return season ? { season } : {};
+  },
   head: () => ({
     meta: [
       { title: "Standings" },
@@ -51,8 +60,29 @@ function StandingsPage() {
 }
 
 export function StandingsSection({ currentSeason }: { currentSeason: string }) {
-  const [season, setSeason] = useState<string>(currentSeason);
+  const search = Route.useSearch();
+  // The URL is the source of truth, but only a real year counts: a hand
+  // typed ?season=abc falls back to the season the visitor picked before.
+  const seasonParam = asSeason(search.season);
+  const navigate = useNavigate();
+  // The season the visitor last chose, for routes opened without a parameter.
+  const remembered = useSeason();
+  const season = seasonParam ?? remembered ?? currentSeason;
   const [tab, setTab] = useState("drivers");
+
+  // A season in the URL is remembered, so the navigation pill and the routes
+  // without a selector carry it along. A value that is not a year is dropped
+  // and the address bar is corrected to the season on screen.
+  useEffect(() => {
+    if (seasonParam) {
+      setSeason(seasonParam);
+      return;
+    }
+    if (!season) return;
+    if (search.season !== undefined || (remembered && remembered !== currentSeason)) {
+      navigate({ to: "/standings", search: { season }, replace: true });
+    }
+  }, [seasonParam, remembered, currentSeason, search.season, season, navigate]);
 
   const seasons = useResource(seasonsRes);
   const drivers = useResource(driverStandingsRes(season));
@@ -60,6 +90,17 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
   const anyError = drivers.error || constructors.error;
   const hasData = !!(drivers.data || constructors.data);
+
+  // The tables have been waiting longer than the shared timeout: the spinner
+  // has said enough and the page owes the visitor an explanation.
+  const driverLoad = useLoadTimeout(
+    driverStandingsRes(season).key,
+    !drivers.data && !drivers.error,
+  );
+  const constructorLoad = useLoadTimeout(
+    constructorStandingsRes(season).key,
+    !constructors.data && !constructors.error,
+  );
 
   // The tab strip is static chrome. Once it has appeared it must never unmount,
   // so switching season — which clears that season's data — cannot replay its
@@ -76,7 +117,9 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
   };
 
   const handleSeason = (next: string) => {
-    swapList(() => setSeason(next));
+    swapList(() => {
+      navigate({ to: "/standings", search: { season: next }, replace: true });
+    });
   };
 
   const handleTab = (next: string) => {
@@ -101,7 +144,11 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
         {!tabsReady && !hasData ? (
           anyError ? (
-            <Notice title="Unable to load standings" message="Failed to load standings. Please try again." retry />
+            <Notice
+              title="Unable to load standings"
+              message={loadErrorMessage(anyError, "the standings")}
+              retry
+            />
           ) : null
         ) : (
           <div className="page-container" ref={listRef}>
@@ -113,16 +160,34 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
 
               <TabsContent value="drivers">
                 {drivers.error && !drivers.data ? (
-                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." inTable />
+                  <Notice
+                    title="Unable to load standings"
+                    message={loadErrorMessage(drivers.error, "the standings")}
+                    inTable
+                  />
                 ) : (
-                  <DriverStandingsTable key={`drivers-${season}`} standings={drivers.data || []} loading={!drivers.data} />
+                  <DriverStandingsTable
+                    key={`drivers-${season}`}
+                    standings={drivers.data || []}
+                    loading={!drivers.data}
+                    slow={driverLoad.slow ? loadErrorMessage(driverLoad.error, "the standings") : undefined}
+                  />
                 )}
               </TabsContent>
               <TabsContent value="constructors">
                 {constructors.error && !constructors.data ? (
-                  <Notice title="Unable to load standings" message="Failed to load standings. Please try again." inTable />
+                  <Notice
+                    title="Unable to load standings"
+                    message={loadErrorMessage(constructors.error, "the standings")}
+                    inTable
+                  />
                 ) : (
-                  <ConstructorStandingsTable key={`constructors-${season}`} standings={constructors.data || []} loading={!constructors.data} />
+                  <ConstructorStandingsTable
+                    key={`constructors-${season}`}
+                    standings={constructors.data || []}
+                    loading={!constructors.data}
+                    slow={constructorLoad.slow ? loadErrorMessage(constructorLoad.error, "the standings") : undefined}
+                  />
                 )}
               </TabsContent>
             </Tabs>
@@ -142,7 +207,16 @@ function RevealHead({ children }: { children: ReactNode }) {
   return <thead>{children}</thead>;
 }
 
-function DriverStandingsTable({ standings, loading }: { standings: DriverStanding[]; loading?: boolean }) {
+function DriverStandingsTable({
+  standings,
+  loading,
+  slow,
+}: {
+  standings: DriverStanding[];
+  loading?: boolean;
+  /** Set when the load has outlasted the shared timeout. */
+  slow?: string;
+}) {
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No driver standings available for this season." inTable />;
   if (loading && !standings.length) {
     return (
@@ -154,6 +228,11 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
             </th>
           </tr>
         </thead>
+        {slow && (
+          <tbody>
+            <Notice title="Still loading" message={slow} retry inTable />
+          </tbody>
+        )}
       </table>
     );
   }
@@ -205,7 +284,16 @@ function DriverStandingsTable({ standings, loading }: { standings: DriverStandin
   );
 }
 
-function ConstructorStandingsTable({ standings, loading }: { standings: ConstructorStanding[]; loading?: boolean }) {
+function ConstructorStandingsTable({
+  standings,
+  loading,
+  slow,
+}: {
+  standings: ConstructorStanding[];
+  loading?: boolean;
+  /** Set when the load has outlasted the shared timeout. */
+  slow?: string;
+}) {
   if (!standings.length && !loading) return <Notice title="No Data Available" message="No constructor standings available for this season." inTable />;
   if (loading && !standings.length) {
     return (
@@ -217,6 +305,11 @@ function ConstructorStandingsTable({ standings, loading }: { standings: Construc
             </th>
           </tr>
         </thead>
+        {slow && (
+          <tbody>
+            <Notice title="Still loading" message={slow} retry inTable />
+          </tbody>
+        )}
       </table>
     );
   }
@@ -263,7 +356,7 @@ function Notice({ title, message, retry, inTable = false }: { title: string; mes
           <p className="mute">{message}</p>
           {retry && (
             <p>
-              <button type="button" className="control" onClick={() => window.location.reload()}>Try Again</button>
+              <ControlButton onClick={() => window.location.reload()}>Try Again</ControlButton>
             </p>
           )}
         </td>
@@ -276,7 +369,7 @@ function Notice({ title, message, retry, inTable = false }: { title: string; mes
       <p className="mute" data-reveal>{message}</p>
       {retry && (
         <p data-reveal>
-          <button type="button" className="control" onClick={() => window.location.reload()}>Try Again</button>
+          <ControlButton onClick={() => window.location.reload()}>Try Again</ControlButton>
         </p>
       )}
     </div>

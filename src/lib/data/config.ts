@@ -69,6 +69,17 @@ export const LIMITS = {
   requestTimeoutMs: 12000,
 } as const;
 
+/**
+ * How long a loading circle may spin before the page explains itself.
+ *
+ * It is the request layer's own timeout: when it has passed, the request has
+ * been given up on once, so the visitor is told what went wrong instead of
+ * watching a spinner turn. Every loading circle uses this one value.
+ */
+export const LOADING = {
+  slowMs: LIMITS.requestTimeoutMs,
+} as const;
+
 /** Name of the global the inline head script stores its in-flight fetches on. */
 export const EARLY_GLOBAL = "__f1boxEarly";
 

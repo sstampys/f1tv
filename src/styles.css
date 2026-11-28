@@ -388,6 +388,15 @@
   letter-spacing: inherit;
   cursor: pointer;
 }
+/* The theme switch: no browser ring, and a quiet one for keyboard users only
+   (see lib/focus-visible.ts). */
+.site-nav__home:focus {
+  outline: none;
+}
+.site-nav__home[data-focus-visible="true"] {
+  outline: 1px solid var(--nav-ink);
+  outline-offset: 2px;
+}
 .site-nav__link {
   color: var(--nav-mute);
 }
@@ -614,6 +623,19 @@
   color: var(--ink);
   text-decoration-color: var(--ink);
 }
+/* No browser focus ring: the accent outline sticks to the control after a
+   choice has been made. Keyboard navigation still gets a quiet indicator, in
+   the page's own ink: a control marks itself while the focus that landed on
+   it came from the keyboard (see lib/focus-visible.ts). A click never leaves
+   an indicator behind. */
+.control:focus {
+  outline: none;
+}
+a.control:focus-visible,
+.control[data-focus-visible="true"] {
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
+}
 
 /* Tabs: plain text, active = ink, inactive = mute */
 .tabs-list {
@@ -756,15 +778,16 @@
 
 /* Results: one shared grid template for the header row and every body row,
    so the columns can never drift apart. Grid/Points sit 16px apart and the
-   Time track is wide enough for 1:27:39.624, +0.639, +1 Lap, RET and DNS. */
+   Time track is wide enough for 1:27:39.624, +0.639, +1 Lap and the spelled
+   out statuses (Did Not Finish, Not Classified). */
 .results-table {
   width: 100%;
   font-variant-numeric: tabular-nums;
 }
-/* Race / Sprint: 7 columns - Pos(2.75rem) | Driver(1fr) | Team(1fr) | Grid(3.5rem) | Laps(3.5rem) | Time(6.25rem) | Pts(3.5rem) */
+/* Race / Sprint: 7 columns - Pos(2.75rem) | Driver(1fr) | Team(1fr) | Grid(3.5rem) | Laps(3.5rem) | Time(7.5rem) | Pts(3.5rem) */
 .results-table--7col .results-table__row {
   display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr) 3.5rem 3.5rem 6.25rem 3.5rem;
+  grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr) 3.5rem 3.5rem 7.5rem 3.5rem;
   column-gap: var(--s2);
   align-items: start;
 }
@@ -883,7 +906,7 @@
 
 @media (max-width: 760px) {
   .results-table--7col .results-table__row {
-    grid-template-columns: 1.5rem minmax(0, 1.2fr) minmax(0, 0.8fr) 2.5rem 2.5rem 6.25rem 2.5rem;
+    grid-template-columns: 1.5rem minmax(0, 1.2fr) minmax(0, 0.8fr) 2.5rem 2.5rem 7rem 2.5rem;
     column-gap: var(--s1);
   }
   .results-table--6col .results-table__row {
@@ -898,7 +921,7 @@
 @media (max-width: 440px) {
   /* Race/Sprint: Pos | Driver | Time | Pts */
   .results-table--7col .results-table__row {
-    grid-template-columns: 1.5rem minmax(0, 1fr) 6.25rem 2.5rem;
+    grid-template-columns: 1.5rem minmax(0, 1fr) 7rem 2.5rem;
   }
   /* Qualifying: Pos | Driver | Q1 | Q2 | Q3 */
   .results-table--6col .results-table__row {
