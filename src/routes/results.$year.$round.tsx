@@ -19,7 +19,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
-import { fadeSwap, fadeOutList } from "@/lib/reveal";
+import { fadeOutList } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
@@ -61,34 +61,11 @@ function tableVariant(tab: SessionKey): string {
   return "results-table--7col";
 }
 
-/**
- * A value that fades in place when it changes: the current text fades out, the
- * value swaps, then the new text fades in — one value on screen at a time, so
- * there is no overlapping double image. The box keeps its size (see `.swap-text`
- * in styles.css), so the line never moves and nothing around it shifts.
- */
+/** The session timestamp. It changes in place with no animation. */
 function SwapText({ value }: { value: string | null }) {
-  const [shown, setShown] = useState<string | null>(value);
-  const ref = useRef<HTMLSpanElement>(null);
-  const shownRef = useRef<string | null>(value);
-  const genRef = useRef(0);
-  shownRef.current = shown;
-
-  useEffect(() => {
-    if (value === shownRef.current) return;
-    const gen = ++genRef.current;
-    // Only the latest change may swap the text; a superseded dip's timer is
-    // ignored so rapid switching can't land on an intermediate value.
-    fadeSwap(ref.current, () => {
-      if (gen === genRef.current) setShown(value);
-    });
-  }, [value]);
-
   return (
     <span className="swap-text">
-      <span ref={ref} className="swap-text__layer">
-        {shown}
-      </span>
+      <span className="swap-text__layer">{value}</span>
     </span>
   );
 }

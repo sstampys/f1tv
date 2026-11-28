@@ -373,11 +373,8 @@
   }
 }
 
-/* A value that swaps in place — the session timestamp on the results page —
-   fades out, swaps, and fades back in when it changes (see fadeSwap in
-   lib/reveal.ts): one value on screen at a time, so there is no overlapping
-   double image, and the box keeps its size so nothing around it moves. The
-   layer is promoted from mount so the fade stays on the compositor. */
+/* The session timestamp on the results page. It changes in place with no
+   animation; the box keeps its size so the line never moves. */
 .swap-text {
   display: inline-grid;
   white-space: nowrap;
@@ -385,14 +382,8 @@
 }
 .swap-text__layer {
   grid-area: 1 / 1;
-  will-change: opacity;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-@media (prefers-reduced-motion: reduce) {
-  .swap-text__layer {
-    will-change: auto;
-  }
 }
 
 /* Navigation (.nav) */

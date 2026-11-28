@@ -424,49 +424,6 @@ export function playReveal(el: HTMLElement | null, delay = 0): void {
 export const PAGE_EXIT_EVENT = "f1box:exit";
 
 /**
- * Dip-fade an element's text and run `swap` at the lowest point to change it.
- * Used for text that updates in place — the session timestamp on the results
- * page — so the change reads as a quick dissolve: the value dips out and the
- * new one comes back, with only one value ever on screen (no overlapping
- * double image) and no fully blank frame (the opacity is continuous through
- * the swap, so it never sits at 0 for a whole frame).
- *
- * Only opacity animates; the text keeps its colour, weight and rendering and
- * nothing around it moves. `swap` runs at the midpoint; a newer call cancels
- * the previous animation and its pending swap.
- */
-export function fadeSwap(el: HTMLElement | null, swap: () => void): void {
-  if (!el) {
-    swap();
-    return;
-  }
-  const tokens = readTokens();
-  if (!tokens || prefersReducedMotion()) {
-    swap();
-    return;
-  }
-
-  // A newer swap supersedes whatever is still running.
-  el.getAnimations().forEach((animation) => animation.cancel());
-  const duration = tokens.exitDuration;
-
-  // Linear so the opacity minimum lands exactly at the 50% midpoint, where the
-  // swap fires — the text is only at zero for an instant, never a full frame.
-  const animation = el.animate(
-    [
-      { opacity: 1, offset: 0 },
-      { opacity: 0, offset: 0.5 },
-      { opacity: 1, offset: 1 },
-    ],
-    { duration },
-  );
-  // Change the text as the opacity crosses its minimum, between two frames.
-  const timer = window.setTimeout(swap, duration / 2);
-  const clear = () => window.clearTimeout(timer);
-  animation.finished.then(clear, clear);
-}
-
-/**
  * Fade the revealed leaves inside `root` out (same exit tokens the page
  * transition uses) and resolve when they are gone.
  *
