@@ -355,14 +355,20 @@
 }
 
 /* Ensure animated text stays crisp during GPU-composited fade.
-   will-change promotes the layer; font-smoothing matches static text weight. */
-[data-reveal][data-in] {
+   The promotion is declared on every leaf, not only on the ones that are
+   already revealed: WebKit decides whether to composite an animation when the
+   animation starts, so a layer created in the same frame as `element.animate()`
+   is too late and the fade stays on the main thread — which is exactly what
+   freezes during scroll momentum in a WKWebView. Promoting from mount means
+   the layer is already there, and keeping it afterwards keeps the text on the
+   compositor while the page scrolls. font-smoothing matches static text. */
+[data-reveal] {
   will-change: opacity, transform;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-reveal][data-in] {
+  [data-reveal] {
     will-change: auto;
   }
 }

@@ -70,36 +70,21 @@ function readTokens(): Tokens | null {
 /**
  * Run the reveal keyframes on one leaf. Only opacity and transform animate;
  * translate3d with a whole-pixel distance keeps text from snapping at the end.
- * will-change is set persistently on animated text wrappers so layers stay
- * pre-promoted during scroll, preventing font weight shifts or blurriness.
- * The property is only removed if reduced motion is preferred.
+ * The layer is already promoted by the `[data-reveal]` rule in styles.css, so
+ * it is on the compositor before the animation starts and stays there while
+ * the page scrolls (a promotion set in this frame would be too late for
+ * WebKit to composite the animation).
  */
 function animateLeaf(el: HTMLElement, tokens: Tokens, delay: number): void {
   const px = Math.round(parseFloat(tokens.distance)) || 0;
   const y = el.getAttribute("data-reveal") === "down" ? -px : px;
-  // Keep will-change on animated text wrappers so compositor thread keeps the
-  // layer promoted during scroll momentum. This prevents font weight shifts
-  // and blurriness in WKWebView when scrolling.
-  el.style.willChange = "opacity, transform";
-  // Ensure text rendering matches GPU-promoted layer (prevents weight shift)
-  const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
-  if (style.webkitFontSmoothing === "") {
-    style.webkitFontSmoothing = "antialiased";
-  }
-  const animation = el.animate(
+  el.animate(
     [
       { opacity: tokens.opacityFrom, transform: `translate3d(0, ${y}px, 0)` },
       { opacity: 1, transform: "translate3d(0, 0, 0)" },
     ],
     { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
   );
-  const clear = () => {
-    // Only remove will-change if reduced motion - otherwise keep layer promoted
-    if (prefersReducedMotion()) {
-      requestAnimationFrame(() => requestAnimationFrame(() => el.style.removeProperty("will-change")));
-    }
-  };
-  animation.finished.then(clear, clear);
 }
 
 const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -181,17 +166,11 @@ export function startReveal(): () => void {
   const rtl = document.documentElement.dir === "rtl";
   const root = document.documentElement;
 
+  // `data-in` is all the reveal needs: styles.css keeps every `[data-reveal]`
+  // leaf promoted (will-change + font smoothing) from mount, so nothing has to
+  // be written to the element's inline style while the page scrolls.
   const markIn = (el: HTMLElement) => {
     el.setAttribute("data-in", "");
-    // Keep revealed elements promoted for compositor thread during scroll.
-    // This prevents font weight shifts and blurriness in WKWebView.
-    if (!prefersReducedMotion()) {
-      el.style.willChange = "opacity, transform";
-      const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
-      if (style.webkitFontSmoothing === "") {
-        style.webkitFontSmoothing = "antialiased";
-      }
-    }
   };
 
   const fadeIn = (el: HTMLElement, delay: number) => {
@@ -347,18 +326,6 @@ export function startReveal(): () => void {
 
   scan(document);
 
-  // Initialize will-change and font-smoothing on already-revealed elements
-  // so they stay promoted for the compositor thread during scroll.
-  if (!prefersReducedMotion()) {
-    document.querySelectorAll<HTMLElement>('[data-reveal][data-in]').forEach((el) => {
-      el.style.willChange = "opacity, transform";
-      const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
-      if (style.webkitFontSmoothing === "") {
-        style.webkitFontSmoothing = "antialiased";
-      }
-    });
-  }
-
   const mo = new MutationObserver((records) => {
     for (const record of records) {
       record.addedNodes.forEach((node) => {
@@ -408,17 +375,6 @@ export function startReveal(): () => void {
   const rearm = () => {
     restoreExit();
     scan(document);
-    // Re-initialize will-change and font-smoothing on revealed elements
-    // after navigation so they stay promoted for the compositor thread.
-    if (!prefersReducedMotion()) {
-      document.querySelectorAll<HTMLElement>('[data-reveal][data-in]').forEach((el) => {
-        el.style.willChange = "opacity, transform";
-        const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
-        if (style.webkitFontSmoothing === "") {
-          style.webkitFontSmoothing = "antialiased";
-        }
-      });
-    }
   };
 
   engine = {
