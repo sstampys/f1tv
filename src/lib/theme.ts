@@ -86,6 +86,18 @@ function themeEase(): string {
   return getComputedStyle(document.documentElement).getPropertyValue("--ease").trim() || "ease";
 }
 
+/** The veil currently fading the page through a theme change, if any. */
+let activeVeil: HTMLDivElement | null = null;
+
+/** Drop a veil left over from a superseded theme change. */
+function cancelVeil(): void {
+  if (!activeVeil) return;
+  activeVeil.getAnimations().forEach((animation) => animation.cancel());
+  activeVeil.remove();
+  activeVeil = null;
+  document.documentElement.removeAttribute("data-theme-switching");
+}
+
 /** Write the theme attributes to the root element (the single source of truth). */
 function applyThemeAttributes(theme: Theme): void {
   const root = document.documentElement;
@@ -99,17 +111,24 @@ function applyThemeAttributes(theme: Theme): void {
 }
 
 /**
- * Write a theme to the document and cross-fade the whole page as one
- * coordinated transition on the root element.
+ * Change the theme and fade the whole page through it as one coordinated
+ * transition.
  *
- *  - The page fades out, the theme swaps on the root while invisible, then
- *    fades back in — a single root-level opacity cross-fade through the Web
- *    Animations API. This is reliable on every browser including mobile
- *    Safari/WKWebView where view-transition snapshots do not reliably capture
- *    CSS custom-property colour changes (which would otherwise cut instantly).
- *  - No per-element colour transitions are involved.
- *  - With reduced motion or animate === false the theme is written straight
- *    away, with no animation.
+ * The fade has to paint pixels: the page background is propagated from `body`
+ * to the canvas, and an animation on `document.documentElement` cannot fade the
+ * canvas (opacity on the root only hides its descendants, so the background
+ * would still swap in one frame). Two mechanisms actually cross-fade the whole
+ * surface, and both run on the compositor:
+ *
+ *  - View transitions (desktop Chrome/Safari 18+): the old frame stays on
+ *    screen as a snapshot and the new frame fades in over it.
+ *  - Everywhere else (older mobile Safari/WKWebView): a full-viewport veil
+ *    painted in the outgoing ground colour fades in over the page, the theme
+ *    swaps on the root while the veil is opaque, then the veil fades out and
+ *    reveals the new theme. The page dissolves through its own background, so
+ *    there is no instant cut and no white flash.
+ *
+ * Reduced motion (or `animate === false`) writes the theme with no animation.
  */
 export function applyTheme(theme: Theme, animate = true): void {
   if (typeof document === "undefined") return;
@@ -130,17 +149,77 @@ export function applyTheme(theme: Theme, animate = true): void {
   }
 
   const ease = themeEase();
+
+  const doc = document as Document & {
+    startViewTransition?: (cb: () => void) => { finished: Promise<void>; ready: Promise<void> };
+  };
+
+  // View transition: snapshot cross-fade.
+  if (typeof doc.startViewTransition === "function") {
+    const write = () => {
+      root.setAttribute("data-theme-switching", "");
+      applyThemeAttributes(theme);
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
+      );
+    };
+    try {
+      const vt = doc.startViewTransition(write);
+      // A transition that is skipped or aborted can reject before the update
+      // callback ran: re-apply the theme so the page never stays in the old one.
+      vt.ready.catch(() => {
+        try {
+          write();
+        } catch {
+          /* nothing else to do: the DOM write already failed */
+        }
+      });
+      vt.finished.catch(() => {});
+    } catch {
+      write();
+    }
+    return;
+  }
+
+  // Veil: dissolve the page through its own background, swap, dissolve back.
+  // A newer toggle supersedes an older one: drop its veil before starting.
+  cancelVeil();
+  const veil = document.createElement("div");
+  veil.setAttribute("aria-hidden", "true");
+  veil.style.cssText = [
+    "position:fixed",
+    "inset:0",
+    "z-index:2147483647",
+    "pointer-events:none",
+    "opacity:0",
+    "will-change:opacity",
+    `background-color:${getComputedStyle(document.body).backgroundColor}`,
+  ].join(";");
+  document.body.appendChild(veil);
+  activeVeil = veil;
+
+  const half = Math.max(90, themeDuration() / 2);
+
   root.setAttribute("data-theme-switching", "");
   void (async () => {
-    const duration = themeDuration();
     try {
-      await root.animate([{ opacity: 1 }, { opacity: 0 }], { duration: duration / 2, easing: ease })
-        .finished;
+      await veil.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: half,
+        easing: ease,
+        fill: "forwards",
+      }).finished;
       applyThemeAttributes(theme);
-      await root.animate([{ opacity: 0 }, { opacity: 1 }], { duration: duration / 2, easing: ease })
-        .finished;
+      await veil.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: half,
+        easing: ease,
+        fill: "forwards",
+      }).finished;
     } finally {
-      root.removeAttribute("data-theme-switching");
+      if (activeVeil === veil) {
+        veil.remove();
+        activeVeil = null;
+        root.removeAttribute("data-theme-switching");
+      }
     }
   })();
 }
