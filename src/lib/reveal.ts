@@ -272,16 +272,14 @@ export function startReveal(): () => void {
 
   const watch = (el: HTMLElement) => {
     if (isRevealed(el) || pending.has(el)) return;
+    if (still || document.hidden || isWrapper(el)) return markIn(el);
     // In a switched-in list (`data-instant` fades the block in, `data-immediate`
     // shows it with no animation) only the leaves already in view are shown at
     // once; rows still below the fold keep the normal scroll reveal.
-    // This check MUST come before the `still` check so that switched-in content
-    // animates regardless of the `prefers-reduced-motion` setting.
     if (el.closest("[data-instant], [data-immediate]")) {
       const line = tokens ? tokens.trigger * root.clientHeight + tokens.triggerOffset : 0;
       if (el.getBoundingClientRect().top < root.clientHeight - line) return markIn(el);
     }
-    if (still || document.hidden || isWrapper(el)) return markIn(el);
     armed.delete(el);
     pending.add(el);
     io.observe(el);
@@ -449,7 +447,7 @@ let snapshots: HTMLElement[] = [];
 export function fadeOutSnapshot(target: HTMLElement | null): void {
   if (!target) return;
   const tokens = readTokens();
-  if (!tokens) return;
+  if (!tokens || prefersReducedMotion()) return;
 
   // A newer snapshot supersedes any still fading.
   snapshots.forEach((node) => node.remove());
@@ -503,7 +501,7 @@ export function fadeOutSnapshot(target: HTMLElement | null): void {
 export function fadeOutList(root: HTMLElement | null, scope = LEAF, lift = 0): Promise<void> {
   if (!root) return Promise.resolve();
   const tokens = readTokens();
-  if (!tokens) return Promise.resolve();
+  if (!tokens || prefersReducedMotion()) return Promise.resolve();
 
   const els = [...root.querySelectorAll<HTMLElement>(scope)].filter(isRevealed);
   if (!els.length) return Promise.resolve();
