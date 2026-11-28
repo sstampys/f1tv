@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import {
   seasonsRes,
   driverStandingsRes,
@@ -16,7 +16,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
-import { fadeOutList } from "@/lib/reveal";
 import { asSeason, setSeason, useSeason } from "@/lib/season";
 
 export const Route = createFileRoute("/standings")({
@@ -110,21 +109,15 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
     if (hasData) setTabsReady(true);
   }, [hasData]);
 
-  // Lists fade out before they are replaced (season or tab), like a page change.
-  const listRef = useRef<HTMLDivElement>(null);
-  const swapList = (apply: () => void) => {
-    void fadeOutList(listRef.current, ".table [data-reveal]").then(apply);
-  };
-
+  // No delay: the season or tab swaps in the same frame and the incoming table
+  // fades in with the reveal engine's normal stagger.
   const handleSeason = (next: string) => {
-    swapList(() => {
-      navigate({ to: "/standings", search: { season: next }, replace: true });
-    });
+    navigate({ to: "/standings", search: { season: next }, replace: true });
   };
 
   const handleTab = (next: string) => {
     if (next === tab) return;
-    swapList(() => setTab(next));
+    setTab(next);
   };
 
   return (
@@ -151,7 +144,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
             />
           ) : null
         ) : (
-          <div className="page-container" ref={listRef}>
+          <div className="page-container">
             <Tabs value={tab} onValueChange={handleTab}>
               <TabsList className="tabs-list" data-reveal>
                 <TabsTrigger value="drivers" data-reveal>Drivers</TabsTrigger>

@@ -19,7 +19,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
-import { fadeSwap } from "@/lib/reveal";
+import { fadeSwap, fadeOutList } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
@@ -146,12 +146,16 @@ function ResultsPage() {
     });
   }, [race, active]);
 
-  // No delay: the session swaps in the same frame. The time in the header
-  // dip-fades first (SwapText), and the incoming session's rows fade in under
-  // it with the reveal engine's normal stagger.
+  // The list fades out before it is replaced (switching session), the same way
+  // the standings page does — same exit tokens, same timing. The swap happens
+  // in `.then()`, and the incoming session mounts fresh so it fades in with the
+  // reveal engine's normal stagger.
+  const listRef = useRef<HTMLDivElement>(null);
   const handleTab = (next: SessionKey) => {
     if (next === active) return;
-    setActiveTab(next);
+    void fadeOutList(listRef.current, ".session-panel [data-reveal]").then(() =>
+      setActiveTab(next),
+    );
   };
 
   // The timestamp under the race name belongs to the session on screen, so it
@@ -185,7 +189,7 @@ function ResultsPage() {
             disappears from under the pointer once the results arrive. The
             results themselves are always here, so a race without a qualifying
             session still shows its results. */}
-        <div className="page-container">
+        <div className="page-container" ref={listRef}>
           <Tabs value={active} onValueChange={(v) => handleTab(v as SessionKey)}>
             {/* The tab row itself is a wrapper for its tabs, so it carries no
                 reveal marker: the tabs inside it do the fading. */}
