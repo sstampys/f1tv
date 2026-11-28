@@ -12,6 +12,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
+import { fadeOutSnapshot } from "@/lib/reveal";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
@@ -109,17 +110,25 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
     if (hasData) setTabsReady(true);
   }, [hasData]);
 
-  // No delay: the season or tab swaps in the same frame. The incoming table
-  // fades in as one block (data-instant) so there is no per-leaf stagger delay.
+  // No delay: the season or tab swaps in the same frame. The outgoing table is
+  // snapshotted and fades out over the incoming one, which fades in as one
+  // block (data-instant) — no per-leaf stagger delay and no wait before the
+  // switch.
   const switched = useRef(false);
+  const listRef = useRef<HTMLDivElement>(null);
+  const snapshot = () =>
+    fadeOutSnapshot(listRef.current?.querySelector<HTMLElement>(".table") ?? null);
   const handleSeason = (next: string) => {
+    if (next === season) return;
     switched.current = true;
+    snapshot();
     navigate({ to: "/standings", search: { season: next }, replace: true });
   };
 
   const handleTab = (next: string) => {
     if (next === tab) return;
     switched.current = true;
+    snapshot();
     setTab(next);
   };
 
@@ -147,7 +156,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
             />
           ) : null
         ) : (
-          <div className="page-container">
+          <div className="page-container" ref={listRef}>
             <Tabs value={tab} onValueChange={handleTab}>
               <TabsList className="tabs-list" data-reveal>
                 <TabsTrigger value="drivers" data-reveal>Drivers</TabsTrigger>

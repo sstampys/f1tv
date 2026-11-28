@@ -19,6 +19,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
+import { fadeOutSnapshot } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
@@ -123,12 +124,16 @@ function ResultsPage() {
   }, [race, active]);
 
   // No delay: the session swaps in the same frame (the active tab flips at
-  // once). The incoming session fades in as one block (data-instant), so there
-  // is no per-leaf stagger delay; the time in the header changes instantly.
+  // once). The outgoing panel is snapshotted and fades out over the incoming
+  // one, which fades in as one block (data-instant) — no per-leaf stagger
+  // delay and no wait before the switch. The time in the header changes
+  // instantly.
   const switched = useRef(false);
+  const stackRef = useRef<HTMLDivElement>(null);
   const handleTab = (next: SessionKey) => {
     if (next === active) return;
     switched.current = true;
+    fadeOutSnapshot(stackRef.current?.querySelector<HTMLElement>(".session-panel") ?? null);
     setActiveTab(next);
   };
 
@@ -163,7 +168,7 @@ function ResultsPage() {
             disappears from under the pointer once the results arrive. The
             results themselves are always here, so a race without a qualifying
             session still shows its results. */}
-        <div className="page-container">
+        <div className="page-container" ref={stackRef}>
           <Tabs value={active} onValueChange={(v) => handleTab(v as SessionKey)}>
             {/* The tab row itself is a wrapper for its tabs, so it carries no
                 reveal marker: the tabs inside it do the fading. */}
