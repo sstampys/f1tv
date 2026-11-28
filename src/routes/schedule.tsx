@@ -15,7 +15,7 @@ import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
 import { SystemSelect } from "@/components/ui/system-select";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
-import { fadeOutList } from "@/lib/reveal";
+import { LEAF, fadeOutList } from "@/lib/reveal";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
 import { asSeason, setSeason, useSeason } from "@/lib/season";
@@ -206,7 +206,9 @@ function RaceCalendar({
     }
     const token = ++fadeToken.current;
     setShowPast(false);
-    void fadeOutList(pastRef.current).then(() => {
+    // The rows rose into place when the list opened, so they leave the same
+    // way: fade out while drifting up, matching the reveal distance.
+    void fadeOutList(pastRef.current, LEAF, 1).then(() => {
       if (fadeToken.current === token) setPastMounted(false);
     });
   };

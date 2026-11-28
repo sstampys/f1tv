@@ -424,15 +424,20 @@ export function playReveal(el: HTMLElement | null, delay = 0): void {
 export const PAGE_EXIT_EVENT = "f1box:exit";
 
 /**
- * Fade the revealed leaves inside `root` out (opacity only, same exit tokens the
- * page transition uses) and resolve when they are gone.
+ * Fade the revealed leaves inside `root` out (same exit tokens the page
+ * transition uses) and resolve when they are gone.
  *
  * Used when one list replaces another — switching season, switching tab, or
  * collapsing a list — so the swap reads like a page change instead of jumping.
  * The caller swaps state in `.then()`; the incoming list mounts fresh, so the
  * reveal engine fades it in with the normal stagger.
+ *
+ * `lift` moves the leaves up by that many pixels as they fade, mirroring the
+ * way a list revealed with `data-reveal="down"` dropped into place. Only
+ * opacity and an integer-pixel transform animate, so the exit stays on the
+ * compositor; the default (0) is the plain fade every other caller expects.
  */
-export function fadeOutList(root: HTMLElement | null, scope = LEAF): Promise<void> {
+export function fadeOutList(root: HTMLElement | null, scope = LEAF, lift = 0): Promise<void> {
   if (!root) return Promise.resolve();
   const tokens = readTokens();
   if (!tokens || prefersReducedMotion()) return Promise.resolve();
@@ -440,9 +445,17 @@ export function fadeOutList(root: HTMLElement | null, scope = LEAF): Promise<voi
   const els = [...root.querySelectorAll<HTMLElement>(scope)].filter(isRevealed);
   if (!els.length) return Promise.resolve();
 
+  const up = Math.round(parseFloat(tokens.distance)) || 0;
+  const rise = lift > 0 ? up : 0;
+
   const animations = els.map((el) =>
     el.animate(
-      [{ opacity: getComputedStyle(el).opacity }, { opacity: 0 }],
+      rise
+        ? [
+            { opacity: getComputedStyle(el).opacity, transform: "translate3d(0, 0px, 0)" },
+            { opacity: 0, transform: `translate3d(0, ${-rise}px, 0)` },
+          ]
+        : [{ opacity: getComputedStyle(el).opacity }, { opacity: 0 }],
       { duration: tokens.exitDuration, easing: tokens.exitEase, fill: "forwards" },
     ),
   );
