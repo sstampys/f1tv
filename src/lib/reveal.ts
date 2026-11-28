@@ -424,33 +424,43 @@ export function playReveal(el: HTMLElement | null, delay = 0): void {
 export const PAGE_EXIT_EVENT = "f1box:exit";
 
 /**
- * Cross-fade two stacked text layers in place: the outgoing layer fades from
- * 1 to 0 while the incoming layer fades from 0 to 1. Used for text that
- * updates in place — the session timestamp on the results page — so the change
- * reads as a dissolve rather than a cut.
+ * Fade an element's text out, run `swap` to change it, then fade it back in.
+ * Used for text that updates in place — the session timestamp on the results
+ * page — so the change reads as a dissolve instead of a cut, with only one
+ * value ever on screen (no overlapping double image).
  *
- * Only opacity animates. The layers sit in the same box (see `.swap-text` in
- * styles.css), so nothing around the value moves, and the text keeps its
- * colour, weight and rendering because nothing is being recoloured or scaled.
+ * Only opacity animates, over half the exit duration each way, so the text
+ * keeps its colour, weight and rendering and nothing around it moves.
  */
-export function crossfadeText(leave: HTMLElement | null, enter: HTMLElement | null): Promise<void> {
-  if (!leave || !enter) return Promise.resolve();
+export function fadeSwap(el: HTMLElement | null, swap: () => void): void {
+  if (!el) {
+    swap();
+    return;
+  }
   const tokens = readTokens();
-  if (!tokens || prefersReducedMotion()) return Promise.resolve();
+  if (!tokens || prefersReducedMotion()) {
+    swap();
+    return;
+  }
 
   // A newer swap supersedes whatever is still running.
-  leave.getAnimations().forEach((animation) => animation.cancel());
-  enter.getAnimations().forEach((animation) => animation.cancel());
+  el.getAnimations().forEach((animation) => animation.cancel());
+  const half = tokens.exitDuration / 2;
+  const easing = tokens.exitEase;
 
-  const options = {
-    duration: tokens.exitDuration,
-    easing: tokens.exitEase,
+  const out = el.animate([{ opacity: 1 }, { opacity: 0 }], {
+    duration: half,
+    easing,
     fill: "forwards",
-  } as const;
-  leave.animate([{ opacity: 1 }, { opacity: 0 }], options);
-  return enter
-    .animate([{ opacity: 0 }, { opacity: 1 }], options)
-    .finished.then(() => {})
+  });
+  void out.finished
+    .then(() => {
+      swap();
+      // The text is now the new value (still transparent from `out`); fade it in.
+      requestAnimationFrame(() => {
+        el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: half, easing, fill: "forwards" });
+      });
+    })
     .catch(() => {});
 }
 

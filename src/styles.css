@@ -374,10 +374,10 @@
 }
 
 /* A value that swaps in place — the session timestamp on the results page —
-   cross-fades when it changes (see crossfadeText in lib/reveal.ts): the
-   outgoing text and the incoming text are stacked in one box, so the change
-   reads as a dissolve and nothing around it moves. Both layers are promoted
-   from mount so the fade stays on the compositor. */
+   fades out, swaps, and fades back in when it changes (see fadeSwap in
+   lib/reveal.ts): one value on screen at a time, so there is no overlapping
+   double image, and the box keeps its size so nothing around it moves. The
+   layer is promoted from mount so the fade stays on the compositor. */
 .swap-text {
   display: inline-grid;
   white-space: nowrap;
@@ -388,9 +388,6 @@
   will-change: opacity;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-.swap-text__layer--in {
-  opacity: 0;
 }
 @media (prefers-reduced-motion: reduce) {
   .swap-text__layer {

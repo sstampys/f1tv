@@ -19,7 +19,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
-import { crossfadeText, fadeOutList } from "@/lib/reveal";
+import { fadeSwap, fadeOutList } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
@@ -62,55 +62,25 @@ function tableVariant(tab: SessionKey): string {
 }
 
 /**
- * A value that cross-fades in place when it changes: the outgoing text fades
- * out while the incoming text fades in, both stacked in the same box so the
- * line never moves and nothing around it shifts.
+ * A value that fades in place when it changes: the current text fades out, the
+ * value swaps, then the new text fades in — one value on screen at a time, so
+ * there is no overlapping double image. The box keeps its size (see `.swap-text`
+ * in styles.css), so the line never moves and nothing around it shifts.
  */
 function SwapText({ value }: { value: string | null }) {
   const [shown, setShown] = useState<string | null>(value);
-  const [leaving, setLeaving] = useState<string | null>(null);
-  const enterRef = useRef<HTMLSpanElement>(null);
-  const leaveRef = useRef<HTMLSpanElement>(null);
+  const ref = useRef<HTMLSpanElement>(null);
+  const shownRef = useRef<string | null>(value);
+  shownRef.current = shown;
 
-  // Absorb a new value: the text currently on screen becomes the outgoing layer.
   useEffect(() => {
-    if (value === shown) return;
-    if (shown === null) {
-      setShown(value);
-      return;
-    }
-    setLeaving(shown);
-    setShown(value);
-  }, [value, shown]);
-
-  // Cross-fade once both layers are on screen, then drop the old one and hand
-  // the incoming layer back to CSS (its opacity is 1 there).
-  useEffect(() => {
-    if (leaving === null) return;
-    let live = true;
-    void crossfadeText(leaveRef.current, enterRef.current).then(() => {
-      if (!live) return;
-      setLeaving(null);
-      requestAnimationFrame(() => {
-        enterRef.current?.getAnimations().forEach((animation) => animation.cancel());
-      });
-    });
-    return () => {
-      live = false;
-    };
-  }, [leaving]);
+    if (value === shownRef.current) return;
+    fadeSwap(ref.current, () => setShown(value));
+  }, [value]);
 
   return (
     <span className="swap-text">
-      {leaving !== null && (
-        <span ref={leaveRef} className="swap-text__layer" aria-hidden="true">
-          {leaving}
-        </span>
-      )}
-      <span
-        ref={enterRef}
-        className={leaving === null ? "swap-text__layer" : "swap-text__layer swap-text__layer--in"}
-      >
+      <span ref={ref} className="swap-text__layer">
         {shown}
       </span>
     </span>
