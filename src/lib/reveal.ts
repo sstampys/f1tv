@@ -447,7 +447,7 @@ let snapshots: HTMLElement[] = [];
 export function fadeOutSnapshot(target: HTMLElement | null): void {
   if (!target) return;
   const tokens = readTokens();
-  if (!tokens || prefersReducedMotion()) return;
+  if (!tokens) return;
 
   // A newer snapshot supersedes any still fading.
   snapshots.forEach((node) => node.remove());
