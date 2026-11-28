@@ -13,6 +13,10 @@ import { Navigation } from "@/components/Navigation";
 import { ScrollReveal } from "@/components/ScrollReveal";
 import { themeInitScript } from "@/lib/theme";
 import appCss from "../styles.css?url";
+import faviconIco from "../assets/favicon.ico?url";
+import faviconBlack from "../assets/favicon-black.png?url";
+import faviconWhite from "../assets/favicon-white.png?url";
+import appleTouchIcon from "../assets/apple-touch-icon.png?url&no-inline";
 import { Analytics } from "@vercel/analytics/react";
 
 function NotFoundComponent() {
@@ -106,9 +110,13 @@ export const Route = createRootRoute({
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", type: "image/png", href: "/favicon-black.png", media: "(prefers-color-scheme: light)" },
-      { rel: "icon", type: "image/png", href: "/favicon-white.png", media: "(prefers-color-scheme: dark)" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      // Icons are imported (not served from /public) so the build gives them a
+      // content-hashed URL: browsers cache favicons by URL for a long time, so
+      // a stable path would keep showing the previous icon after a change.
+      { rel: "icon", href: faviconIco, sizes: "any" },
+      { rel: "icon", type: "image/png", href: faviconBlack, media: "(prefers-color-scheme: light)" },
+      { rel: "icon", type: "image/png", href: faviconWhite, media: "(prefers-color-scheme: dark)" },
+      { rel: "apple-touch-icon", href: appleTouchIcon },
     ],
   }),
   shellComponent: RootShell,

@@ -12,8 +12,15 @@
 
 export type Theme = "light" | "dark";
 
-/** localStorage key for the user's explicit choice. */
-export const THEME_STORAGE_KEY = "theme";
+/**
+ * localStorage key for the user's explicit choice.
+ *
+ * The theme follows the operating system's light/dark setting until the
+ * visitor picks one with the logo in the navigation pill; that choice is then
+ * remembered here. The key is versioned so the system setting is the default
+ * for everyone: choices stored under an older key are ignored.
+ */
+export const THEME_STORAGE_KEY = "theme-pref";
 
 /** Browser-chrome colours, matching --paper in each theme. */
 export const THEME_COLOR_LIGHT = "#fcfcfc";
@@ -127,6 +134,7 @@ export function applyTheme(theme: Theme, animate = true): void {
  * Blocking head script. Reads the saved choice (guarded), falls back to the
  * system, and sets the class, marker, color-scheme and theme-color before the
  * first paint. Keeps following the system while nothing is stored. One line so
- * it stays a cheap inline script.
+ * it stays a cheap inline script. The storage key is injected from
+ * THEME_STORAGE_KEY so the script and the app can never disagree.
  */
-export const themeInitScript = `(function(){try{var e=document.documentElement;var s=null;try{var v=localStorage.getItem("theme");if(v==="dark"||v==="light")s=v}catch(a){}var m=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;var set=function(t){e.dataset.theme=t;if(t==="dark")e.classList.add("dark");else e.classList.remove("dark");e.style.colorScheme=t;var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute("content",t==="dark"?"#171717":"#fcfcfc")};var apply=function(){set(s||(m&&m.matches?"dark":"light"))};apply();if(!s&&m){var h=function(){var n=null;try{var w=localStorage.getItem("theme");if(w==="dark"||w==="light")n=w}catch(b){}if(n)return;apply()};if(m.addEventListener)m.addEventListener("change",h);else if(m.addListener)m.addListener(h)}}catch(c){}})();`;
+export const themeInitScript = `(function(){try{var e=document.documentElement;var k=${JSON.stringify(THEME_STORAGE_KEY)};var s=null;try{var v=localStorage.getItem(k);if(v==="dark"||v==="light")s=v}catch(a){}var m=window.matchMedia?window.matchMedia("(prefers-color-scheme: dark)"):null;var set=function(t){e.dataset.theme=t;if(t==="dark")e.classList.add("dark");else e.classList.remove("dark");e.style.colorScheme=t;var c=document.querySelector('meta[name="theme-color"]');if(c)c.setAttribute("content",t==="dark"?"#171717":"#fcfcfc")};var apply=function(){set(s||(m&&m.matches?"dark":"light"))};apply();if(!s&&m){var h=function(){var n=null;try{var w=localStorage.getItem(k);if(w==="dark"||w==="light")n=w}catch(b){}if(n)return;apply()};if(m.addEventListener)m.addEventListener("change",h);else if(m.addListener)m.addListener(h)}}catch(c){}})();`;
