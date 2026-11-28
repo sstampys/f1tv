@@ -19,7 +19,6 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
-import { fadeOutSnapshot } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
@@ -123,17 +122,14 @@ function ResultsPage() {
     });
   }, [race, active]);
 
-  // No delay: the session swaps in the same frame (the active tab flips at
-  // once). The outgoing panel is snapshotted and fades out over the incoming
-  // one, which fades in as one block (data-instant) — no per-leaf stagger
-  // delay and no wait before the switch. The time in the header changes
-  // instantly.
+  // No animation: the session swaps in the same frame (the active tab flips at
+  // once) and the incoming panel is shown at once (data-immediate) — no fade,
+  // no snapshot, no wait. Rows below the fold still reveal when scrolled to;
+  // the first load keeps the normal reveal (data-immediate only after a switch).
   const switched = useRef(false);
-  const stackRef = useRef<HTMLDivElement>(null);
   const handleTab = (next: SessionKey) => {
     if (next === active) return;
     switched.current = true;
-    fadeOutSnapshot(stackRef.current?.querySelector<HTMLElement>(".session-panel") ?? null);
     setActiveTab(next);
   };
 
@@ -168,7 +164,7 @@ function ResultsPage() {
             disappears from under the pointer once the results arrive. The
             results themselves are always here, so a race without a qualifying
             session still shows its results. */}
-        <div className="page-container" ref={stackRef}>
+        <div className="page-container">
           <Tabs value={active} onValueChange={(v) => handleTab(v as SessionKey)}>
             {/* The tab row itself is a wrapper for its tabs, so it carries no
                 reveal marker: the tabs inside it do the fading. */}
@@ -249,7 +245,7 @@ function SessionPanel({
   ) as (RaceResult | QualifyingResult | PracticeResult | SprintResult)[] | undefined;
 
   return (
-    <div className="session-panel" data-instant={instant ? "" : undefined}>
+    <div className="session-panel" data-immediate={instant ? "" : undefined}>
       <SessionSummary
         activeTab={tab}
         race={race}

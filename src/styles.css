@@ -373,26 +373,7 @@
   }
 }
 
-/* Content swapped in by a control (a session or a standings tab) fades in as
-   one block (the container animates), so there is no per-leaf stagger delay.
-   Only the leaves already in view are shown with it; rows still below the fold
-   keep the normal scroll reveal (see watch() in lib/reveal.ts). */
-[data-instant] {
-  animation: swap-in var(--motion-exit-duration) var(--ease) both;
-}
-@keyframes swap-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-instant] {
-    animation: none;
-  }
-}
+
 
 /* A value that swaps in place — the session timestamp on the results page —
 .swap-text {
