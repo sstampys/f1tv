@@ -218,13 +218,13 @@ function DemoRoute() {
 
   return (
     <div className="min-h-screen bg-ground">
-      <section className="page page--center page--center--below-pill rows">
-        <div className="page-container facts">
+      <section className="stream-stage">
+        <div className="page-container facts stream-stage__head">
           <h1 className="statement" data-reveal>Demo Stream</h1>
           <p className="mute" data-reveal>Test the stream player with sample content</p>
         </div>
 
-        <div className="page-container">
+        <div className="page-container stream-stage__player">
           {!loading && !iframeSrc ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', background: 'var(--ground)' }}>
               <div className="mute" data-reveal>

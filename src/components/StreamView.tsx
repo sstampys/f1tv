@@ -52,10 +52,9 @@ export default function StreamView({
   }));
 
   return (
-    <div className="page page--center page--center--below-pill">
-      <section className="rows">
+    <div className="stream-stage">
         {/* Stream Header */}
-        <div className="page-container">
+        <div className="page-container stream-stage__head">
           <p className="label-line" data-reveal>Live stream{demo && " · Demo"}</p>
           <div className="facts">
             <h1 className="statement" data-reveal>{currentSource?.label || "F1 Stream"}</h1>
@@ -68,7 +67,7 @@ export default function StreamView({
         </div>
 
         {/* Embedded Video Player */}
-        <div className="page-container stream-player" data-reveal>
+        <div className="page-container stream-player stream-stage__player" data-reveal>
           {demo === "sample" ? (
             <video
               key={iframeSrc}
@@ -175,7 +174,7 @@ export default function StreamView({
         </div>
 
         {/* Quick links below stream */}
-        <div className="page-container stream-links">
+        <div className="page-container stream-links stream-stage__foot">
           <a href="/standings" className="link" data-reveal>
             Driver Standings
           </a>
@@ -186,7 +185,6 @@ export default function StreamView({
             Race Results
           </a>
         </div>
-      </section>
     </div>
   );
 }

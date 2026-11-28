@@ -1064,6 +1064,35 @@ a.control:focus-visible,
   gap: var(--s3);
 }
 
+/* Stream stage (live + demo): the player sits exactly between the screen's top
+   and bottom edges — equal space above and below — with the heading directly
+   above it and the quick links directly below. The equal 1fr rows keep the
+   player centred no matter how tall the heading is, and the row gap is
+   symmetric so it never shifts the centre. */
+.stream-stage {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  row-gap: var(--stack);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+.stream-stage__head {
+  grid-row: 1;
+  align-self: end;
+  text-align: center;
+}
+.stream-stage__head .facts {
+  align-items: center;
+}
+.stream-stage__player {
+  grid-row: 2;
+}
+.stream-stage__foot {
+  grid-row: 3;
+  align-self: start;
+  justify-content: center;
+}
+
 /* Prose pages (legal, demo) */
 .prose > * + * {
   margin-top: var(--stack);
