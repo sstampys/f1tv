@@ -52,7 +52,7 @@ export default function StreamView({
   }));
 
   return (
-    <div className="page page--center">
+    <div className="page page--center page--center--below-pill">
       <section className="rows">
         {/* Stream Header */}
         <div className="page-container">
