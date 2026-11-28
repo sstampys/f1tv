@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, type ReactNode } from "react";
+import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
 import {
   seasonsRes,
   driverStandingsRes,
@@ -109,14 +109,17 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
     if (hasData) setTabsReady(true);
   }, [hasData]);
 
-  // No delay: the season or tab swaps in the same frame and the incoming table
-  // fades in with the reveal engine's normal stagger.
+  // No delay: the season or tab swaps in the same frame. The incoming table
+  // fades in as one block (data-instant) so there is no per-leaf stagger delay.
+  const switched = useRef(false);
   const handleSeason = (next: string) => {
+    switched.current = true;
     navigate({ to: "/standings", search: { season: next }, replace: true });
   };
 
   const handleTab = (next: string) => {
     if (next === tab) return;
+    switched.current = true;
     setTab(next);
   };
 
@@ -159,12 +162,14 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
                     inTable
                   />
                 ) : (
-                  <DriverStandingsTable
-                    key={`drivers-${season}`}
-                    standings={drivers.data || []}
-                    loading={!drivers.data}
-                    slow={driverLoad.slow ? loadErrorMessage(driverLoad.error, "the standings") : undefined}
-                  />
+                  <div data-instant={switched.current ? "" : undefined}>
+                    <DriverStandingsTable
+                      key={`drivers-${season}`}
+                      standings={drivers.data || []}
+                      loading={!drivers.data}
+                      slow={driverLoad.slow ? loadErrorMessage(driverLoad.error, "the standings") : undefined}
+                    />
+                  </div>
                 )}
               </TabsContent>
               <TabsContent value="constructors">
@@ -175,12 +180,14 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
                     inTable
                   />
                 ) : (
-                  <ConstructorStandingsTable
-                    key={`constructors-${season}`}
-                    standings={constructors.data || []}
-                    loading={!constructors.data}
-                    slow={constructorLoad.slow ? loadErrorMessage(constructorLoad.error, "the standings") : undefined}
-                  />
+                  <div data-instant={switched.current ? "" : undefined}>
+                    <ConstructorStandingsTable
+                      key={`constructors-${season}`}
+                      standings={constructors.data || []}
+                      loading={!constructors.data}
+                      slow={constructorLoad.slow ? loadErrorMessage(constructorLoad.error, "the standings") : undefined}
+                    />
+                  </div>
                 )}
               </TabsContent>
             </Tabs>

@@ -272,7 +272,12 @@ export function startReveal(): () => void {
 
   const watch = (el: HTMLElement) => {
     if (isRevealed(el) || pending.has(el)) return;
-    if (still || document.hidden || isWrapper(el)) return markIn(el);
+    // Content swapped in by a control is marked `data-instant` on its block: it
+    // is shown at once (the block fades in as one), never waiting in the reveal
+    // queue, so a switch has no stagger delay and no blank flash.
+    if (still || document.hidden || isWrapper(el) || el.closest("[data-instant]")) {
+      return markIn(el);
+    }
     armed.delete(el);
     pending.add(el);
     io.observe(el);

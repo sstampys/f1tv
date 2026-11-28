@@ -373,8 +373,31 @@
   }
 }
 
-/* The session timestamp on the results page. It changes in place with no
-   animation; the box keeps its size so the line never moves. */
+/* Content swapped in by a control (a session or a standings tab) is marked
+   `data-instant` on its block: its leaves are shown at once (no per-leaf reveal
+   stagger, which would delay the list and flash empty), and the block fades in
+   as one. More specific than the reveal hidden state, so it wins from paint. */
+[data-instant] {
+  animation: swap-in var(--motion-exit-duration) var(--ease) both;
+}
+[data-instant] [data-reveal] {
+  opacity: 1;
+}
+@keyframes swap-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-instant] {
+    animation: none;
+  }
+}
+
+/* A value that swaps in place — the session timestamp on the results page —
 .swap-text {
   display: inline-grid;
   white-space: nowrap;

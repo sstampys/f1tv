@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   raceResultsRes,
   qualifyingRes,
@@ -123,10 +123,12 @@ function ResultsPage() {
   }, [race, active]);
 
   // No delay: the session swaps in the same frame (the active tab flips at
-  // once). The incoming session's rows fade in with the reveal engine's normal
-  // stagger; the time in the header changes instantly.
+  // once). The incoming session fades in as one block (data-instant), so there
+  // is no per-leaf stagger delay; the time in the header changes instantly.
+  const switched = useRef(false);
   const handleTab = (next: SessionKey) => {
     if (next === active) return;
+    switched.current = true;
     setActiveTab(next);
   };
 
@@ -183,6 +185,7 @@ function ResultsPage() {
                     race={race}
                     session={sessions[tab]}
                     resourceKey={sessionKeys[tab]}
+                    instant={switched.current}
                     results={results.data ?? undefined}
                     qualifying={qualifying.data ?? undefined}
                     practice={practice.data ?? undefined}
@@ -212,6 +215,7 @@ function SessionPanel({
   race,
   session,
   resourceKey,
+  instant,
   results,
   qualifying,
   practice,
@@ -223,6 +227,7 @@ function SessionPanel({
   race: Race | null;
   session: { data: unknown[] | null; error: unknown };
   resourceKey: string;
+  instant: boolean;
   results: RaceResult[] | undefined;
   qualifying: QualifyingResult[] | undefined;
   practice: PracticeResult[] | undefined;
@@ -239,7 +244,7 @@ function SessionPanel({
   ) as (RaceResult | QualifyingResult | PracticeResult | SprintResult)[] | undefined;
 
   return (
-    <div className="session-panel">
+    <div className="session-panel" data-instant={instant ? "" : undefined}>
       <SessionSummary
         activeTab={tab}
         race={race}
