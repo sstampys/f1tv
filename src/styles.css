@@ -1035,18 +1035,27 @@ a.control:focus-visible,
 .stream-player__source {
   position: absolute;
   top: var(--s2);
-  right: var(--s2);
+  left: var(--s2);
   z-index: 2;
   color: var(--player-text);
   background: var(--film-control);
   backdrop-filter: blur(var(--film-blur));
   border-radius: var(--r-pill);
-  padding: var(--s1) var(--s2);
+  padding: 4px 10px;
+  font-size: 13px;
 }
 /* The chip is dark in both themes, so the underline follows the light text
-   rather than the theme's (dark) underline colour. */
+   rather than the theme's (dark) underline colour. The select sizes to its
+   current value (field-sizing) so there is no empty gap when a shorter label
+   is chosen, and it shows no focus outline. */
 .stream-player__source .control {
   text-decoration-color: currentColor;
+  field-sizing: content;
+  outline: none;
+}
+.stream-player__source .control:focus,
+.stream-player__source .control[data-focus-visible="true"] {
+  outline: none;
 }
 .stream-links {
   display: flex;
