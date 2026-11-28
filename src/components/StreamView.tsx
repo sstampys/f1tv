@@ -102,6 +102,23 @@ export default function StreamView({
             </div>
           )}
 
+          {/* Source selector, top-left of the player. It hides with the player
+              controls, so it never sits over the picture while watching. */}
+          {hasStream && sources.length > 1 && (
+            <div
+              className={`stream-player__source transition-opacity duration-300 ${
+                controlsVisible ? "opacity-100" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <SystemSelect
+                value={iframeSrc ?? ""}
+                options={sourceOptions}
+                onChange={handleSourceChange}
+                ariaLabel="Change stream source"
+              />
+            </div>
+          )}
+
           {/* Controls overlay */}
           {hasStream && sources.length > 1 && (
             <div
@@ -156,18 +173,6 @@ export default function StreamView({
             </div>
           )}
         </div>
-
-        {/* Source selector, outside the player */}
-        {hasStream && sources.length > 1 && (
-          <div className="page-container player-controls player-controls--outside">
-            <SystemSelect
-              value={iframeSrc ?? ""}
-              options={sourceOptions}
-              onChange={handleSourceChange}
-              ariaLabel="Change stream source"
-            />
-          </div>
-        )}
 
         {/* Quick links below stream */}
         <div className="page-container stream-links">
