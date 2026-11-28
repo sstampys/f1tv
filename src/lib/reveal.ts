@@ -272,11 +272,13 @@ export function startReveal(): () => void {
 
   const watch = (el: HTMLElement) => {
     if (isRevealed(el) || pending.has(el)) return;
-    // Content swapped in by a control is marked `data-instant` on its block: it
-    // is shown at once (the block fades in as one), never waiting in the reveal
-    // queue, so a switch has no stagger delay and no blank flash.
-    if (still || document.hidden || isWrapper(el) || el.closest("[data-instant]")) {
-      return markIn(el);
+    if (still || document.hidden || isWrapper(el)) return markIn(el);
+    // In a data-instant block (a switched-in list) only the leaves already in
+    // view are shown at once, so they fade in with the block; rows still below
+    // the fold keep the normal scroll reveal instead of all appearing at once.
+    if (el.closest("[data-instant]")) {
+      const line = tokens ? tokens.trigger * root.clientHeight + tokens.triggerOffset : 0;
+      if (el.getBoundingClientRect().top < root.clientHeight - line) return markIn(el);
     }
     armed.delete(el);
     pending.add(el);

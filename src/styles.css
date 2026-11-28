@@ -373,15 +373,12 @@
   }
 }
 
-/* Content swapped in by a control (a session or a standings tab) is marked
-   `data-instant` on its block: its leaves are shown at once (no per-leaf reveal
-   stagger, which would delay the list and flash empty), and the block fades in
-   as one. More specific than the reveal hidden state, so it wins from paint. */
+/* Content swapped in by a control (a session or a standings tab) fades in as
+   one block (the container animates), so there is no per-leaf stagger delay.
+   Only the leaves already in view are shown with it; rows still below the fold
+   keep the normal scroll reveal (see watch() in lib/reveal.ts). */
 [data-instant] {
   animation: swap-in var(--motion-exit-duration) var(--ease) both;
-}
-[data-instant] [data-reveal] {
-  opacity: 1;
 }
 @keyframes swap-in {
   from {
