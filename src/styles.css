@@ -1001,21 +1001,18 @@ a.control:focus-visible,
 }
 /* Source selector chip: see .stream-player__source */
 /* Source selector pinned to the top-left corner of the player, on both the live
-   and the demo page. Kept deliberately quiet: a faint dark chip, small type and
-   no underline, so it reads as a corner affordance rather than page content. */
+   and the demo page. Bare text: no fill, no blur, no pill — just small, faint
+   type with a soft shadow so it stays readable over bright footage. */
 .stream-player__source {
   position: absolute;
   top: var(--s1);
   left: var(--s1);
   z-index: 2;
   color: rgba(255, 255, 255, .6);
-  background: rgba(40, 40, 40, .22);
-  backdrop-filter: blur(var(--film-blur));
-  border-radius: var(--r-pill);
-  padding: 2px var(--s1);
   font-size: 12px;
   line-height: 18px;
   max-width: calc(100% - 2 * var(--s1));
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
 }
 /* No underline on the player chip: the pill itself is the affordance, and the
    underline colour would have to be overridden for the dark chip anyway. */
