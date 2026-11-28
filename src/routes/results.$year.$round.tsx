@@ -97,12 +97,6 @@ function ResultsPage() {
     return tabs;
   }, [qualifying.data, practice.data, sprint.data]);
 
-  // The sessions of the weekend are still on their way: the tab row holds its
-  // place until they are all known, so nothing below it has to move.
-  const sessionsPending = [results, qualifying, practice, sprint].some(
-    (session) => !session.data && !session.error,
-  );
-
   // A session whose data has gone keeps the tab it was on out of the strip;
   // the race is always there to fall back to.
   const active = availableTabs.includes(activeTab) ? activeTab : "race";
@@ -148,25 +142,25 @@ function ResultsPage() {
         </div>
 
         {/* The session on screen. The tab row is in the DOM from the first
-            frame: it holds the default session from the start and the other
-            sessions join it as they arrive, so the summary and the table never
-            move and the race tab is never re-drawn. The row itself is only
-            taken away once the weekend turns out to have a single session,
-            the way it was before. The results themselves are always here, so a
-            race without a qualifying session still shows its results. */}
+            frame and stays there: it holds the default session from the start
+            and the other sessions join it as they arrive, so the summary and
+            the table never move and the race tab is never re-drawn. The row
+            keeps the race tab even when the weekend turns out to have a single
+            session or a sibling session fails to load, so the label never
+            disappears from under the pointer once the results arrive. The
+            results themselves are always here, so a race without a qualifying
+            session still shows its results. */}
         <div className="page-container">
           <Tabs value={active} onValueChange={(v) => handleTab(v as SessionKey)}>
-            {(availableTabs.length > 1 || sessionsPending) && (
-              /* The tab row itself is a wrapper for its tabs, so it carries no
-                 reveal marker: the tabs inside it do the fading. */
-              <TabsList className="tabs-list">
-                {availableTabs.map((tab) => (
-                  <TabsTrigger key={tab} value={tab} data-reveal>
-                    {sessionLabel(tab)}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            )}
+            {/* The tab row itself is a wrapper for its tabs, so it carries no
+                reveal marker: the tabs inside it do the fading. */}
+            <TabsList className="tabs-list">
+              {availableTabs.map((tab) => (
+                <TabsTrigger key={tab} value={tab} data-reveal>
+                  {sessionLabel(tab)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
             {availableTabs.map((tab) => (
               <TabsContent key={tab} value={tab}>
