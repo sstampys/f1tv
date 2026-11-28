@@ -273,10 +273,11 @@ export function startReveal(): () => void {
   const watch = (el: HTMLElement) => {
     if (isRevealed(el) || pending.has(el)) return;
     if (still || document.hidden || isWrapper(el)) return markIn(el);
-    // In a data-instant block (a switched-in list) only the leaves already in
-    // view are shown at once, so they fade in with the block; rows still below
-    // the fold keep the normal scroll reveal instead of all appearing at once.
-    if (el.closest("[data-instant]")) {
+    // In a switched-in list (`data-instant` fades the block in, `data-immediate`
+    // shows it with no animation) only the leaves already in view are shown at
+    // once; rows still below the fold keep the normal scroll reveal instead of
+    // all appearing at once.
+    if (el.closest("[data-instant], [data-immediate]")) {
       const line = tokens ? tokens.trigger * root.clientHeight + tokens.triggerOffset : 0;
       if (el.getBoundingClientRect().top < root.clientHeight - line) return markIn(el);
     }
