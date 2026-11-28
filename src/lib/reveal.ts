@@ -273,13 +273,6 @@ export function startReveal(): () => void {
   const watch = (el: HTMLElement) => {
     if (isRevealed(el) || pending.has(el)) return;
     if (still || document.hidden || isWrapper(el)) return markIn(el);
-    // In a switched-in list (`data-instant` fades the block in, `data-immediate`
-    // shows it with no animation) only the leaves already in view are shown at
-    // once; rows still below the fold keep the normal scroll reveal.
-    if (el.closest("[data-instant], [data-immediate]")) {
-      const line = tokens ? tokens.trigger * root.clientHeight + tokens.triggerOffset : 0;
-      if (el.getBoundingClientRect().top < root.clientHeight - line) return markIn(el);
-    }
     armed.delete(el);
     pending.add(el);
     io.observe(el);
@@ -429,60 +422,6 @@ export function playReveal(el: HTMLElement | null, delay = 0): void {
 
 /** Broadcast just before the page's exit fade begins. */
 export const PAGE_EXIT_EVENT = "f1box:exit";
-
-/** The snapshot overlays currently fading out, so a newer one can drop them. */
-let snapshots: HTMLElement[] = [];
-
-/**
- * Fade a copy of `target` out where it sits, without touching the live list.
- *
- * The copy is a fixed-position clone appended to the body (so React never
- * removes it and it does not affect layout), fading from 1 to 0 over the exit
- * tokens. The live list is swapped in the same frame, so the outgoing list
- * dissolves over the incoming one with no delay before the interaction.
- *
- * Only opacity animates (compositor-friendly); the clone takes no pointer
- * events, so the control underneath stays clickable throughout.
- */
-export function fadeOutSnapshot(target: HTMLElement | null): void {
-  if (!target) return;
-  const tokens = readTokens();
-  if (!tokens || prefersReducedMotion()) return;
-
-  // A newer snapshot supersedes any still fading.
-  snapshots.forEach((node) => node.remove());
-  snapshots = [];
-
-  const rect = target.getBoundingClientRect();
-  const clone = target.cloneNode(true) as HTMLElement;
-  clone.removeAttribute("data-instant");
-  clone.removeAttribute("data-immediate");
-  clone.setAttribute("aria-hidden", "true");
-  clone.style.cssText = [
-    "position:fixed",
-    `left:${rect.left}px`,
-    `top:${rect.top}px`,
-    `width:${rect.width}px`,
-    `height:${rect.height}px`,
-    "overflow:hidden",
-    "pointer-events:none",
-    "z-index:5",
-    "will-change:opacity",
-  ].join(";");
-  document.body.appendChild(clone);
-  snapshots.push(clone);
-
-  const animation = clone.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: tokens.exitDuration,
-    easing: tokens.exitEase,
-    fill: "forwards",
-  });
-  const drop = () => {
-    clone.remove();
-    snapshots = snapshots.filter((node) => node !== clone);
-  };
-  animation.finished.then(drop, drop);
-}
 
 /**
  * Fade the revealed leaves inside `root` out (same exit tokens the page

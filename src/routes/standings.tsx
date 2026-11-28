@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
 import {
   seasonsRes,
   driverStandingsRes,
@@ -12,7 +12,6 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, currentYear, standingsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
-import { fadeOutSnapshot } from "@/lib/reveal";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { SystemSelect } from "@/components/ui/system-select";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
@@ -110,25 +109,14 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
     if (hasData) setTabsReady(true);
   }, [hasData]);
 
-  // The season or tab swaps in the same frame. The outgoing table is snapshotted
-  // and fades out over the incoming one, which fades in as one block
-  // (data-instant) — no per-leaf stagger delay and no wait before the switch.
-  // Rows below the fold still reveal when scrolled to.
-  const switched = useRef(false);
-  const listRef = useRef<HTMLDivElement>(null);
-  const snapshot = () =>
-    fadeOutSnapshot(listRef.current?.querySelector<HTMLElement>(".table") ?? null);
+  // No delay: the season or tab swaps in the same frame and the incoming table
+  // fades in with the reveal engine's normal stagger.
   const handleSeason = (next: string) => {
-    if (next === season) return;
-    switched.current = true;
-    snapshot();
     navigate({ to: "/standings", search: { season: next }, replace: true });
   };
 
   const handleTab = (next: string) => {
     if (next === tab) return;
-    switched.current = true;
-    snapshot();
     setTab(next);
   };
 
@@ -156,7 +144,7 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
             />
           ) : null
         ) : (
-          <div className="page-container" ref={listRef}>
+          <div className="page-container">
             <Tabs value={tab} onValueChange={handleTab}>
               <TabsList className="tabs-list" data-reveal>
                 <TabsTrigger value="drivers" data-reveal>Drivers</TabsTrigger>
@@ -171,14 +159,12 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
                     inTable
                   />
                 ) : (
-                  <div data-instant={switched.current ? "" : undefined}>
-                    <DriverStandingsTable
-                      key={`drivers-${season}`}
-                      standings={drivers.data || []}
-                      loading={!drivers.data}
-                      slow={driverLoad.slow ? loadErrorMessage(driverLoad.error, "the standings") : undefined}
-                    />
-                  </div>
+                  <DriverStandingsTable
+                    key={`drivers-${season}`}
+                    standings={drivers.data || []}
+                    loading={!drivers.data}
+                    slow={driverLoad.slow ? loadErrorMessage(driverLoad.error, "the standings") : undefined}
+                  />
                 )}
               </TabsContent>
               <TabsContent value="constructors">
@@ -189,14 +175,12 @@ export function StandingsSection({ currentSeason }: { currentSeason: string }) {
                     inTable
                   />
                 ) : (
-                  <div data-instant={switched.current ? "" : undefined}>
-                    <ConstructorStandingsTable
-                      key={`constructors-${season}`}
-                      standings={constructors.data || []}
-                      loading={!constructors.data}
-                      slow={constructorLoad.slow ? loadErrorMessage(constructorLoad.error, "the standings") : undefined}
-                    />
-                  </div>
+                  <ConstructorStandingsTable
+                    key={`constructors-${season}`}
+                    standings={constructors.data || []}
+                    loading={!constructors.data}
+                    slow={constructorLoad.slow ? loadErrorMessage(constructorLoad.error, "the standings") : undefined}
+                  />
                 )}
               </TabsContent>
             </Tabs>

@@ -373,29 +373,6 @@
   }
 }
 
-
-
-/* Content swapped in by a control (a session or a standings tab) fades in as
-   one block (the container animates), so there is no per-leaf stagger delay.
-   Only the leaves already in view are shown with it; rows still below the fold
-   keep the normal scroll reveal (see watch() in lib/reveal.ts). */
-[data-instant] {
-  animation: swap-in var(--motion-exit-duration) var(--ease) both;
-}
-@keyframes swap-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-instant] {
-    animation: none;
-  }
-}
-
 /* The session timestamp on the results page. It changes in place with no
    animation; the box keeps its size so the line never moves. */
 .swap-text {
@@ -1038,27 +1015,18 @@ a.control:focus-visible,
 .stream-player__source {
   position: absolute;
   top: var(--s2);
-  left: var(--s2);
+  right: var(--s2);
   z-index: 2;
   color: var(--player-text);
   background: var(--film-control);
   backdrop-filter: blur(var(--film-blur));
   border-radius: var(--r-pill);
-  padding: 4px 10px;
-  font-size: 13px;
+  padding: var(--s1) var(--s2);
 }
-/* The select sizes to its current value (field-sizing) so there is no empty
-   gap when a shorter label is chosen. The text is dimmed (lower opacity) and
-   has no underline, and it shows no focus outline. */
+/* The chip is dark in both themes, so the underline follows the light text
+   rather than the theme's (dark) underline colour. */
 .stream-player__source .control {
-  text-decoration: none;
-  field-sizing: content;
-  outline: none;
-  opacity: 0.8;
-}
-.stream-player__source .control:focus,
-.stream-player__source .control[data-focus-visible="true"] {
-  outline: none;
+  text-decoration-color: currentColor;
 }
 .stream-links {
   display: flex;
