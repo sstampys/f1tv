@@ -49,6 +49,18 @@ export const Route = createFileRoute("/results/$year/$round")({
   component: ResultsPage,
 });
 
+/** The name of a session, as the tab row writes it. */
+function sessionLabel(tab: SessionKey): string {
+  return tab.charAt(0).toUpperCase() + tab.slice(1);
+}
+
+/** The grid a session's table is drawn on, so the columns are fixed. */
+function tableVariant(tab: SessionKey): string {
+  if (tab === "qualifying") return "results-table--6col";
+  if (tab === "practice") return "results-table--6col-practice";
+  return "results-table--7col";
+}
+
 function ResultsPage() {
   const { year, round } = Route.useParams();
   const results = useResource(raceResultsRes(year, round));
@@ -84,6 +96,12 @@ function ResultsPage() {
     if (sprint.data && sprint.data.length > 0) tabs.push("sprint");
     return tabs;
   }, [qualifying.data, practice.data, sprint.data]);
+
+  // The sessions of the weekend are still on their way: the tab row holds its
+  // place until they are all known, so nothing below it has to move.
+  const sessionsPending = [results, qualifying, practice, sprint].some(
+    (session) => !session.data && !session.error,
+  );
 
   // A session whose data has gone keeps the tab it was on out of the strip;
   // the race is always there to fall back to.
@@ -129,17 +147,22 @@ function ResultsPage() {
           </Link>
         </div>
 
-        {/* The session on screen. The tab strip only appears once there is more
-            than one session to switch between; the results themselves are
-            always here, so a race without a qualifying session still shows
-            its results. */}
+        {/* The session on screen. The tab row is in the DOM from the first
+            frame: it holds the default session from the start and the other
+            sessions join it as they arrive, so the summary and the table never
+            move and the race tab is never re-drawn. The row itself is only
+            taken away once the weekend turns out to have a single session,
+            the way it was before. The results themselves are always here, so a
+            race without a qualifying session still shows its results. */}
         <div className="page-container">
           <Tabs value={active} onValueChange={(v) => handleTab(v as SessionKey)}>
-            {availableTabs.length > 1 && (
-              <TabsList className="tabs-list" data-reveal>
+            {(availableTabs.length > 1 || sessionsPending) && (
+              /* The tab row itself is a wrapper for its tabs, so it carries no
+                 reveal marker: the tabs inside it do the fading. */
+              <TabsList className="tabs-list">
                 {availableTabs.map((tab) => (
                   <TabsTrigger key={tab} value={tab} data-reveal>
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    {sessionLabel(tab)}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -226,7 +249,9 @@ function SessionPanel({
       <div>
         {loading && !data ? (
           <>
-            <div className="results-table">
+            {/* The same grid the table will use, so the columns are fixed
+                before a single row of data has arrived. */}
+            <div className={`results-table ${tableVariant(tab)}`}>
               <div className="results-table__row results-table__head" data-reveal>
                 <div className="results-table__cell">
                   <LoadingSpinner size={15} />

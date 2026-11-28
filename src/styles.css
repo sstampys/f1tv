@@ -84,6 +84,10 @@
   --page-top: calc(var(--nav-room) + var(--s15));
   --page-bottom: var(--s15);
 
+  /* Results: the height of one table row — two lines of text and the cell's
+     padding. */
+  --row: calc(var(--lh) * 2 + var(--stack));
+
   /* .row__label (≤760px), .case__facts */
   --label-gap: 4px;
   --facts-gap: 0px;
@@ -347,6 +351,19 @@
 @media (prefers-reduced-motion: reduce) {
   [data-reveal]:not([data-in]) {
     opacity: 1;
+  }
+}
+
+/* Ensure animated text stays crisp during GPU-composited fade.
+   will-change promotes the layer; font-smoothing matches static text weight. */
+[data-reveal][data-in] {
+  will-change: opacity, transform;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal][data-in] {
+    will-change: auto;
   }
 }
 
@@ -783,6 +800,9 @@ a.control:focus-visible,
 .results-table {
   width: 100%;
   font-variant-numeric: tabular-nums;
+  /* The space the table will take is reserved while it loads, so the page
+     does not change length under the reader. */
+  min-height: calc(var(--row) * 10);
 }
 /* Race / Sprint: 7 columns - Pos(2.75rem) | Driver(1fr) | Team(1fr) | Grid(3.5rem) | Laps(3.5rem) | Time(7.5rem) | Pts(3.5rem) */
 .results-table--7col .results-table__row {

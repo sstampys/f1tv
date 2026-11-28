@@ -70,13 +70,22 @@ function readTokens(): Tokens | null {
 /**
  * Run the reveal keyframes on one leaf. Only opacity and transform animate;
  * translate3d with a whole-pixel distance keeps text from snapping at the end.
- * will-change is set just before the animation and dropped two frames after it
- * finishes so WebKit does not flash the text colour when the layer is removed.
+ * will-change is set persistently on animated text wrappers so layers stay
+ * pre-promoted during scroll, preventing font weight shifts or blurriness.
+ * The property is only removed if reduced motion is preferred.
  */
 function animateLeaf(el: HTMLElement, tokens: Tokens, delay: number): void {
   const px = Math.round(parseFloat(tokens.distance)) || 0;
   const y = el.getAttribute("data-reveal") === "down" ? -px : px;
+  // Keep will-change on animated text wrappers so compositor thread keeps the
+  // layer promoted during scroll momentum. This prevents font weight shifts
+  // and blurriness in WKWebView when scrolling.
   el.style.willChange = "opacity, transform";
+  // Ensure text rendering matches GPU-promoted layer (prevents weight shift)
+  const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
+  if (style.webkitFontSmoothing === "") {
+    style.webkitFontSmoothing = "antialiased";
+  }
   const animation = el.animate(
     [
       { opacity: tokens.opacityFrom, transform: `translate3d(0, ${y}px, 0)` },
@@ -84,8 +93,12 @@ function animateLeaf(el: HTMLElement, tokens: Tokens, delay: number): void {
     ],
     { duration: tokens.duration, easing: tokens.ease, delay, fill: "backwards" },
   );
-  const clear = () =>
-    requestAnimationFrame(() => requestAnimationFrame(() => el.style.removeProperty("will-change")));
+  const clear = () => {
+    // Only remove will-change if reduced motion - otherwise keep layer promoted
+    if (prefersReducedMotion()) {
+      requestAnimationFrame(() => requestAnimationFrame(() => el.style.removeProperty("will-change")));
+    }
+  };
   animation.finished.then(clear, clear);
 }
 
@@ -168,7 +181,18 @@ export function startReveal(): () => void {
   const rtl = document.documentElement.dir === "rtl";
   const root = document.documentElement;
 
-  const markIn = (el: HTMLElement) => el.setAttribute("data-in", "");
+  const markIn = (el: HTMLElement) => {
+    el.setAttribute("data-in", "");
+    // Keep revealed elements promoted for compositor thread during scroll.
+    // This prevents font weight shifts and blurriness in WKWebView.
+    if (!prefersReducedMotion()) {
+      el.style.willChange = "opacity, transform";
+      const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
+      if (style.webkitFontSmoothing === "") {
+        style.webkitFontSmoothing = "antialiased";
+      }
+    }
+  };
 
   const fadeIn = (el: HTMLElement, delay: number) => {
     if (isRevealed(el)) return;
@@ -323,6 +347,18 @@ export function startReveal(): () => void {
 
   scan(document);
 
+  // Initialize will-change and font-smoothing on already-revealed elements
+  // so they stay promoted for the compositor thread during scroll.
+  if (!prefersReducedMotion()) {
+    document.querySelectorAll<HTMLElement>('[data-reveal][data-in]').forEach((el) => {
+      el.style.willChange = "opacity, transform";
+      const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
+      if (style.webkitFontSmoothing === "") {
+        style.webkitFontSmoothing = "antialiased";
+      }
+    });
+  }
+
   const mo = new MutationObserver((records) => {
     for (const record of records) {
       record.addedNodes.forEach((node) => {
@@ -372,6 +408,17 @@ export function startReveal(): () => void {
   const rearm = () => {
     restoreExit();
     scan(document);
+    // Re-initialize will-change and font-smoothing on revealed elements
+    // after navigation so they stay promoted for the compositor thread.
+    if (!prefersReducedMotion()) {
+      document.querySelectorAll<HTMLElement>('[data-reveal][data-in]').forEach((el) => {
+        el.style.willChange = "opacity, transform";
+        const style = el.style as CSSStyleDeclaration & { webkitFontSmoothing?: string };
+        if (style.webkitFontSmoothing === "") {
+          style.webkitFontSmoothing = "antialiased";
+        }
+      });
+    }
   };
 
   engine = {
