@@ -390,11 +390,6 @@
     opacity: 1;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  [data-instant] {
-    animation: none;
-  }
-}
 
 /* The session timestamp on the results page. It changes in place with no
    animation; the box keeps its size so the line never moves. */
