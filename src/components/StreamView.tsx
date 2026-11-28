@@ -142,7 +142,7 @@ export default function StreamView({
 
           {/* Fullscreen overlay */}
           {isFullscreen && (
-            <div className="fixed inset-0 z-50 bg-player" onClick={() => setIsFullscreen(false)}>
+            <div className="player-popup fixed inset-0 z-50 bg-player" onClick={() => setIsFullscreen(false)}>
               <div className="absolute top-4 right-4 z-60">
                 <Button variant="ghost" size="icon" onClick={() => setIsFullscreen(false)} aria-label="Exit fullscreen">
                   <X className="w-6 h-6 text-player-text" />

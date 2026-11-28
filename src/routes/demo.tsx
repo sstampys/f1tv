@@ -227,7 +227,7 @@ function DemoRoute() {
         <div className="page-container">
           {!loading && !iframeSrc ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', background: 'var(--ground)' }}>
-              <div className="mute">
+              <div className="mute" data-reveal>
                 <LoadingSpinner size={14} />
               </div>
             </div>

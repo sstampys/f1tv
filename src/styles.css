@@ -1027,6 +1027,37 @@ a.control:focus-visible,
 .stream-player__source .control:hover {
   color: rgba(255, 255, 255, .8);
 }
+/* Player popups: the source picker fades in just after the player itself has
+   revealed (top-to-bottom: header, player, then the overlay on the player), and
+   the fullscreen popup fades in instead of appearing at once. */
+.stream-player[data-in] .stream-player__source > * {
+  animation: player-pop-in var(--motion-reveal-duration) var(--motion-reveal-ease) backwards;
+  animation-delay: calc(var(--motion-reveal-stagger) * 3);
+}
+.player-popup {
+  animation: player-pop-in var(--motion-reveal-duration) var(--motion-reveal-ease) backwards;
+}
+.player-popup > * {
+  animation: player-pop-in var(--motion-reveal-duration) var(--motion-reveal-ease) backwards;
+  animation-delay: var(--motion-reveal-stagger);
+}
+@keyframes player-pop-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, calc(-1 * var(--motion-reveal-distance)), 0);
+  }
+}
+.player-popup { animation-name: player-fade-in; }
+@keyframes player-fade-in {
+  0% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .stream-player[data-in] .stream-player__source > *,
+  .player-popup,
+  .player-popup > * {
+    animation: none;
+  }
+}
 .stream-links {
   display: flex;
   flex-wrap: wrap;
