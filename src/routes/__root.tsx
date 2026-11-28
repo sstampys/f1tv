@@ -12,6 +12,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Navigation } from "@/components/Navigation";
 import { ControlButton } from "@/components/ui/control-button";
 import { ScrollReveal } from "@/components/ScrollReveal";
+import { ThemeController } from "@/components/ui/theme-controller";
 import { themeInitScript } from "@/lib/theme";
 import appCss from "../styles.css?url";
 import faviconIco from "../assets/favicon.ico?url";
@@ -153,6 +154,7 @@ function RootComponent() {
       <Analytics />
       <Navigation />
       <ScrollReveal />
+      <ThemeController />
       <main className="flex-1">
         <Outlet />
       </main>
