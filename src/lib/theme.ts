@@ -102,13 +102,12 @@ function applyThemeAttributes(theme: Theme): void {
  * Write a theme to the document and cross-fade the whole page as one
  * coordinated transition on the root element.
  *
- *  - With `startViewTransition` the swap runs inside a view transition: the
- *    old snapshot stays visible and the new one fades in on top
- *    (see styles.css ::view-transition-old/new(root)).
- *  - Without view transitions (older mobile WKWebView, etc.) a root-level
- *    opacity cross-fade runs through the Web Animations API: content fades
- *    out, the theme swaps on the root while invisible, content fades back in.
- *    No per-element colour transitions are involved.
+ *  - The page fades out, the theme swaps on the root while invisible, then
+ *    fades back in — a single root-level opacity cross-fade through the Web
+ *    Animations API. This is reliable on every browser including mobile
+ *    Safari/WKWebView where view-transition snapshots do not reliably capture
+ *    CSS custom-property colour changes (which would otherwise cut instantly).
+ *  - No per-element colour transitions are involved.
  *  - With reduced motion or animate === false the theme is written straight
  *    away, with no animation.
  */
@@ -121,59 +120,16 @@ export function applyTheme(theme: Theme, animate = true): void {
     (typeof window !== "undefined" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
-  const ease = themeEase();
-
-  const commit = () => {
-    // Freeze transitions for the frame the colours change in, then release
-    // two frames later so every colour lands at once.
+  if (reduce) {
     root.setAttribute("data-theme-switching", "");
     applyThemeAttributes(theme);
     requestAnimationFrame(() =>
       requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
     );
-  };
-
-  if (reduce) {
-    commit();
     return;
   }
 
-  const doc = document as Document & {
-    startViewTransition?: (cb: () => void) => { finished: Promise<void>; ready: Promise<void> };
-  };
-
-  // View transition path: snapshot cross-fade, coordinated on the root element.
-  if (typeof doc.startViewTransition === "function") {
-    const write = () => {
-      root.setAttribute("data-theme-switching", "");
-      applyThemeAttributes(theme);
-      requestAnimationFrame(() =>
-        requestAnimationFrame(() => root.removeAttribute("data-theme-switching")),
-      );
-    };
-    try {
-      const vt = doc.startViewTransition(write);
-      // A transition that is skipped or aborted can reject before the update
-      // callback ran: re-apply the theme so the page never stays in the old
-      // one. `write` runs at most once, so a transition that was superseded by
-      // a newer one can never pull the page back to the older theme.
-      vt.ready.catch(() => {
-        try {
-          write();
-        } catch {
-          /* nothing else to do: the DOM write already failed */
-        }
-      });
-      vt.finished.catch(() => {});
-    } catch {
-      write();
-    }
-    return;
-  }
-
-  // Fallback: single root-level opacity cross-fade for browsers without view
-  // transitions. The whole page fades out, the theme swaps on the root while
-  // invisible, then fades back in — one coordinated transition, no abrupt cut.
+  const ease = themeEase();
   root.setAttribute("data-theme-switching", "");
   void (async () => {
     const duration = themeDuration();
