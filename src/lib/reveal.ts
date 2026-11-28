@@ -75,10 +75,10 @@ function readTokens(): Tokens | null {
  * the page scrolls (a promotion set in this frame would be too late for
  * WebKit to composite the animation).
  */
-function animateLeaf(el: HTMLElement, tokens: Tokens, delay: number): void {
+function animateLeaf(el: HTMLElement, tokens: Tokens, delay: number): Animation {
   const px = Math.round(parseFloat(tokens.distance)) || 0;
   const y = el.getAttribute("data-reveal") === "down" ? -px : px;
-  el.animate(
+  return el.animate(
     [
       { opacity: tokens.opacityFrom, transform: `translate3d(0, ${y}px, 0)` },
       { opacity: 1, transform: "translate3d(0, 0, 0)" },
@@ -422,6 +422,37 @@ export function playReveal(el: HTMLElement | null, delay = 0): void {
 
 /** Broadcast just before the page's exit fade begins. */
 export const PAGE_EXIT_EVENT = "f1box:exit";
+
+/**
+ * Cross-fade two stacked text layers in place: the outgoing layer fades from
+ * 1 to 0 while the incoming layer fades from 0 to 1. Used for text that
+ * updates in place — the session timestamp on the results page — so the change
+ * reads as a dissolve rather than a cut.
+ *
+ * Only opacity animates. The layers sit in the same box (see `.swap-text` in
+ * styles.css), so nothing around the value moves, and the text keeps its
+ * colour, weight and rendering because nothing is being recoloured or scaled.
+ */
+export function crossfadeText(leave: HTMLElement | null, enter: HTMLElement | null): Promise<void> {
+  if (!leave || !enter) return Promise.resolve();
+  const tokens = readTokens();
+  if (!tokens || prefersReducedMotion()) return Promise.resolve();
+
+  // A newer swap supersedes whatever is still running.
+  leave.getAnimations().forEach((animation) => animation.cancel());
+  enter.getAnimations().forEach((animation) => animation.cancel());
+
+  const options = {
+    duration: tokens.exitDuration,
+    easing: tokens.exitEase,
+    fill: "forwards",
+  } as const;
+  leave.animate([{ opacity: 1 }, { opacity: 0 }], options);
+  return enter
+    .animate([{ opacity: 0 }, { opacity: 1 }], options)
+    .finished.then(() => {})
+    .catch(() => {});
+}
 
 /**
  * Fade the revealed leaves inside `root` out (same exit tokens the page

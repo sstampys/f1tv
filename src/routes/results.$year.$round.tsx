@@ -19,7 +19,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
-import { fadeOutList } from "@/lib/reveal";
+import { crossfadeText } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
@@ -59,6 +59,62 @@ function tableVariant(tab: SessionKey): string {
   if (tab === "qualifying") return "results-table--6col";
   if (tab === "practice") return "results-table--6col-practice";
   return "results-table--7col";
+}
+
+/**
+ * A value that cross-fades in place when it changes: the outgoing text fades
+ * out while the incoming text fades in, both stacked in the same box so the
+ * line never moves and nothing around it shifts.
+ */
+function SwapText({ value }: { value: string | null }) {
+  const [shown, setShown] = useState<string | null>(value);
+  const [leaving, setLeaving] = useState<string | null>(null);
+  const enterRef = useRef<HTMLSpanElement>(null);
+  const leaveRef = useRef<HTMLSpanElement>(null);
+
+  // Absorb a new value: the text currently on screen becomes the outgoing layer.
+  useEffect(() => {
+    if (value === shown) return;
+    if (shown === null) {
+      setShown(value);
+      return;
+    }
+    setLeaving(shown);
+    setShown(value);
+  }, [value, shown]);
+
+  // Cross-fade once both layers are on screen, then drop the old one and hand
+  // the incoming layer back to CSS (its opacity is 1 there).
+  useEffect(() => {
+    if (leaving === null) return;
+    let live = true;
+    void crossfadeText(leaveRef.current, enterRef.current).then(() => {
+      if (!live) return;
+      setLeaving(null);
+      requestAnimationFrame(() => {
+        enterRef.current?.getAnimations().forEach((animation) => animation.cancel());
+      });
+    });
+    return () => {
+      live = false;
+    };
+  }, [leaving]);
+
+  return (
+    <span className="swap-text">
+      {leaving !== null && (
+        <span ref={leaveRef} className="swap-text__layer" aria-hidden="true">
+          {leaving}
+        </span>
+      )}
+      <span
+        ref={enterRef}
+        className={leaving === null ? "swap-text__layer" : "swap-text__layer swap-text__layer--in"}
+      >
+        {shown}
+      </span>
+    </span>
+  );
 }
 
 function ResultsPage() {
@@ -114,14 +170,18 @@ function ResultsPage() {
     });
   }, [race, active]);
 
-  // The session on screen fades out before the next one arrives, like a page
-  // change instead of a cut. The new session fades in with the reveal.
+  // The control answers at once: the list on screen is replaced in the same
+  // frame and the arriving rows fade in with the reveal. Nothing waits for the
+  // outgoing list to fade out first, so a switch has no delay before it starts.
   const listRef = useRef<HTMLDivElement>(null);
   const handleTab = (next: SessionKey) => {
     if (next === active) return;
-    void fadeOutList(listRef.current).then(() => setActiveTab(next));
+    setActiveTab(next);
   };
 
+  // The timestamp under the race name belongs to the session on screen, so it
+  // changes with the tab. SwapText cross-fades it: the old time fades out as
+  // the new one fades in, so the update is a dissolve instead of a cut.
   return (
     <div className="page">
       <section id="results" className="rows">
@@ -132,7 +192,7 @@ function ResultsPage() {
               <p className="mute" data-reveal>
                 {race.Circuit.circuitName}, {race.Circuit.Location.locality}, {race.Circuit.Location.country}
                 <br />
-                <span style={{ whiteSpace: "nowrap" }}>{formattedDate}</span>
+                <SwapText value={formattedDate} />
               </p>
             )}
           </div>

@@ -373,6 +373,31 @@
   }
 }
 
+/* A value that swaps in place — the session timestamp on the results page —
+   cross-fades when it changes (see crossfadeText in lib/reveal.ts): the
+   outgoing text and the incoming text are stacked in one box, so the change
+   reads as a dissolve and nothing around it moves. Both layers are promoted
+   from mount so the fade stays on the compositor. */
+.swap-text {
+  display: inline-grid;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+.swap-text__layer {
+  grid-area: 1 / 1;
+  will-change: opacity;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.swap-text__layer--in {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .swap-text__layer {
+    will-change: auto;
+  }
+}
+
 /* Navigation (.nav) */
 .site-nav {
   position: fixed;
