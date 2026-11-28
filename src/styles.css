@@ -1009,6 +1009,25 @@ a.control:focus-visible,
      the select would otherwise inherit and be illegible on a light page). */
   color: var(--ink);
 }
+/* Demo stream-source picker: pinned to the top-right corner of the player,
+   styled like the player's own controls (light text on a blurred dark chip) so
+   it stays legible over the video. */
+.stream-player__source {
+  position: absolute;
+  top: var(--s2);
+  right: var(--s2);
+  z-index: 2;
+  color: var(--player-text);
+  background: var(--film-control);
+  backdrop-filter: blur(var(--film-blur));
+  border-radius: var(--r-pill);
+  padding: var(--s1) var(--s2);
+}
+/* The chip is dark in both themes, so the underline follows the light text
+   rather than the theme's (dark) underline colour. */
+.stream-player__source .control {
+  text-decoration-color: currentColor;
+}
 .stream-links {
   display: flex;
   flex-wrap: wrap;

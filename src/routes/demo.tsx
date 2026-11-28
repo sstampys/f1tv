@@ -255,20 +255,19 @@ function DemoRoute() {
                   playsInline
                 />
               )}
+              {sources.length > 1 ? (
+                <div className="stream-player__source">
+                  <SystemSelect
+                    value={iframeSrc ?? ""}
+                    options={sourceOptions}
+                    onChange={setSelected}
+                    ariaLabel="Change stream source"
+                  />
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>
-
-        {iframeSrc && sources.length > 1 ? (
-          <div className="page-container player-controls player-controls--outside justify-end">
-            <SystemSelect
-              value={iframeSrc ?? ""}
-              options={sourceOptions}
-              onChange={setSelected}
-              ariaLabel="Change stream source"
-            />
-          </div>
-        ) : null}
       </section>
     </div>
   );
