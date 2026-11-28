@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo, useRef, type RefObject } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   raceResultsRes,
   qualifyingRes,
@@ -19,7 +19,7 @@ import { useResource } from "@/lib/data/use-resource";
 import { ENDPOINTS, KEYS, TTL, resultsTtl } from "@/lib/data/config";
 import { earlyFetchScript } from "@/lib/data/early";
 import { loadErrorMessage, useLoadTimeout } from "@/lib/data/load-error";
-import { crossfadeText } from "@/lib/reveal";
+import { crossfadeText, fadeOutList } from "@/lib/reveal";
 import { Link } from "@tanstack/react-router";
 import { LoadingSpinner } from "@/components/ui/loader-circle-icon";
 import { ControlButton } from "@/components/ui/control-button";
@@ -170,13 +170,16 @@ function ResultsPage() {
     });
   }, [race, active]);
 
-  // The control answers at once: the list on screen is replaced in the same
-  // frame and the arriving rows fade in with the reveal. Nothing waits for the
-  // outgoing list to fade out first, so a switch has no delay before it starts.
+  // Lists fade out before they are replaced (switching session), like a page
+  // change — the same pattern the standings page uses. The swap happens in
+  // `.then()`, and the incoming session mounts fresh so it fades in with the
+  // reveal engine's normal stagger.
   const listRef = useRef<HTMLDivElement>(null);
   const handleTab = (next: SessionKey) => {
     if (next === active) return;
-    setActiveTab(next);
+    void fadeOutList(listRef.current, ".session-panel [data-reveal]").then(() =>
+      setActiveTab(next),
+    );
   };
 
   // The timestamp under the race name belongs to the session on screen, so it
@@ -210,7 +213,7 @@ function ResultsPage() {
             disappears from under the pointer once the results arrive. The
             results themselves are always here, so a race without a qualifying
             session still shows its results. */}
-        <div className="page-container">
+        <div className="page-container" ref={listRef}>
           <Tabs value={active} onValueChange={(v) => handleTab(v as SessionKey)}>
             {/* The tab row itself is a wrapper for its tabs, so it carries no
                 reveal marker: the tabs inside it do the fading. */}
@@ -232,7 +235,6 @@ function ResultsPage() {
                     race={race}
                     session={sessions[tab]}
                     resourceKey={sessionKeys[tab]}
-                    listRef={listRef}
                     results={results.data ?? undefined}
                     qualifying={qualifying.data ?? undefined}
                     practice={practice.data ?? undefined}
@@ -262,7 +264,6 @@ function SessionPanel({
   race,
   session,
   resourceKey,
-  listRef,
   results,
   qualifying,
   practice,
@@ -274,7 +275,6 @@ function SessionPanel({
   race: Race | null;
   session: { data: unknown[] | null; error: unknown };
   resourceKey: string;
-  listRef: RefObject<HTMLDivElement | null>;
   results: RaceResult[] | undefined;
   qualifying: QualifyingResult[] | undefined;
   practice: PracticeResult[] | undefined;
@@ -291,7 +291,7 @@ function SessionPanel({
   ) as (RaceResult | QualifyingResult | PracticeResult | SprintResult)[] | undefined;
 
   return (
-    <div ref={listRef}>
+    <div className="session-panel">
       <SessionSummary
         activeTab={tab}
         race={race}
